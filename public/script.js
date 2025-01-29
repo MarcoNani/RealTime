@@ -3,11 +3,21 @@ const input = document.getElementById("message");
 const chat = document.getElementById("chat");
 const usernameInput = document.getElementById("username");
 const setUsernameBtn = document.getElementById("setUsername");
+const autoScrollToggle = document.getElementById("autoScrollToggle");
 
 let username = "";
 let currentMessageID = undefined;
 
 let messageDictionary = {};
+
+
+// Funzione per scrollare verso il basso
+function scrollToBottom() {
+    if (autoScrollToggle.checked) {
+        console.log("Scrolling to bottom");
+        chat.scrollTop = chat.scrollHeight;
+    }
+}
 
 
 
@@ -62,6 +72,8 @@ socket.on("display", (message_obj) => { // Riceve il messaggio da visualizzare
         // Aggiunge il messaggio al dizionario per tenere traccia di quello già visualizzato
         messageDictionary[message_obj.msg_id] = message_obj;
     }
+
+    scrollToBottom(); // Scrolla verso il basso
 });
 
 
