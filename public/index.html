@@ -5,12 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Realtime</title>
     <script src="/socket.io/socket.io.js"></script>
+    <script defer src="helpers.js"></script> <!-- Link to helpers.js -->
     <script defer src="script.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        #chat { width: 300px; height: 200px; border: 1px solid black; overflow-y: auto; padding: 10px; }
-        input { width: 100%; padding: 5px; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <input type="text" id="username" placeholder="Inserisci il tuo nome">

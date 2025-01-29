@@ -19,8 +19,6 @@ function scrollToBottom() {
     }
 }
 
-
-
 socket.on("setUsername", (name) => { // Riceve il proprio username
     username = name; // Imposta la variabile con il proprio username
     usernameInput.value = name; // Imposta il campo di input con il proprio username
@@ -58,13 +56,13 @@ socket.on("display", (message_obj) => { // Riceve il messaggio da visualizzare
         // Se il messaggio è già presente, aggiorna il suo contenuto
         const existingMessage = document.getElementById(`msg-${message_obj.msg_id}`);
         if (existingMessage) {
-            existingMessage.innerHTML = `<strong>${message_obj.name}:</strong> ${message_obj.payload}`;
+            existingMessage.innerHTML = `<strong style="color: ${getUsernameColor(message_obj.name)};">${sanitizeHTML(message_obj.name)}:</strong> ${sanitizeHTML(message_obj.payload)}`;
         }
     } else {
         // Se il messaggio è nuovo, lo aggiunge alla chat
         const messageElement = document.createElement("p");
         messageElement.id = `msg-${message_obj.msg_id}`; // Aggiunge un id univoco per il messaggio
-        messageElement.innerHTML = `<strong>${message_obj.name}:</strong> ${message_obj.payload}`;
+        messageElement.innerHTML = `<strong style="color: ${getUsernameColor(message_obj.name)};">${sanitizeHTML(message_obj.name)}:</strong> ${sanitizeHTML(message_obj.payload)}`;
 
         // Aggiunge il messaggio alla chat
         chat.appendChild(messageElement);
