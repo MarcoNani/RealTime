@@ -32,6 +32,24 @@ input.addEventListener("input", () => { // Quando si scrive nel campo di input
 
 socket.on("display", (message_obj) => { // Riceve il messaggio da visualizzare
     console.log(message_obj);
-    chat.innerHTML = `<p><strong>${message_obj.name}:</strong> ${message_obj.payload}</p>`; // Visualizza il messaggio
-    messageDictionary[message_obj.msg_id] = message_obj; // Aggiunge il messaggio al dizionario
+
+    // Controlla se il messaggio è già stato visualizzato
+    if (messageDictionary[message_obj.msg_id]) {
+        // Se il messaggio è già presente, aggiorna il suo contenuto
+        const existingMessage = document.getElementById(`msg-${message_obj.msg_id}`);
+        if (existingMessage) {
+            existingMessage.innerHTML = `<strong>${message_obj.name}:</strong> ${message_obj.payload}`;
+        }
+    } else {
+        // Se il messaggio è nuovo, lo aggiunge alla chat
+        const messageElement = document.createElement("p");
+        messageElement.id = `msg-${message_obj.msg_id}`; // Aggiunge un id univoco per il messaggio
+        messageElement.innerHTML = `<strong>${message_obj.name}:</strong> ${message_obj.payload}`;
+
+        // Aggiunge il messaggio alla chat
+        chat.appendChild(messageElement);
+
+        // Aggiunge il messaggio al dizionario per tenere traccia di quello già visualizzato
+        messageDictionary[message_obj.msg_id] = message_obj;
+    }
 });
