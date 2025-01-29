@@ -33,6 +33,16 @@ input.addEventListener("input", () => { // Quando si scrive nel campo di input
 socket.on("display", (message_obj) => { // Riceve il messaggio da visualizzare
     console.log(message_obj);
 
+    if (message_obj === "Hacker") { // Se il messaggio è "Hacker"
+        alert("Hai provato a hackerare il sistema!"); // Mostra un alert
+        return; // Esce dalla funzione
+    }
+
+    // Aggiorna l'id del messaggio corrente con quello ricevuto se è il mio messaggio
+    if (message_obj.name === username) {
+        currentMessageID = message_obj.msg_id; // Imposta l'id del messaggio corrente come quello del messaggio appena ricevuto
+    }
+
     // Controlla se il messaggio è già stato visualizzato
     if (messageDictionary[message_obj.msg_id]) {
         // Se il messaggio è già presente, aggiorna il suo contenuto
@@ -51,5 +61,14 @@ socket.on("display", (message_obj) => { // Riceve il messaggio da visualizzare
 
         // Aggiunge il messaggio al dizionario per tenere traccia di quello già visualizzato
         messageDictionary[message_obj.msg_id] = message_obj;
+    }
+});
+
+
+input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") { // Se si preme il tasto Invio
+        // imposta a undefined l'id del messaggio corrente
+        currentMessageID = undefined;
+        input.value = ""; // ripulisci il campo di input
     }
 });
