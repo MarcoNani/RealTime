@@ -56,13 +56,13 @@ socket.on("display", (message_obj) => { // Riceve il messaggio da visualizzare
         // Se il messaggio è già presente, aggiorna il suo contenuto
         const existingMessage = document.getElementById(`msg-${message_obj.msg_id}`);
         if (existingMessage) {
-            existingMessage.innerHTML = `<strong style="color: ${getUsernameColor(message_obj.name)};">${sanitizeHTML(message_obj.name)}:</strong> ${sanitizeHTML(message_obj.payload)}`;
+            existingMessage.innerHTML = generateTextMessage(message_obj);
         }
     } else {
         // Se il messaggio è nuovo, lo aggiunge alla chat
         const messageElement = document.createElement("p");
         messageElement.id = `msg-${message_obj.msg_id}`; // Aggiunge un id univoco per il messaggio
-        messageElement.innerHTML = `<strong style="color: ${getUsernameColor(message_obj.name)};">${sanitizeHTML(message_obj.name)}:</strong> ${sanitizeHTML(message_obj.payload)}`;
+        messageElement.innerHTML = generateTextMessage(message_obj);
 
         // Aggiunge il messaggio alla chat
         chat.appendChild(messageElement);

@@ -31,3 +31,12 @@ function getUsernameColor(username) {
     var index = hash % COLORS.length;
     return COLORS[index];
 }
+
+// Generate message text to show
+function generateTextMessage(message_obj) {
+    messageHTMLelement = "";
+    messageHTMLelement = `<strong style="color: ${getUsernameColor(message_obj.name)};">${sanitizeHTML(message_obj.name)}`; // metto l'user
+    messageHTMLelement += ` @${message_obj.time}:</strong>` // metto il time
+    messageHTMLelement += ` ${sanitizeHTML(message_obj.payload)}`; // metto il testo del messaggio
+    return messageHTMLelement;        
+}
