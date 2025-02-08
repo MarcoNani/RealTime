@@ -46,3 +46,5 @@ I messaggi che vengono scambiati su RealTime sono di proprietà delle persone ch
 ## Demo
 Se siete curiosi di provare un assaggio di RealTime vi rimandiamo alla demo disponibile collegandosi a https://realtime-demo.baunon.com/
 Uso un hosting gratuito. Ci vuole un pò perché la pagina si carichi all'inizio aspettate fino ad un minuto.
+
+Ovviamente il risultato finale sarà molto migliore di questo. Ma se volete farvi un idea così potete.
