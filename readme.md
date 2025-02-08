@@ -43,6 +43,9 @@ I messaggi che vengono scambiati su RealTime sono di proprietà delle persone ch
 - realizzare delle **bei file di export** per visualizzare in modo carino i vostri messaggi al di fuori di RealTime.
 - realizzare dei **file di export JSON** per permettervi di effettuare le elaborazioni che volete sui vostri messaggi, di importarli in altri sistemi o di visualizzarli come più preferite
 
+## Piattaforme
+Vogliamo rendere dispobibile un app Android nativa per utilizzare RealTime.
+
 ## Demo
 Se siete curiosi di provare un assaggio di RealTime vi rimandiamo alla demo disponibile collegandosi a https://realtime-demo.baunon.com/
 Uso un hosting gratuito. Ci vuole un pò perché la pagina si carichi all'inizio aspettate fino ad un minuto.
