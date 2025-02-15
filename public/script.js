@@ -7,6 +7,7 @@ const autoScrollToggle = document.getElementById("autoScrollToggle");
 
 let username = "";
 let currentMessageID = undefined;
+let send = true;
 
 let messageDictionary = {};
 
@@ -34,8 +35,13 @@ setUsernameBtn.addEventListener("click", () => { // Quando si clicca sul bottone
 
 input.addEventListener("input", () => { // Quando si scrive nel campo di input
     const message_obj = { text: input.value, msg_id: currentMessageID }; // crea oggetto messaggio
-    socket.emit("typing", message_obj); // Invia il messaggio di scrittura al server
-    console.log ( "Sending message with local message id: " + message_obj.msg_id);
+    if (send){
+        if (currentMessageID==undefined){
+            send = false;
+        }
+        socket.emit("typing", message_obj); // Invia il messaggio di scrittura al server
+        console.log ( "Sending message with local message id: " + message_obj.msg_id);
+    }
 });
 
 socket.on("display", (message_obj) => { // Riceve il messaggio da visualizzare
@@ -49,6 +55,11 @@ socket.on("display", (message_obj) => { // Riceve il messaggio da visualizzare
     // Aggiorna l'id del messaggio corrente con quello ricevuto se è il mio messaggio
     if (message_obj.name === username) {
         currentMessageID = message_obj.msg_id; // Imposta l'id del messaggio corrente come quello del messaggio appena ricevuto
+        if (!send){
+            socket.emit("typing", message_obj); // Invia il messaggio di scrittura al server
+            console.log ( "Sending message with local message id: " + message_obj.msg_id);
+        }
+        send = true;
     }
 
     // Controlla se il messaggio è già stato visualizzato
