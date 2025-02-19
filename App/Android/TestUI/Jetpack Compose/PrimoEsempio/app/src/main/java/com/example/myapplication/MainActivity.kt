@@ -8,11 +8,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.myapplication.ui.theme.MyApplicationTheme
@@ -45,14 +47,25 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ChatApp() {
+    // Stato per il controllo dello scroll
+    val listState = rememberLazyListState()
+
     // Stato per il testo in input
     var inputText by remember { mutableStateOf("") }
 
     // Lista dei messaggi (stato mutabile) per aggiornare automaticamente la UI
     val messages = remember { mutableStateListOf<String>() }
 
+    LaunchedEffect(WindowInsets.ime.getBottom(LocalDensity.current), messages.size) { // Viene eseguito ogni volta che cambia la dimensione della lista dei messaggi o della tastiera
+        if (messages.isNotEmpty()) { // Se c'è almeno un messaggio
+            listState.animateScrollToItem(messages.size - 1) // Scorro la lista fino all'ultimo elemento
+        }
+    }
+
     Surface(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding(), // Adatta lo spazio quando la tastiera è aperta
         color = MaterialTheme.colorScheme.background
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -61,7 +74,8 @@ fun ChatApp() {
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-                contentPadding = PaddingValues(8.dp)
+                contentPadding = PaddingValues(8.dp),
+                state = listState // Serve a ricevere il comando di scorrimento
             ) {
                 // Visualizza ogni messaggio utilizzando la composable MessageBubble
                 items(messages) { message ->
