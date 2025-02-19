@@ -50,6 +50,9 @@ fun ChatApp() {
     // Stato per il controllo dello scroll
     val listState = rememberLazyListState()
 
+    // TODO: fixare lo scrolling all'ultimo messaggio: il messaggio più recente adesso appare in cima, sono stanco, faccio un alta volta
+
+
     // Stato per il testo in input
     var inputText by remember { mutableStateOf("") }
 
@@ -58,7 +61,7 @@ fun ChatApp() {
 
     LaunchedEffect(WindowInsets.ime.getBottom(LocalDensity.current), messages.size) { // Viene eseguito ogni volta che cambia la dimensione della lista dei messaggi o della tastiera
         if (messages.isNotEmpty()) { // Se c'è almeno un messaggio
-            listState.animateScrollToItem(messages.size - 1) // Scorro la lista fino all'ultimo elemento
+            listState.scrollToItem(0) // Ultimo messaggio è 0 perché usiamo il reverseLayout
         }
     }
 
@@ -75,7 +78,8 @@ fun ChatApp() {
                     .weight(1f)
                     .fillMaxWidth(),
                 contentPadding = PaddingValues(8.dp),
-                state = listState // Serve a ricevere il comando di scorrimento
+                state = listState, // Serve a ricevere il comando di scorrimento
+                reverseLayout = true // fa attaccare i messaggi al fondo
             ) {
                 // Visualizza ogni messaggio utilizzando la composable MessageBubble
                 items(messages) { message ->

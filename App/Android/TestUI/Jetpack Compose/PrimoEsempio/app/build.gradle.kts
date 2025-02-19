@@ -12,8 +12,8 @@ android {
         applicationId = "com.example.myapplication"
         minSdk = 28
         targetSdk = 35
-        versionCode = 3 // To be incremented every time it is released (this is what Android needs to understand that it is a new version)
-        versionName = "0.1.1" // MAJOR.MINOR.PATCH
+        versionCode = 8 // To be incremented every time it is released (this is what Android needs to understand that it is a new version)
+        versionName = "0.1.6" // MAJOR.MINOR.PATCH
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
