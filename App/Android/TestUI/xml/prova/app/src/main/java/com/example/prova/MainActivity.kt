@@ -2,8 +2,10 @@ package com.example.prova
 
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -12,50 +14,40 @@ import androidx.core.view.WindowInsetsCompat
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
-    lateinit var btnAdd : Button
-    lateinit var btnSub : Button
-    lateinit var btnMultiply : Button
-    lateinit var btnDivision : Button
-    lateinit var etA : EditText
-    lateinit var etB : EditText
-    lateinit var resultTv : TextView
+    lateinit var btnSend : Button
+    lateinit var messageContent : EditText
+    lateinit var messageContainer : LinearLayout
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        btnAdd = findViewById<Button>(R.id.btn_add)
-        btnSub = findViewById<Button>(R.id.btn_subtraction)
-        btnMultiply = findViewById<Button>(R.id.btn_multiplication)
-        btnDivision = findViewById<Button>(R.id.btn_division)
-        etA = findViewById<EditText>(R.id.et_a)
-        etB = findViewById<EditText>(R.id.et_b)
-        resultTv = findViewById(R.id.result_tv)
+        btnSend = findViewById<Button>(R.id.btn_send)
+        messageContent = findViewById<EditText>(R.id.msg_contnt)
+        messageContainer = findViewById<LinearLayout>(R.id.message_container)
 
-        btnAdd.setOnClickListener(this)
-        btnSub.setOnClickListener(this)
-        btnMultiply.setOnClickListener(this)
-        btnDivision.setOnClickListener(this)
+        btnSend.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {
-        var a = etA.text.toString().toDouble()
-        var b = etB.text.toString().toDouble()
-        var result = 0.0
+        var a = messageContent.text.toString()
         when(v?.id){
-            R.id.btn_add->{
-                result = a+b
-            }
-            R.id.btn_subtraction->{
-                result = a-b
-            }
-            R.id.btn_multiplication->{
-                result = a*b
-            }
-            R.id.btn_division->{
-                result = a/b
+            R.id.btn_send->{
+                if (a.isNotEmpty()){
+                    val messageBubble = TextView(this).apply{
+                        text = a
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.WRAP_CONTENT
+                        )
+                        setPadding(16,8,16,8)
+                        setBackgroundResource(android.R.drawable.dialog_holo_light_frame)
+                    }
+
+                    messageContainer.addView(messageBubble)
+                    messageContent.text.clear()
+                }
             }
         }
-        resultTv.text = "Result is $result"
     }
 }

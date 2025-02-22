@@ -8,57 +8,52 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/et_a"
-        android:layout_margin="20dp"
-        android:hint="Enter a "/>
 
-    <EditText
-        android:id="@+id/et_b"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:hint="Enter b " />
-    
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/btn_add"
-            android:layout_margin="4dp"
-            android:text="+"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/btn_subtraction"
-            android:layout_margin="4dp"
-            android:text="-"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/btn_multiplication"
-            android:layout_margin="4dp"
-            android:text="*"/>
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/btn_division"
-            android:layout_margin="4dp"
-            android:text="/"/>
+
     </LinearLayout>
 
-    <TextView
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="result "
-        android:textSize="24sp"
-        android:layout_margin="20dp"
-        android:id="@+id/result_tv"
-        android:gravity="center"/>
+        android:orientation="vertical"
+        android:gravity="top">
+
+        <LinearLayout
+            android:id="@+id/message_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+
+                android:id="@+id/msg_contnt"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_margin="20dp"
+                android:hint="Message content" />
+
+            <Button
+                android:id="@+id/btn_send"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:text="Send" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="messages"
+                android:textSize="24sp"
+                android:layout_margin="10dp"
+                android:id="@+id/result_tv"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+    </ScrollView>
 
 </LinearLayout>
