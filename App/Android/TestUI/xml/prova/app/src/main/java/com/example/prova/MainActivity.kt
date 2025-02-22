@@ -39,24 +39,40 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
-        // add a new message bubble
-        val messageBubble = TextView(this).apply{
-            text = msg
-            layoutParams = ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            setPadding(16,8,16,8)
-            setBackgroundResource(android.R.drawable.dialog_holo_light_frame)
-        }
 
-        messageContainer.addView(messageBubble)
+
+        // add a new message bubble
+        drawBubble(msg)
+        
         messageContent.text.clear()
 
 
     }
 
+
+    fun drawBubble(msg: String) {
+        // Inflate the message bubble layout (import the XML layout file)
+        val messageBubble = layoutInflater.inflate(R.layout.message_bubble, null) as LinearLayout
+
+        // Set the message content
+        val textView: TextView = messageBubble.findViewById(R.id.message_text)
+        textView.text = msg
+
+
+        // Set the message timestamp
+        val messageTime = messageBubble.findViewById<TextView>(R.id.message_time)
+        messageTime.text = "13:30"
+
+
+        // Add the message bubble to the message container
+        messageContainer.addView(messageBubble)
+    }
+
+
+
     override fun onClick(v: View?) {
 
     }
+
+
 }
