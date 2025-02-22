@@ -13,6 +13,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
+
+// CLASSESSSS
+data class Message(
+    val typing: Boolean,
+    val name: String,
+    val payload: String,
+    val time: String,
+    val msgId: String
+)
+
+
+
 class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     // lateinit let you declare variable without initializing them immediately
@@ -40,28 +52,40 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
 
+        val messageObj = Message(true, "Me", msg, "13:30", "1")
 
-        // add a new message bubble
-        drawBubble(msg)
+        // Send the message to the server
+        // ...
+
+
+
+
+        // Call the receiveMessage function to fake the receiving from the server
+        receiveMessage(messageObj)
         
         messageContent.text.clear()
 
 
     }
 
+    fun receiveMessage(msg: Message) {
+        // add a new message bubble
+        drawBubble(msg)
+    }
 
-    fun drawBubble(msg: String) {
+
+    fun drawBubble(msg: Message) {
         // Inflate the message bubble layout (import the XML layout file)
         val messageBubble = layoutInflater.inflate(R.layout.message_bubble, null) as LinearLayout
 
         // Set the message content
         val textView: TextView = messageBubble.findViewById(R.id.message_text)
-        textView.text = msg
+        textView.text = msg.payload
 
 
         // Set the message timestamp
         val messageTime = messageBubble.findViewById<TextView>(R.id.message_time)
-        messageTime.text = "13:30"
+        messageTime.text = msg.time
 
 
         // Add the message bubble to the message container
