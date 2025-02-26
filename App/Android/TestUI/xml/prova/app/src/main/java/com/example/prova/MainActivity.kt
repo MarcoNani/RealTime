@@ -1,6 +1,8 @@
 package com.example.prova
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -43,6 +45,25 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         messageContainer = findViewById<LinearLayout>(R.id.message_container)
 
         btnSend.setOnClickListener { sendMessage(messageContent.text.toString()) } // listener at the click on the button, it exec the onClick function
+
+        // listener for the textchange in the message content
+        messageContent.addTextChangedListener(object: TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                // nothing
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                // nothing
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // While the text is changing (use this to update the UI in realtime)
+                Toast.makeText(this@MainActivity, "Text changed:$s", Toast.LENGTH_SHORT).show()
+            }
+
+
+        })
+
     }
 
 
