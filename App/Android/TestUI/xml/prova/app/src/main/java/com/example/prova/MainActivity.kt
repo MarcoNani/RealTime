@@ -14,6 +14,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import java.util.UUID
 
 
 // CLASSESSSS
@@ -59,6 +60,38 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 // While the text is changing (use this to update the UI in realtime)
                 Toast.makeText(this@MainActivity, "Text changed:$s", Toast.LENGTH_SHORT).show()
+
+                // Create a new message or update the content of the existing message
+                if (LocalMessageId == "") {
+                    // Create a new message
+
+
+                    // Create a new message object
+                    val messageObj = Message(false, "Me", s.toString(), "13:30", UUID.randomUUID().toString())
+
+                    // Update the local message id in the global variable
+                    LocalMessageId = messageObj.msgId
+
+                    // Send the message to the server
+                    // ...
+
+
+                    // Call the receiveMessage function to fake the receiving from the server
+                    receiveMessage(messageObj)
+                } else {
+                    // Update the existing message
+
+
+                    // Create a new message object (with the same id as the existing message)
+                    val messageObj = Message(false, "Me", s.toString(), "13:30", LocalMessageId)
+
+                    // Send the message to the server
+                    // ...
+
+
+                    // Call the receiveMessage function to fake the receiving from the server
+                    receiveMessage(messageObj)
+                }
             }
 
 
@@ -70,23 +103,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     fun sendMessage(msg: String) {
         if (msg.isEmpty()) return
 
-        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+        // Simulate the pressure of the enter button (set the LocalMessageId = "")
+        LocalMessageId = ""
 
-
-        val messageObj = Message(true, "Me", msg, "13:30", "1")
-
-        // Send the message to the server
-        // ...
-
-
-
-
-        // Call the receiveMessage function to fake the receiving from the server
-        receiveMessage(messageObj)
-        
+        // Clear the textbox
         messageContent.text.clear()
-
-
     }
 
     fun receiveMessage(msg: Message) {
@@ -96,21 +117,38 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
 
     fun drawBubble(msg: Message) {
-        // Inflate the message bubble layout (import the XML layout file)
-        val messageBubble = layoutInflater.inflate(R.layout.message_bubble, null) as LinearLayout
+        // if the message with the passed id has already been drawn update the content, else draw a new one
+        // check if a message bubble with the passed id already exists
+        val messageBubble = messageContainer.findViewWithTag<LinearLayout>(msg.msgId)
 
-        // Set the message content
-        val textView: TextView = messageBubble.findViewById(R.id.message_text)
-        textView.text = msg.payload
+        if (messageBubble != null) {
+            // Update the message content
+
+            val textView: TextView = messageBubble.findViewById(R.id.message_text)
+            textView.text = msg.payload
+            return
+        }else{
+            // Create a new message bubble
+
+            // Inflate the message bubble layout (import the XML layout file)
+            val newMessageBubble = layoutInflater.inflate(R.layout.message_bubble, null) as LinearLayout
+
+            // Set a message id
+            newMessageBubble.tag = msg.msgId
+
+            // Set the message content
+            val textView: TextView = newMessageBubble.findViewById(R.id.message_text)
+            textView.text = msg.payload
 
 
-        // Set the message timestamp
-        val messageTime = messageBubble.findViewById<TextView>(R.id.message_time)
-        messageTime.text = msg.time
+            // Set the message timestamp
+            val messageTime = newMessageBubble.findViewById<TextView>(R.id.message_time)
+            messageTime.text = msg.time
 
 
-        // Add the message bubble to the message container
-        messageContainer.addView(messageBubble)
+            // Add the message bubble to the message container
+            messageContainer.addView(newMessageBubble)
+        }
     }
 
 
