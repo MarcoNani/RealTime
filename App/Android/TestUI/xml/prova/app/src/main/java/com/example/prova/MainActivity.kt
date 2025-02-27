@@ -26,43 +26,44 @@ class MainActivity : AppCompatActivity() {
     private lateinit var messageAdapter: MessageAdapter
     private val messages = mutableListOf<Message>()
 
-    // Variabili per gestire l'aggiornamento del messaggio in tempo reale
-    private var LocalMessageId: String = ""
+    // SET GLOBAL VARIABLES
+    private var localMessageId: String = ""
     private var keepTheChatDown: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Assicurati che il flag adjustResize sia impostato
-        window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+        window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE) // Needed to make the window not going under the keyboard
+        
         setContentView(R.layout.activity_main)
 
-        // Collega le view definite in XML
+        // Link the view components (XML) to the variables
         btnSend = findViewById(R.id.btn_send)
         messageContent = findViewById(R.id.msg_contnt)
         recyclerView = findViewById(R.id.recycler_view)
 
-        // Configura il RecyclerView
+        // Config recyclerView
         messageAdapter = MessageAdapter(messages)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = messageAdapter
 
-        // Gestione del pulsante Send
+        // Listener for the send button
         btnSend.setOnClickListener { sendMessage(messageContent.text.toString()) }
 
-        // Listener per aggiornamenti in tempo reale dell'EditText
+        // Listener for text changes in messageContent
         messageContent.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
-                // Niente qui
+                // Nothing
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // Niente qui
+                // Nothing
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 val text = s.toString()
-                if (LocalMessageId.isEmpty()) {
-                    // Creazione di un nuovo messaggio
+
+                if (localMessageId.isEmpty()) { // If the local message ID is empty
+                    // Create a new message
                     val messageObj = Message(
                         typing = false,
                         name = "Me",
@@ -70,18 +71,18 @@ class MainActivity : AppCompatActivity() {
                         time = "13:30",
                         msgId = UUID.randomUUID().toString()
                     )
-                    LocalMessageId = messageObj.msgId
-                    receiveMessage(messageObj)
+                    localMessageId = messageObj.msgId // Set the local message ID
+                    receiveMessage(messageObj) // Fake the receive of the message
                 } else {
-                    // Aggiornamento del messaggio esistente
+                    // Update the existing message
                     val messageObj = Message(
                         typing = false,
                         name = "Me",
                         payload = text,
                         time = "13:30",
-                        msgId = LocalMessageId
+                        msgId = localMessageId
                     )
-                    receiveMessage(messageObj)
+                    receiveMessage(messageObj) // Fake the receive of the message
                 }
             }
         })
@@ -90,26 +91,27 @@ class MainActivity : AppCompatActivity() {
     private fun sendMessage(msg: String) {
         if (msg.isEmpty()) return
 
-        // Simula l'invio del messaggio e resetta l'ID locale
-        LocalMessageId = ""
-        // Pulisce l'EditText
+        // Simulate the sending of a message and set the local message ID to ""
+        localMessageId = ""
+        // Clear the EditText
         messageContent.text.clear()
     }
 
     private fun receiveMessage(msg: Message) {
-        // Se esiste già un messaggio con lo stesso id, aggiorna il contenuto; altrimenti, aggiungilo
-        val index = messages.indexOfFirst { it.msgId == msg.msgId }
-        if (index != -1) {
+        // If the message already exists, update it; otherwise, add it
+        val index = messages.indexOfFirst { it.msgId == msg.msgId } // Obtain the index of the first matching message or -1 if not found
+        if (index != -1) { // If the message already exists
             messageAdapter.updateMessage(msg)
-        } else {
+        } else { // If the message doesn't exist
             messageAdapter.addMessage(msg)
         }
+        
         if (keepTheChatDown) {
             scrollToBottom()
         }
     }
 
     private fun scrollToBottom() {
-        recyclerView.scrollToPosition(messageAdapter.itemCount - 1)
+        recyclerView.scrollToPosition(messageAdapter.itemCount - 1) // Scroll to the last position (last message)
     }
 }

@@ -5,20 +5,21 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="8dp"
-    android:layout_margin="4dp">
+    android:layout_margin="4dp"
+    android:background="@drawable/message_bubble">
 
-<TextView
-android:id="@+id/message_text"
-android:layout_width="wrap_content"
-android:layout_height="wrap_content"
-android:text="Sample message" />
+    <TextView
+        android:id="@+id/message_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sample message" />
 
-<TextView
-android:id="@+id/message_time"
-android:layout_width="wrap_content"
-android:layout_height="wrap_content"
-android:text="13:30"
-android:textSize="10sp"
-android:layout_gravity="end" />
+    <TextView
+        android:id="@+id/message_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="13:30"
+        android:textSize="10sp"
+        android:layout_gravity="end" />
 
-    </LinearLayout>
+</LinearLayout>
