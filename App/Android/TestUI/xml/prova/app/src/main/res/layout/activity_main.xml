@@ -6,9 +6,9 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <!-- Container dei messaggi (input + visualizzazione) -->
+    <!-- Container per l'input del messaggio -->
     <LinearLayout
-        android:id="@+id/message_container"
+        android:id="@+id/message_input_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -16,7 +16,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/scroll_view">
+        app:layout_constraintBottom_toTopOf="@+id/recycler_view">
 
         <EditText
             android:id="@+id/msg_contnt"
@@ -24,29 +24,21 @@
             android:layout_height="40dp"
             android:layout_marginBottom="8dp"
             android:hint="Message content" />
-
-        <TextView
-            android:id="@+id/result_tv"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="messages"
-            android:textSize="24sp"
-            android:gravity="center"/>
     </LinearLayout>
 
-    <!-- ScrollView per i messaggi, posizionata tra il container dei messaggi e i bottoni -->
-    <ScrollView
-        android:id="@+id/scroll_view"
+    <!-- RecyclerView per visualizzare i messaggi -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:fillViewport="true"
-        android:overScrollMode="never"
-        app:layout_constraintTop_toBottomOf="@id/message_container"
+        android:overScrollMode="always"
+        android:scrollbars="vertical"
+        app:layout_constraintTop_toBottomOf="@id/message_input_container"
         app:layout_constraintBottom_toTopOf="@+id/button_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Container dei bottoni, fissato in basso -->
+    <!-- Container dei bottoni fissato in basso -->
     <LinearLayout
         android:id="@+id/button_container"
         android:layout_width="0dp"
