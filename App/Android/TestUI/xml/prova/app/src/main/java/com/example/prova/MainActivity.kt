@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -28,7 +29,18 @@ data class Message(
 
 
 
+
 class MainActivity : AppCompatActivity(), View.OnClickListener {
+
+    // FUNCTIONSSSS
+    fun scrollToBottom() {
+        val scrollView = findViewById<ScrollView>(R.id.scroll_view)
+        scrollView.post {
+            scrollView.fullScroll(View.FOCUS_DOWN)
+        }
+    }
+
+
 
     // lateinit let you declare variable without initializing them immediately
     lateinit var btnSend : Button
@@ -59,7 +71,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 // While the text is changing (use this to update the UI in realtime)
-                Toast.makeText(this@MainActivity, "Text changed:$s", Toast.LENGTH_SHORT).show()
+                // Toast.makeText(this@MainActivity, "Text changed:$s", Toast.LENGTH_SHORT).show()
 
                 // Create a new message or update the content of the existing message
                 if (LocalMessageId == "") {
@@ -113,6 +125,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     fun receiveMessage(msg: Message) {
         // add a new message bubble
         drawBubble(msg)
+
+        if (KeepTheChatDown){
+            // Scroll to the bottom
+            scrollToBottom()
+        }else{
+            // nothing
+        }
     }
 
 
