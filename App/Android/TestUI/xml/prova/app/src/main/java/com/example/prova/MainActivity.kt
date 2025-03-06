@@ -5,6 +5,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -24,11 +25,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var messageContent: EditText
     private lateinit var recyclerView: RecyclerView
     private lateinit var messageAdapter: MessageAdapter
+    private lateinit var button: ImageButton
     private val messages = mutableListOf<Message>()
 
     // SET GLOBAL VARIABLES
     private var localMessageId: String = ""
-    private var keepTheChatDown: Boolean = true
+    private var keepTheChatDown: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,11 +42,15 @@ class MainActivity : AppCompatActivity() {
         btnSend = findViewById(R.id.btn_send)
         messageContent = findViewById(R.id.msg_contnt)
         recyclerView = findViewById(R.id.recycler_view)
+        button = findViewById(R.id.btn_A)
+
 
         // Config recyclerView
         messageAdapter = MessageAdapter(messages)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = messageAdapter
+
+
 
         // Listener for the send button
         btnSend.setOnClickListener { sendMessage(messageContent.text.toString()) }
@@ -86,6 +92,19 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+
+        // Listener for the keepTheChatDown button
+        button.setOnClickListener {
+            it.isSelected = !it.isSelected // Change button status
+
+            // Set the keepTheChatDown variable
+            keepTheChatDown = it.isSelected
+
+            // If keepTheChatDown is enabled, scroll to the bottom
+            if (keepTheChatDown) {
+                scrollToBottom()
+            }
+        }
     }
 
     private fun sendMessage(msg: String) {
