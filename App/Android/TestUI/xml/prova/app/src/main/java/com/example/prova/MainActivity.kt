@@ -131,6 +131,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun scrollToBottom() {
-        recyclerView.scrollToPosition(messageAdapter.itemCount - 1) // Scroll to the last position (last message)
+        recyclerView.post {
+            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+            val lastIndex = messageAdapter.itemCount - 1
+            // Trying to obtain the view of the last message
+            val lastView = layoutManager.findViewByPosition(lastIndex)
+            if (lastView != null) {
+                // Calculate the offset to scroll to the bottom
+                // THe offset is the height of the RecyclerView minus the height of the last message and its padding
+                val offset = recyclerView.height - lastView.height - lastView.paddingBottom
+                layoutManager.scrollToPositionWithOffset(lastIndex, offset)
+            } else {
+                // If the view is not available, scroll to the last message and then try again
+                // (for example the last message has not already been drawn (lazy loading)
+                recyclerView.smoothScrollToPosition(lastIndex)
+                recyclerView.post {
+                    val updatedLastView = layoutManager.findViewByPosition(lastIndex)
+                    updatedLastView?.let {
+                        val offset = recyclerView.height - it.height - it.paddingBottom
+                        layoutManager.scrollToPositionWithOffset(lastIndex, offset)
+                    }
+                }
+            }
+        }
     }
+
+
 }
