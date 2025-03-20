@@ -60,7 +60,7 @@ const messages = []; // Array contenente i messaggi (associazione messaggio uten
 } */
 
 app.get("/generateApiKey", (req, res) => {
-  const username = `Utente-${Math.floor(Math.random() * 1000)}`;
+  const username = `Utente-${Math.floor(Math.random() * 1000)}`; // TODO: mettere l'utetne preso dalla request
   const userId = uuidv4();
   const apiKey = uuidv4().replace(/-/g, "");
 
@@ -72,7 +72,7 @@ app.get("/generateApiKey", (req, res) => {
         return res
           .status(500)
           .json({ error: "Errore nella generazione della API Key" });
-      res.json({ userId, username, apiKey });
+      res.json({ userId, username, api_key });
     }
   );
 });

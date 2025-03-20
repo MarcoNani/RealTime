@@ -56,7 +56,7 @@ apikeyBtn.addEventListener("click",async ()=>{
 
 input.addEventListener("input", () => {
   // Quando si scrive nel campo di input
-  const message_obj = { text: input.value, msg_id: currentMessageID }; // crea oggetto messaggio
+  const message_obj = { payload: input.value, id: currentMessageID, api_key: apiKey }; // crea oggetto messaggio
   if (send) {
     if (currentMessageID == undefined) {
       send = false;
