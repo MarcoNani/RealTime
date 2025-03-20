@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Status selected -->
+    <item android:state_selected="true">
+        <shape>
+            <solid android:color="@color/colorPrimary"/>
+            <corners android:radius="40dp"/>
+        </shape>
+    </item>
+
+    <!-- Status pressed -->
+    <item android:state_pressed="true">
+        <shape>
+            <solid android:color="@color/colorPrimaryDown"/>
+            <corners android:radius="40dp"/>
+        </shape>
+    </item>
+
+    <!-- Normal status (unselected) -->
+    <item>
+        <shape>
+            <solid android:color="@color/colorSecondary"/>
+            <corners android:radius="40dp"/>
+        </shape>
+    </item>
+</selector>
