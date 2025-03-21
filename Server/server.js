@@ -8,15 +8,28 @@ import { config } from "dotenv";
 config(); //per utilizzare il .env
 
 const app = express();
+
+app.use(express.static("public")); // Serve il frontend statico
+
 const server = http.createServer(app);
 const io = new Server(server);
 
+const port_server = process.env.PORTA || 3000;
 
-const port_server = 3000;
+let dbclient_init = async () => {
+  return await connect();
+};
+let db_init = async () => {
+  return dbclient.db(process.env.DB_NAME);
+};
 
-let dbclient;
-let db;
-let collection;
+let collection_init = async () => {
+  return db.collection(process.env.COLLECTION_NAME);
+};
+//TODO: impost try catch
+const dbclient = dbclient_init();
+const db = db_init();
+const collection = collection_init();
 
 try {
   dbclient = await connect();
@@ -27,8 +40,6 @@ try {
 } catch (e) {
   console.error("errore durante la connessione al database: ", e);
 }
-
-app.use(express.static("public")); // Serve il frontend statico
 
 const users = {};
 const messages = []; // Array contenente i messaggi (associazione messaggio utente)
@@ -50,13 +61,16 @@ app.get("/generateApiKey", async (req, res) => {
     });
     if (result.acknowledged) {
       console.log("Inserted ID:", result.insertedId);
+      res
+        .status(200)
+        .json({ status: 200, data: { apiKey: api_key, username: username } });
     } else {
       console.log("Document insertion failed!");
       throw "not aknowledged";
     }
   } catch (error) {
     console.error("Error inserting user:", error);
-    return "Error inserting user", 500;
+    return "Error inserting user", 500; //TODO: fix cause node doesn't work like this. use setheaders and write
   }
 });
 
