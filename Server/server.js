@@ -3,78 +3,58 @@ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const { v4: uuidv4 } = require("uuid");
-const mysql = require("mysql2");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+const { connect, close } = require("./db");
+require("dotenv").config();
+
 const port_server = 3000;
 
-const db = mysql.createConnection({
-  host: "localhost",
-  user: "root", // Cambia con il tuo username MySQL
-  password: "", // Cambia con la tua password MySQL
-  database: "chat_app",
-});
+try {
+  const dbclient = await connect();
+  const db = dbclient.db(process.env.DB_NAME);
+  const collection = db.collection(process.env.COLLECTION_NAME);
 
-db.connect((err) => {
-  if (err) {
-    console.error("Errore di connessione al database:", err);
-  } else {
-    console.log("Connesso al database MySQL");
-  }
-});
+  const users = await collection.find().toArray();
+} catch (e) {
+  console.error("errore durante la connessione al database: ", e);
+}
 
 app.use(express.static("public")); // Serve il frontend statico
-
-db.query(
-  `CREATE TABLE IF NOT EXISTS users (
-    id VARCHAR(36) PRIMARY KEY,
-    username VARCHAR(255) NOT NULL,
-    api_key VARCHAR(255) UNIQUE NOT NULL
-  )`,
-  (err) => {
-    if (err) console.error("Errore nella creazione della tabella:", err);
-  }
-);
 
 const users = {};
 const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
-/* function authenticate(req, res, next) {
-  const apiKey = req.headers["x-api-key"];
-  if (!apiKey) return res.status(403).json({ error: "API Key richiesta" });
+/* 
+    TODO: cache users when the user connects with the socket
+    TODO: remove from cache the user when the user closes the socket
+*/
 
-  db.query(
-    "SELECT * FROM users WHERE api_key = ?",
-    [apiKey],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: "Errore interno" });
-      if (results.length === 0)
-        return res.status(403).json({ error: "API Key non valida" });
-      req.user = results[0];
-      next();
+app.get("/generateApiKey", async (req, res) => {
+  // TODO:
+  const username = `Utente-${Math.floor(Math.random() * 1000)}`; // TODO: mettere l'utente preso dalla request
+  const api_key = uuidv4().replace(/-/g, "");
+
+  try {
+    const result = await collection.insertOne({
+      apiKey: api_key,
+      username: username,
+    });
+    if (result.acknowledged) {
+      console.log("Inserted ID:", result.insertedId);
+    } else {
+      console.log("Document insertion failed!");
+      throw "not aknowledged";
     }
-  );
-} */
-
-app.get("/generateApiKey", (req, res) => {
-  const username = `Utente-${Math.floor(Math.random() * 1000)}`; // TODO: mettere l'utetne preso dalla request
-  const userId = uuidv4();
-  const apiKey = uuidv4().replace(/-/g, "");
-
-  db.query(
-    "INSERT INTO users (id, username, api_key) VALUES (?, ?, ?)",
-    [userId, username, apiKey],
-    (err) => {
-      if (err)
-        return res
-          .status(500)
-          .json({ error: "Errore nella generazione della API Key" });
-      res.json({ userId, username, api_key });
-    }
-  );
+  } catch (error) {
+    console.error("Error inserting user:", error);
+    return "Error inserting user", 500;
+  } finally {
+    await client.close();
+  }
 });
 
 function user_data(socket) {
