@@ -1,24 +1,29 @@
-const { time } = require("console");
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const { v4: uuidv4 } = require("uuid");
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+import { v4 as uuidv4 } from "uuid";
+import { connect, close } from "./db.js";
+import { config } from "dotenv";
+
+config(); //per utilizzare il .env
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const { connect, close } = require("./db");
-require("dotenv").config();
 
 const port_server = 3000;
 
-try {
-  const dbclient = await connect();
-  const db = dbclient.db(process.env.DB_NAME);
-  const collection = db.collection(process.env.COLLECTION_NAME);
+let dbclient;
+let db;
+let collection;
 
-  const users = await collection.find().toArray();
+try {
+  dbclient = await connect();
+  db = dbclient.db(process.env.DB_NAME);
+  collection = db.collection(process.env.COLLECTION_NAME);
+
+  //const users = await collection.find().toArray();
 } catch (e) {
   console.error("errore durante la connessione al database: ", e);
 }
@@ -52,8 +57,6 @@ app.get("/generateApiKey", async (req, res) => {
   } catch (error) {
     console.error("Error inserting user:", error);
     return "Error inserting user", 500;
-  } finally {
-    await client.close();
   }
 });
 
