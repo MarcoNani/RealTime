@@ -22,14 +22,14 @@ let collection;
 
 function api_answer(
   obj = {
-    res: res,
+    response: res,
     status_code: status_code,
     message: message,
     endpoint: endpoint,
     data: data,
   }
 ) {
-  obj.res.status(obj.status_code).json({
+  obj.response.status(obj.status_code).json({
     endpoint: obj.endpoint,
     status: obj.status_code,
     message: obj.message,
@@ -76,7 +76,7 @@ app.get(generateApiKey_route, async (req, res) => {
       console.log("Inserted ID:", result.insertedId);
       api_answer({
         // response generation via function
-        res: res,
+        response: res,
         status_code: 200,
         message: `Api_key generated and stored succesfully for user: ${username}`,
         route: generateApiKey_route,
@@ -93,7 +93,7 @@ app.get(generateApiKey_route, async (req, res) => {
     console.error("Error inserting user:", error);
     api_answer({
       // response generation via function
-      res: res,
+      response: res,
       status_code: 500,
       message: `Error occured while generating or storing the api_key for user: ${username}. ERROR: ${error}`,
       route: generateApiKey_route,
@@ -120,7 +120,7 @@ app.get(changeUserName_route, async (req, res) => {
         `Utente ${user.apiKey} ha cambiato nome da ${user.username} in ${req.payload.newName}`
       );
       api_answer({
-        res: res,
+        response: res,
         status_code: 200,
         message: `Username updated succesfully for user: ${req.payload.newName} (old name ${user.username})`,
         route: changeUserName_route,
@@ -140,7 +140,7 @@ app.get(changeUserName_route, async (req, res) => {
     // inserisco
     console.error("Errore nella modifica dell'username", error);
     api_answer({
-      res: res,
+      response: res,
       status_code: 500,
       message: `Error occured while updating the username`,
       route: changeUserName_route,
