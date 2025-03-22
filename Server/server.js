@@ -47,17 +47,67 @@ app.get("/generateApiKey/u/:user", async (req, res) => {
     });
     if (result.acknowledged) {
       console.log("Inserted ID:", result.insertedId);
-      res
-        .status(200)
-        .json({ status: 200, data: { apiKey: api_key, username: username } });
+      res.status(200).json({
+        endpoint: "/generateApiKey/u/:user",
+        status: 200,
+        data: { apiKey: api_key, username: username },
+      });
     } else {
       console.log("Document insertion failed!");
       throw "not aknowledged";
     }
   } catch (error) {
     console.error("Error inserting user:", error);
-    console.log("Inserted ID:", result.insertedId);
-    res.status(500).json({ status: 500, data: { error: error } });
+    res.status(500).json({
+      endpoint: "/generateApiKey/u/:user",
+      status: 500,
+      data: { error: error },
+    });
+  }
+});
+
+app.get("changeUserName/u/:newName/a/:apiKey", async (req, res) => {
+  try {
+    // Try to find the user details with the given apiKey
+    user = await collection.findOne({ apiKey: req.payload.apiKey });
+    if (!user) {
+      throw "Inexistent user";
+    }
+
+    let result = collection.updateOne(
+      { apiKey: apiKey }, // Filter
+      { $set: { username: reqpayload.newName } } // Update operation
+    );
+    if (result.acknowledged) {
+      console.log("Inserted ID:", result.upsertedId);
+      console.log(
+        `Utente ${user.apiKey} ha cambiato nome da ${user.username} in ${req.payload.newName}`
+      );
+      res.status(200).json({
+        endpoint: "changeUserName/u/:newName/a/:apiKey",
+        status: 200,
+        data: {
+          apiKey: apiKey,
+          lastName: user.username,
+          actualName: req.payload.newName,
+        },
+      });
+    } else {
+      console.log("Document edit failed!");
+      throw "not aknowledged";
+    }
+
+    // TODO: caching users
+    //users[socket.id].name = newName; // Aggiorna il nome dell'utente
+    
+  } catch (error) {
+    // inserisco
+    console.error("Errore nella modifica dell'username", error);
+    res.status(500).json({
+      endpoint: "changeUserName/u/:newName/a/:apiKey",
+      status: 500,
+      data: { error: error },
+    });
   }
 });
 
@@ -88,6 +138,7 @@ io.on("connection", (socket) => {
   let user;
 
   socket.on("setUsername", async (payload) => {
+    //TODO: convert in un api endpoint
     // PAYLOAD SCHEMA
     /*
     {
@@ -97,7 +148,8 @@ io.on("connection", (socket) => {
     */
 
     // Riceve il nuovo nome dall'utente
-    try { // Try to find the user details with the given apiKey
+    try {
+      // Try to find the user details with the given apiKey
       user = await collection.findOne({ apiKey: payload.apiKey });
       if (!user) {
         throw "Inexistent user";
@@ -108,7 +160,9 @@ io.on("connection", (socket) => {
         { $set: { username: payload.newName } } // Update operation
       );
 
-      console.log(`Utente ${payload.apiKey} ha cambiato nome da ${user.username} in ${payload.newName}`);
+      console.log(
+        `Utente ${payload.apiKey} ha cambiato nome da ${user.username} in ${payload.newName}`
+      );
 
       // TODO: caching users
       //users[socket.id].name = newName; // Aggiorna il nome dell'utente
