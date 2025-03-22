@@ -31,13 +31,14 @@ try {
 const users = {};
 const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
-app.get("/generateApiKey/:user", async (req, res) => {
+app.get("/generateApiKey/u/:user", async (req, res) => {
   const username =
     req.params.user || `Utente-${Math.floor(Math.random() * 1000)}`;
   let api_key;
   do {
     api_key = uuidv4().replace(/-/g, "");
-  } while (collection.find({ apiKey: api_key }).to_array().length !== 0);
+  } while ((await collection.find({ apiKey: api_key }).toArray()).length !== 0);
+  // WARNING: when uuidv4 will finish the program will be stuck in an infinite loop
 
   try {
     const result = await collection.insertOne({
@@ -86,18 +87,30 @@ io.on("connection", (socket) => {
 
   let user;
 
-  socket.on("setUsername", (payload) => {
+  socket.on("setUsername", async (payload) => {
+    // PAYLOAD SCHEMA
+    /*
+    {
+    apiKey: apiKey,
+    newName: usernameNew   
+    }
+    */
+
     // Riceve il nuovo nome dall'utente
-    try {
-      if (collection.find({ apiKey: payload.apiKey }).to_array().length === 0) {
-        throw "inexistent user";
+    try { // Try to find the user details with the given apiKey
+      user = await collection.findOne({ apiKey: payload.apiKey });
+      if (!user) {
+        throw "Inexistent user";
       }
-      user = payload.newName;
-      console.log(`Utente ${user.id} ha cambiato nome in ${user.name}`);
+
       collection.updateOne(
         { apiKey: apiKey }, // Filter
         { $set: { username: payload.newName } } // Update operation
       );
+
+      console.log(`Utente ${payload.apiKey} ha cambiato nome da ${user.username} in ${payload.newName}`);
+
+      // TODO: caching users
       //users[socket.id].name = newName; // Aggiorna il nome dell'utente
     } catch (e) {
       console.error("Errore nella modifica dell'username", e);
