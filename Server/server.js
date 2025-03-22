@@ -20,6 +20,23 @@ let dbclient;
 let db;
 let collection;
 
+function api_answer(
+  obj = {
+    res: res,
+    status_code: status_code,
+    message: message,
+    endpoint: endpoint,
+    data: data,
+  }
+) {
+  obj.res.status(obj.status_code).json({
+    endpoint: obj.endpoint,
+    status: obj.status_code,
+    message: obj.message,
+    data: obj.data,
+  });
+}
+
 try {
   dbclient = await connect();
   db = dbclient.db(process.env.DB_NAME);
@@ -31,26 +48,42 @@ try {
 const users = {};
 const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
-app.get("/generateApiKey/u/:user", async (req, res) => {
-  const username =
-    req.params.user || `Utente-${Math.floor(Math.random() * 1000)}`;
+const generateApiKey_route = "/generateApiKey/u/:user";
+const changeUserName_route = "changeUserName/u/:newName/a/:apiKey";
+
+async function api_key_generator() {
+  // WARNING: when uuidv4 will finish the program will be stuck in an infinite loop
   let api_key;
   do {
     api_key = uuidv4().replace(/-/g, "");
   } while ((await collection.find({ apiKey: api_key }).toArray()).length !== 0);
-  // WARNING: when uuidv4 will finish the program will be stuck in an infinite loop
+  return api_key;
+}
+
+app.get(generateApiKey_route, async (req, res) => {
+  const username =
+    req.params.user /* gets the user from the param */ ||
+    `Utente-${Math.floor(Math.random() * 1000)}`; // if the user doesn't provide a username it will be generated randomly
+
+  let api_key = api_key_generator(); //uses the function to generate an api key
 
   try {
     const result = await collection.insertOne({
       apiKey: api_key,
       username: username,
-    });
+    }); // user data insertion in the database
     if (result.acknowledged) {
       console.log("Inserted ID:", result.insertedId);
-      res.status(200).json({
-        endpoint: "/generateApiKey/u/:user",
-        status: 200,
-        data: { apiKey: api_key, username: username },
+      api_answer({
+        // response generation via function
+        res: res,
+        status_code: 200,
+        message: `Api_key generated and stored succesfully for user: ${username}`,
+        route: generateApiKey_route,
+        data: {
+          apiKey: api_key,
+          username: username,
+        },
       });
     } else {
       console.log("Document insertion failed!");
@@ -58,15 +91,18 @@ app.get("/generateApiKey/u/:user", async (req, res) => {
     }
   } catch (error) {
     console.error("Error inserting user:", error);
-    res.status(500).json({
-      endpoint: "/generateApiKey/u/:user",
-      status: 500,
+    api_answer({
+      // response generation via function
+      res: res,
+      status_code: 500,
+      message: `Error occured while generating or storing the api_key for user: ${username}. ERROR: ${error}`,
+      route: generateApiKey_route,
       data: { error: error },
     });
   }
 });
 
-app.get("changeUserName/u/:newName/a/:apiKey", async (req, res) => {
+app.get(changeUserName_route, async (req, res) => {
   try {
     // Try to find the user details with the given apiKey
     user = await collection.findOne({ apiKey: req.payload.apiKey });
@@ -83,13 +119,14 @@ app.get("changeUserName/u/:newName/a/:apiKey", async (req, res) => {
       console.log(
         `Utente ${user.apiKey} ha cambiato nome da ${user.username} in ${req.payload.newName}`
       );
-      res.status(200).json({
-        endpoint: "changeUserName/u/:newName/a/:apiKey",
-        status: 200,
+      api_answer({
+        res: res,
+        status_code: 200,
+        message: `Username updated succesfully for user: ${req.payload.newName} (old name ${user.username})`,
+        route: changeUserName_route,
         data: {
-          apiKey: apiKey,
-          lastName: user.username,
-          actualName: req.payload.newName,
+          apiKey: api_key,
+          username: username,
         },
       });
     } else {
@@ -99,13 +136,14 @@ app.get("changeUserName/u/:newName/a/:apiKey", async (req, res) => {
 
     // TODO: caching users
     //users[socket.id].name = newName; // Aggiorna il nome dell'utente
-    
   } catch (error) {
     // inserisco
     console.error("Errore nella modifica dell'username", error);
-    res.status(500).json({
-      endpoint: "changeUserName/u/:newName/a/:apiKey",
-      status: 500,
+    api_answer({
+      res: res,
+      status_code: 500,
+      message: `Error occured while updating the username`,
+      route: changeUserName_route,
       data: { error: error },
     });
   }
@@ -122,7 +160,8 @@ function user_data(socket) {
 function display(item_to_display) {
   io.emit("display", item_to_display);
 }
-
+//---------------------------------------------------------------------------------------------------------------//
+//---------------------------------------------------------------------------------------------------------------//
 /* 
     TODO: cache users when the user connects with the socket
     TODO: remove from cache the user when the user closes the socket
