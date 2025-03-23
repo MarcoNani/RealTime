@@ -45,6 +45,11 @@ try {
   console.error("errore durante la connessione al database: ", e);
 }
 
+async function getUserFromApiKey(apiKey) {
+  const user = await collection.findOne({ apiKey: apiKey });
+  return user;
+}
+
 const users = {};
 const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
@@ -105,14 +110,14 @@ app.get(generateApiKey_route, async (req, res) => {
 app.get(changeUserName_route, async (req, res) => {
   try {
     // Try to find the user details with the given apiKey
-    user = await collection.findOne({ apiKey: req.payload.apiKey });
+    user = getUserFromApiKey(req.payload.apiKey);
     if (!user) {
       throw "Inexistent user";
     }
 
     let result = collection.updateOne(
       { apiKey: apiKey }, // Filter
-      { $set: { username: reqpayload.newName } } // Update operation
+      { $set: { username: req.payload.newName } } // Update operation
     );
     if (result.acknowledged) {
       console.log("Inserted ID:", result.upsertedId);
@@ -149,13 +154,13 @@ app.get(changeUserName_route, async (req, res) => {
   }
 });
 
-function user_data(socket) {
+/* function user_data(socket) {
   // Funzione che restituisce tutti i dati necessari per memorizzare l'user in un oggetto {id: userID, name: username}
   let userId = users[socket.id]?.id || uuidv4();
   let username =
     users[socket.id]?.name || `Utente-${Math.floor(Math.random() * 1000)}`;
   return { id: userId, name: username, auth: false };
-}
+} */
 
 function display(item_to_display) {
   io.emit("display", item_to_display);
@@ -168,15 +173,27 @@ function display(item_to_display) {
 */
 
 io.on("connection", (socket) => {
+  io.emit("mustAuth");
+
+  socket.on("auth", async (apiKey) => {
+    try {
+      let user = getUserFromApiKey(apiKey);
+      if (!user) {
+        throw "Inexistent user";
+      }
+      users[socket.id] = { user: user, is_auth: true };
+    } catch (error) {}
+  });
+
   // let user = user_data(socket); // ottengo tramite la funzione user_data l'oggetto user completo di username e userid
   // users[socket.id] = user; // essendo già user un oggetto lo inserisco direttamente nell'array
   // TODO: fix to make this work console.log(`Utente connesso: ${user.name} (${user.id})`);
 
   //socket.emit("setUsername", user.name); // Invia solo al client connesso il suo username
 
-  let user;
+  //let user;
 
-  socket.on("setUsername", async (payload) => {
+  /* socket.on("setUsername", async (payload) => {
     //TODO: convert in un api endpoint
     // PAYLOAD SCHEMA
     /*
@@ -184,7 +201,8 @@ io.on("connection", (socket) => {
     apiKey: apiKey,
     newName: usernameNew   
     }
-    */
+     */
+  /* 
 
     // Riceve il nuovo nome dall'utente
     try {
@@ -208,54 +226,46 @@ io.on("connection", (socket) => {
     } catch (e) {
       console.error("Errore nella modifica dell'username", e);
     } // Logga il cambio di nome
-  });
+  }); */
 
   socket.on("typing", (payload) => {
     // Riceve il messaggio di scrittura
-    try {
-      console.log(messages);
-      if (collection.find({ apiKey: payload.apiKey }).to_array().length === 0) {
-        throw "Inexistent user";
-      }
-      if (payload.msg_id) {
-        // controlla se il messaggio contiene un id messaggio
-        // verifica che l'id del messaggio corrisponda ad un messaggio dell'utente corrente (guardando nella lista dei messaggi)
-        console.log(
-          "Received message with local message id: " + payload.msg_id
-        );
-        if (
-          messages.find(
-            (msg) => msg.msg_id === payload.msg_id && msg.id === socket.id
-          )
-        ) {
-          // Il messaggio è dell'utente corrente
-          console.log("Message is from current user");
-          // Aggiorna il messaggio con il nuovo payload
-          const message_obj = {
-            name: users[socket.id].name,
-            payload: payload.text,
-            time: new Date(),
-            msg_id: payload.msg_id,
-          }; // realizzo l'oggetto contenente i dettagli sul messaggio
-          display(message_obj); // Invia a tutti i client l'oggetto messaggio
-        } else {
-          console.log("Message is not from current user");
-          display("Hacker"); // Invia a tutti i client l'oggetto di errore
-        }
-      } else {
-        // Se il messaggio non contiene un id messaggio
-        // creo un nuovo messaggio con un nuovo id
+    if (!users[socket.id].is_auth) {
+      display("Hacker");
+    } else if (payload.msg_id) {
+      // controlla se il messaggio contiene un id messaggio
+      // verifica che l'id del messaggio corrisponda ad un messaggio dell'utente corrente (guardando nella lista dei messaggi)
+      console.log("Received message with local message id: " + payload.msg_id);
+      if (
+        messages.find(
+          (msg) => msg.msg_id === payload.msg_id && msg.id === socket.id
+        )
+      ) {
+        // Il messaggio è dell'utente corrente
+        console.log("Message is from current user");
+        // Aggiorna il messaggio con il nuovo payload
         const message_obj = {
           name: users[socket.id].name,
           payload: payload.text,
           time: new Date(),
-          msg_id: uuidv4(),
+          msg_id: payload.msg_id,
         }; // realizzo l'oggetto contenente i dettagli sul messaggio
         display(message_obj); // Invia a tutti i client l'oggetto messaggio
-        messages.push({ id: socket.id, msg_id: message_obj.msg_id }); // Aggiungo l'oggetto messaggio alla lista dei messaggi
+      } else {
+        console.log("Message is not from current user");
+        display("Hacker"); // Invia a tutti i client l'oggetto di errore
       }
-    } catch (e) {
-      console.error("error sending the message: ", e);
+    } else {
+      // Se il messaggio non contiene un id messaggio
+      // creo un nuovo messaggio con un nuovo id
+      const message_obj = {
+        name: users[socket.id].name,
+        payload: payload.text,
+        time: new Date(),
+        msg_id: uuidv4(),
+      }; // realizzo l'oggetto contenente i dettagli sul messaggio
+      display(message_obj); // Invia a tutti i client l'oggetto messaggio
+      messages.push({ id: socket.id, msg_id: message_obj.msg_id }); // Aggiungo l'oggetto messaggio alla lista dei messaggi
     }
   });
 
