@@ -53,7 +53,7 @@ async function getUserFromApiKey(apiKey) {
 const users = {};
 const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
-const generateApiKey_route = "/generateApiKey/u/:user";
+const generateApiKey_route = "/generateApiKey";
 const changeUserName_route = "/changeUserName/u/:newName/a/:apiKey";
 
 async function api_key_generator() {
@@ -65,44 +65,36 @@ async function api_key_generator() {
   return api_key;
 }
 
-app.get(generateApiKey_route, async (req, res) => {
-  const username =
-    req.params.user /* gets the user from the param */ ||
-    `Utente-${Math.floor(Math.random() * 1000)}`; // if the user doesn't provide a username it will be generated randomly
-
-  let api_key = await api_key_generator(); //uses the function to generate an api key - now awaiting the result
-
+app.post(generateApiKey_route, async (req, res) => {
   try {
+    const username = req.body.username; // Estrai il nome utente dal corpo della richiesta
+    const user = username || `Utente-${Math.floor(Math.random() * 1000)}`; // Genera un nome utente casuale se non fornito
+
+    const api_key = await api_key_generator(); // Genera la chiave API
+
     const result = await collection.insertOne({
       apiKey: api_key,
-      username: username,
-    }); // user data insertion in the database
-    if (result.acknowledged) {
-      console.log("Inserted ID:", result.insertedId);
-      api_answer({
-        // response generation via function
-        response: res,
-        status_code: 200,
-        message: `Api_key generated and stored succesfully for user: ${username}`,
-        endpoint: generateApiKey_route,
-        data: {
-          apiKey: api_key,
-          username: username,
-        },
-      });
-    } else {
-      console.log("Document insertion failed!");
-      throw "not aknowledged";
+      username: user,
+    }); // Inserisce i dati nel database
+
+    if (!result.acknowledged) {
+      throw new Error("Document insertion failed");
     }
+
+    console.log("Inserted ID:", result.insertedId);
+
+    return res.status(201).json({
+      message: `API key generated and stored successfully for user: ${user}`,
+      data: {
+        apiKey: api_key,
+        username: user,
+      },
+    });
   } catch (error) {
     console.error("Error inserting user:", error);
-    api_answer({
-      // response generation via function
-      response: res,
-      status_code: 500,
-      message: `Error occured while generating or storing the api_key for user: ${username}. ERROR: ${error}`,
-      endpoint: generateApiKey_route,
-      data: { error: error },
+    return res.status(500).json({
+      message: "An error occurred while generating or storing the API key.",
+      error: error.message,
     });
   }
 });
@@ -119,12 +111,12 @@ app.get(changeUserName_route, async (req, res) => {
       { apiKey: req.params.apiKey }, // Filter
       { $set: { username: req.params.newName } } // Update operation
     );
-    
+
     if (result.acknowledged) {
       console.log(
         `Utente ${user.apiKey} ha cambiato nome da ${user.username} in ${req.params.newName}`
       );
-      
+
       api_answer({
         response: res,
         status_code: 200,
@@ -132,7 +124,7 @@ app.get(changeUserName_route, async (req, res) => {
         endpoint: changeUserName_route,
         data: {
           apiKey: req.params.apiKey,
-          username: req.params.newName
+          username: req.params.newName,
         },
       });
     } else {
