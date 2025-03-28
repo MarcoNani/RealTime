@@ -70,7 +70,7 @@ app.get(generateApiKey_route, async (req, res) => {
     req.params.user /* gets the user from the param */ ||
     `Utente-${Math.floor(Math.random() * 1000)}`; // if the user doesn't provide a username it will be generated randomly
 
-  let api_key = api_key_generator(); //uses the function to generate an api key
+  let api_key = await api_key_generator(); //uses the function to generate an api key - now awaiting the result
 
   try {
     const result = await collection.insertOne({
