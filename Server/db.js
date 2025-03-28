@@ -1,6 +1,8 @@
 // db.js
-const { MongoClient } = require("mongodb");
-require('dotenv').config();
+import { MongoClient } from "mongodb";
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const client = new MongoClient(process.env.MONGO_URI);
 
@@ -19,4 +21,4 @@ function close() {
     client.close();
 }
 
-module.exports = { connect, close };
+export { connect, close };
