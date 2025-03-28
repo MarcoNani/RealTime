@@ -8,6 +8,7 @@ import { config } from "dotenv";
 config(); //per utilizzare il .env
 
 const app = express();
+app.use(express.json()); // Add this line before your routes to parse JSON bodies
 
 app.use(express.static("public")); // Serve il frontend statico
 
