@@ -37,8 +37,8 @@ async function getUserFromApiKey(apiKey) {
 const users = {};
 const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
-const generateApiKey_route = "/generateApiKey";
-const changeUserName_route = "/changeUserName";
+const generateApiKey_route = "/api/generateApiKey";
+const changeUserName_route = "/api/changeUserName";
 
 async function api_key_generator() {
   // WARNING: when uuidv4 will finish the program will be stuck in an infinite loop
