@@ -21,23 +21,6 @@ let dbclient;
 let db;
 let collection;
 
-function api_answer(
-  obj = {
-    response: res,
-    status_code: status_code,
-    message: message,
-    endpoint: endpoint,
-    data: data,
-  }
-) {
-  obj.response.status(obj.status_code).json({
-    endpoint: obj.endpoint,
-    status: obj.status_code,
-    message: obj.message,
-    data: obj.data,
-  });
-}
-
 try {
   dbclient = await connect();
   db = dbclient.db(process.env.DB_NAME);
@@ -55,7 +38,7 @@ const users = {};
 const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
 const generateApiKey_route = "/generateApiKey";
-const changeUserName_route = "/changeUserName/u/:newName/a/:apiKey";
+const changeUserName_route = "/changeUserName";
 
 async function api_key_generator() {
   // WARNING: when uuidv4 will finish the program will be stuck in an infinite loop
@@ -100,49 +83,47 @@ app.post(generateApiKey_route, async (req, res) => {
   }
 });
 
-app.get(changeUserName_route, async (req, res) => {
+app.put(changeUserName_route, async (req, res) => {
   try {
-    // Try to find the user details with the given apiKey
-    const user = await getUserFromApiKey(req.params.apiKey);
-    if (!user) {
-      throw "Inexistent user";
+    const { apiKey, newName } = req.body; // Estrai apiKey e newName dal corpo della richiesta
+    if (!apiKey || !newName) {
+      return res
+        .status(400)
+        .json({ message: "apiKey and newName are required" });
     }
 
+    // Trova l'utente associato alla apiKey
+    const user = await getUserFromApiKey(apiKey);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Aggiorna il nome utente
     const result = await collection.updateOne(
-      { apiKey: req.params.apiKey }, // Filter
-      { $set: { username: req.params.newName } } // Update operation
+      { apiKey: apiKey },
+      { $set: { username: newName } }
     );
 
-    if (result.acknowledged) {
-      console.log(
-        `Utente ${user.apiKey} ha cambiato nome da ${user.username} in ${req.params.newName}`
-      );
-
-      api_answer({
-        response: res,
-        status_code: 200,
-        message: `Username updated successfully for user: ${req.params.newName} (old name ${user.username})`,
-        endpoint: changeUserName_route,
-        data: {
-          apiKey: req.params.apiKey,
-          username: req.params.newName,
-        },
-      });
-    } else {
-      console.log("Document edit failed!");
-      throw "not acknowledged";
+    if (!result.acknowledged) {
+      throw new Error("Document update failed");
     }
 
-    // TODO: caching users
-    //users[socket.id].name = newName; // Aggiorna il nome dell'utente
+    console.log(
+      `User ${user.apiKey} changed name from ${user.username} to ${newName}`
+    );
+
+    return res.status(200).json({
+      message: `Username updated successfully from ${user.username} to ${newName}`,
+      data: {
+        apiKey: apiKey,
+        username: newName,
+      },
+    });
   } catch (error) {
-    console.error("Errore nella modifica dell'username", error);
-    api_answer({
-      response: res,
-      status_code: 500,
-      message: `Error occurred while updating the username`,
-      endpoint: changeUserName_route,
-      data: { error: error },
+    console.error("Error updating username", error);
+    return res.status(500).json({
+      message: "An error occurred while updating the username",
+      error: error.message,
     });
   }
 });
