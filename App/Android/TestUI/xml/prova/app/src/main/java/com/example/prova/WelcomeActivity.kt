@@ -30,6 +30,9 @@ class WelcomeActivity : AppCompatActivity() {
         val sharedPref = getSharedPreferences("RealTimePrefs", Context.MODE_PRIVATE)
         val apiKey = sharedPref.getString("API_KEY", null)
 
+        // toast api key
+        Toast.makeText(this, "API key: $apiKey", Toast.LENGTH_SHORT).show()
+
         if (apiKey != null) {
             // Se l'API key esiste già, vai direttamente alla MainActivity
             navigateToMainActivity()
@@ -76,9 +79,10 @@ class WelcomeActivity : AppCompatActivity() {
             override fun onResponse(call: Call<ApiResponse>, response: Response<ApiResponse>) {
                 if (response.isSuccessful) {
                     val apiResponse = response.body()
-                    apiResponse?.let {
-                        // Salva l'API key nelle SharedPreferences (it.apiKey è la chiave restituita dall'API)
-                        saveApiKey(it.apiKey)
+                    apiResponse?.let { apiResponseData ->
+                        // Salva l'API key nelle SharedPreferences (it.data.apiKey è la chiave restituita dall'API)
+                        val apiKey = apiResponseData.data.apiKey
+                        saveApiKey(apiKey)
 
                         // Vai alla MainActivity
                         navigateToMainActivity()
@@ -101,6 +105,8 @@ class WelcomeActivity : AppCompatActivity() {
         with(sharedPref.edit()) {
             putString("API_KEY", apiKey)
             apply()
+            Toast.makeText(this@WelcomeActivity,
+                "API key salvata con successo", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -114,8 +120,18 @@ class WelcomeActivity : AppCompatActivity() {
 // Data class per la richiesta
 data class UserRequest(val username: String)
 
+
 // Data class per la risposta
-data class ApiResponse(val apiKey: String)
+data class ApiResponse(
+    val message: String,
+    val data: ApiData
+)
+
+data class ApiData(
+    val apiKey: String,
+    val username: String
+)
+
 
 // Interfaccia Retrofit per le chiamate API
 interface ApiService {
