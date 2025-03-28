@@ -54,7 +54,7 @@ const users = {};
 const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
 const generateApiKey_route = "/generateApiKey/u/:user";
-const changeUserName_route = "changeUserName/u/:newName/a/:apiKey";
+const changeUserName_route = "/changeUserName/u/:newName/a/:apiKey";
 
 async function api_key_generator() {
   // WARNING: when uuidv4 will finish the program will be stuck in an infinite loop
@@ -110,45 +110,45 @@ app.get(generateApiKey_route, async (req, res) => {
 app.get(changeUserName_route, async (req, res) => {
   try {
     // Try to find the user details with the given apiKey
-    user = getUserFromApiKey(req.payload.apiKey);
+    const user = await getUserFromApiKey(req.params.apiKey);
     if (!user) {
       throw "Inexistent user";
     }
 
-    let result = collection.updateOne(
-      { apiKey: apiKey }, // Filter
-      { $set: { username: req.payload.newName } } // Update operation
+    const result = await collection.updateOne(
+      { apiKey: req.params.apiKey }, // Filter
+      { $set: { username: req.params.newName } } // Update operation
     );
+    
     if (result.acknowledged) {
-      console.log("Inserted ID:", result.upsertedId);
       console.log(
-        `Utente ${user.apiKey} ha cambiato nome da ${user.username} in ${req.payload.newName}`
+        `Utente ${user.apiKey} ha cambiato nome da ${user.username} in ${req.params.newName}`
       );
+      
       api_answer({
         response: res,
         status_code: 200,
-        message: `Username updated succesfully for user: ${req.payload.newName} (old name ${user.username})`,
-        route: changeUserName_route,
+        message: `Username updated successfully for user: ${req.params.newName} (old name ${user.username})`,
+        endpoint: changeUserName_route,
         data: {
-          apiKey: api_key,
-          username: username,
+          apiKey: req.params.apiKey,
+          username: req.params.newName
         },
       });
     } else {
       console.log("Document edit failed!");
-      throw "not aknowledged";
+      throw "not acknowledged";
     }
 
     // TODO: caching users
     //users[socket.id].name = newName; // Aggiorna il nome dell'utente
   } catch (error) {
-    // inserisco
     console.error("Errore nella modifica dell'username", error);
     api_answer({
       response: res,
       status_code: 500,
-      message: `Error occured while updating the username`,
-      route: changeUserName_route,
+      message: `Error occurred while updating the username`,
+      endpoint: changeUserName_route,
       data: { error: error },
     });
   }
