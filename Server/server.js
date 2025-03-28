@@ -84,7 +84,7 @@ app.get(generateApiKey_route, async (req, res) => {
         response: res,
         status_code: 200,
         message: `Api_key generated and stored succesfully for user: ${username}`,
-        route: generateApiKey_route,
+        endpoint: generateApiKey_route,
         data: {
           apiKey: api_key,
           username: username,
@@ -101,7 +101,7 @@ app.get(generateApiKey_route, async (req, res) => {
       response: res,
       status_code: 500,
       message: `Error occured while generating or storing the api_key for user: ${username}. ERROR: ${error}`,
-      route: generateApiKey_route,
+      endpoint: generateApiKey_route,
       data: { error: error },
     });
   }
