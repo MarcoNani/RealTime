@@ -20,6 +20,10 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 
+retrofit = { module = "com.squareup.retrofit2:retrofit", version = "2.9.0" }
+retrofit-converter-gson = { module = "com.squareup.retrofit2:converter-gson", version = "2.9.0" }
+gson = { module = "com.google.code.gson:gson", version = "2.10.1" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
