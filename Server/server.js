@@ -25,12 +25,14 @@ let dbclient;
 let db;
 let usersCollection;
 let roomsCollection;
+let joinRequestsCollection;
 
 try {
   dbclient = await connect();
   db = dbclient.db(process.env.DB_NAME);
   usersCollection = db.collection(process.env.USERSCOLLECTION_NAME);
   roomsCollection = db.collection(process.env.ROOMSCOLLECTION_NAME);
+  joinRequestsCollection = db.collection(process.env.JOINREQUESTSCOLLECTION_NAME);
   console.log("Connessione al database avvenuta con successo.");
 } catch (e) {
   console.error("errore durante la connessione al database: ", e);
@@ -100,10 +102,10 @@ app.post(generateApiKey_route, async (req, res) => {
     console.log("Inserted ID:", result.insertedId);
 
     return res.status(201).json({
-      message: `API key generated and stored successfully for user: ${user}`,
+      message: `API key generated and stored successfully for user: ${username}`,
       data: {
         apiKey: api_key,
-        username: user,
+        username: username,
       },
     });
   } catch (error) {
@@ -206,6 +208,74 @@ app.post(createRoom_route, async (req, res) => {
     });
   }
 });
+
+app.post(requireJoinRoom_route, async (req, res) => {
+  try {
+    const { apiKey, roomId } = req.body; // Estrai apiKey e roomId dal corpo della richiesta
+    if (!apiKey || !roomId) {
+      return res.status(400).json({ message: "apiKey and roomId are required" });
+    }
+
+    // Trova l'utente associato alla apiKey
+    const user = await getUserFromApiKey(apiKey);
+    if (!user) {
+      return res.status(404).json({ message: "User (apiKey) not found" });
+    }
+
+    // Trova la stanza nel database
+    const room = await roomsCollection.findOne({ roomId: roomId });
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    // Verifica se l'utente è già nella stanza
+    if (room.members.includes(apiKey)) {
+      return res.status(400).json({ message: "The user is already in the room" });
+    }
+
+    // Aggiungi la richiesta di join alla collection delle join requests
+    // Extract members from the room
+    const members = room.members;
+
+    // Create an approval status object for each member
+    const approveStatus = members.map(memberApiKey => ({
+      memberApiKey: memberApiKey,
+      approved: false
+    }));
+
+    const joinRequest = {
+      requestId: uuidv4(), // Genera un ID unico per la richiesta
+      roomId: roomId,
+      apiKey: apiKey,
+      requestedAt: new Date(),
+      approveStatus: approveStatus
+    };
+    
+    // Add the join request to the collection
+    const result = await joinRequestsCollection.insertOne(joinRequest);
+    
+    if (!result.acknowledged) {
+      throw new Error("Join request creation failed");
+    }
+    
+    return res.status(200).json({
+      message: `Join request sent successfully for room ID: ${roomId}`,
+      data: {
+        apiKey: apiKey,
+        roomId: roomId,
+      },
+    });
+  } catch (error) {
+    console.error("Error sending join request:", error);
+    return res.status(500).json({
+      message: "An error occurred while sending the join request",
+      error: error.message,
+    });
+  }
+});
+
+
+
 
 //---------------------------------------------------------------------------------------------------------------//
 //---------------------------------------------------------------------------------------------------------------//
