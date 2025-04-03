@@ -119,7 +119,11 @@ app.post(generateApiKey_route, async (req, res) => {
 
 app.put(changeUserName_route, async (req, res) => {
   try {
-    const { apiKey, newName } = req.body; // Estrai apiKey e newName dal corpo della richiesta
+    // Cerca l'API key nell'header 'X-API-Key'
+    const apiKey = req.header('X-API-Key');
+    
+    const { newName } = req.body;
+    
     if (!apiKey || !newName) {
       return res
         .status(400)
@@ -166,7 +170,9 @@ app.put(changeUserName_route, async (req, res) => {
 
 app.post(createRoom_route, async (req, res) => {
   try {
-    const api_key = req.body.apiKey; // Estrai apiKey dal corpo della richiesta
+    // Cerca l'API key nell'header 'X-API-Key'
+    const api_key = req.header('X-API-Key');
+    
     if (!api_key) {
       return res.status(400).json({ message: "apiKey is required" });
     }
@@ -211,7 +217,11 @@ app.post(createRoom_route, async (req, res) => {
 
 app.post(requireJoinRoom_route, async (req, res) => {
   try {
-    const { apiKey, roomId } = req.body; // Estrai apiKey e roomId dal corpo della richiesta
+    // Cerca l'API key nell'header 'X-API-Key'
+    const apiKey = req.header('X-API-Key');
+    
+    const { roomId } = req.body;
+    
     if (!apiKey || !roomId) {
       return res.status(400).json({ message: "apiKey and roomId are required" });
     }
