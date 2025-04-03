@@ -5,22 +5,22 @@ import { v4 as uuidv4 } from "uuid";
 import { connect, close } from "./db.js";
 import { config } from "dotenv";
 
-config(); //per utilizzare il .env
+config(); //per utilizzo .env
 
 const app = express();
-app.use(express.json()); // Add this line before your routes to parse JSON bodies
+app.use(express.json()); // per parse JSON bodies
 
-app.use(express.static("public")); // Serve il frontend statico
+app.use(express.static("public")); // per frontend statico
 
 const server = http.createServer(app);
 const io = new Server(server);
 
 const port_server = process.env.PORTA || 3000;
 
-
 // ----------
 //     DB
 // ----------
+
 let dbclient;
 let db;
 let usersCollection;
@@ -36,7 +36,6 @@ try {
   console.error("errore durante la connessione al database: ", e);
 }
 
-
 //// FUNCTIONS ////
 
 async function getUserFromApiKey(apiKey) {
@@ -49,7 +48,9 @@ async function api_key_generator() {
   let api_key;
   do {
     api_key = uuidv4().replace(/-/g, "");
-  } while ((await usersCollection.find({ apiKey: api_key }).toArray()).length !== 0);
+  } while (
+    (await usersCollection.find({ apiKey: api_key }).toArray()).length !== 0
+  );
   return api_key;
 }
 
@@ -57,15 +58,10 @@ function display(item_to_display) {
   io.emit("display", item_to_display);
 }
 
-
 //// CONSTANTS ////
 
 const users = {};
 const messages = []; // Array contenente i messaggi (associazione messaggio utente)
-
-
-
-
 
 //// ENDPOINTS ////
 
@@ -87,14 +83,14 @@ const listMyRooms_route = "/api/listMyRooms"; // GET
 
 app.post(generateApiKey_route, async (req, res) => {
   try {
-    const username = req.body.username; // Estrai il nome utente dal corpo della richiesta
-    const user = username || `Utente-${Math.floor(Math.random() * 1000)}`; // Genera un nome utente casuale se non fornito
+    const username =
+      req.body.username || `Utente-${Math.floor(Math.random() * 1000)}`; // Estrai il nome utente dal corpo della richiesta o genera casuale se non fornito
 
     const api_key = await api_key_generator(); // Genera la chiave API
 
     const result = await usersCollection.insertOne({
       apiKey: api_key,
-      username: user,
+      username: username,
     }); // Inserisce i dati nel database
 
     if (!result.acknowledged) {
@@ -164,11 +160,10 @@ app.put(changeUserName_route, async (req, res) => {
   }
 });
 
-
 //////// ROOMS ////////
 
 app.post(createRoom_route, async (req, res) => {
-  try{
+  try {
     const api_key = req.body.apiKey; // Estrai apiKey dal corpo della richiesta
     if (!api_key) {
       return res.status(400).json({ message: "apiKey is required" });
@@ -187,7 +182,7 @@ app.post(createRoom_route, async (req, res) => {
     const result = await roomsCollection.insertOne({
       roomId: roomId,
       members: [api_key], // Aggiungi l'utente come membro della stanza
-      createdAt: new Date()
+      createdAt: new Date(),
     });
 
     // Verifica se l'inserimento è andato a buon fine
@@ -212,17 +207,6 @@ app.post(createRoom_route, async (req, res) => {
   }
 });
 
-
-
-/* function user_data(socket) {
-  // Funzione che restituisce tutti i dati necessari per memorizzare l'user in un oggetto {id: userID, name: username}
-  let userId = users[socket.id]?.id || uuidv4();
-  let username =
-    users[socket.id]?.name || `Utente-${Math.floor(Math.random() * 1000)}`;
-  return { id: userId, name: username, auth: false };
-} */
-
-
 //---------------------------------------------------------------------------------------------------------------//
 //---------------------------------------------------------------------------------------------------------------//
 /* 
@@ -231,60 +215,18 @@ app.post(createRoom_route, async (req, res) => {
 */
 
 io.on("connection", (socket) => {
-  io.emit("mustAuth");
+  io.emit("mustAuth"); //per prima cosa richiede al client di autenticarsi
 
   socket.on("auth", async (apiKey) => {
+    //arriva la richiesta di autenticazione al server
     try {
-      let user = getUserFromApiKey(apiKey);
+      let user = getUserFromApiKey(apiKey); //controlla l'esistenza dell'user
       if (!user) {
         throw "Inexistent user";
       }
-      users[socket.id] = { user: user, is_auth: true };
+      users[socket.id] = { user: user }; //caches the user
     } catch (error) {}
   });
-
-  // let user = user_data(socket); // ottengo tramite la funzione user_data l'oggetto user completo di username e userid
-  // users[socket.id] = user; // essendo già user un oggetto lo inserisco direttamente nell'array
-  // TODO: fix to make this work console.log(`Utente connesso: ${user.name} (${user.id})`);
-
-  //socket.emit("setUsername", user.name); // Invia solo al client connesso il suo username
-
-  //let user;
-
-  /* socket.on("setUsername", async (payload) => {
-    //TODO: convert in un api endpoint
-    // PAYLOAD SCHEMA
-    /*
-    {
-    apiKey: apiKey,
-    newName: usernameNew   
-    }
-     */
-  /* 
-
-    // Riceve il nuovo nome dall'utente
-    try {
-      // Try to find the user details with the given apiKey
-      user = await collection.findOne({ apiKey: payload.apiKey });
-      if (!user) {
-        throw "Inexistent user";
-      }
-
-      collection.updateOne(
-        { apiKey: apiKey }, // Filter
-        { $set: { username: payload.newName } } // Update operation
-      );
-
-      console.log(
-        `Utente ${payload.apiKey} ha cambiato nome da ${user.username} in ${payload.newName}`
-      );
-
-      // TODO: caching users
-      //users[socket.id].name = newName; // Aggiorna il nome dell'utente
-    } catch (e) {
-      console.error("Errore nella modifica dell'username", e);
-    } // Logga il cambio di nome
-  }); */
 
   socket.on("typing", (payload) => {
     // Riceve il messaggio di scrittura
