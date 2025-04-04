@@ -125,10 +125,10 @@ const changeUserName_route = "/api/change-username";
 
 // rooms
 const createRoom_route = "/api/rooms/create"; // POST
-const requireJoinRoom_route = "/api/rooms/join-request"; // POST
-const listJoinRequests_route = "/api/rooms/join-requests"; // GET
-const approveJoinRequest_route = "/api/rooms/approve-join-request"; // PATCH
-const denyJoinRequest_route = "/api/rooms/deny-join-request"; // PATCH
+const requireJoinRoom_route = "/api/rooms/:roomId/join-request"; // POST
+const listJoinRequests_route = "/api/rooms/:roomId/join-requests"; // GET
+const approveJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/approve"; // PATCH
+const denyJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/deny"; // PATCH
 const exitRoom_route = "/api/rooms/exit"; // DELETE
 const listRoomMembers_route = "/api/rooms/members"; // GET
 const listMyRooms_route = "/api/my"; // GET
@@ -374,25 +374,20 @@ app.post(createRoom_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/join-request:
+ * /api/rooms/{roomId}/join-request:
  *   post:
  *     summary: Request to join a room
  *     description: Sends a join request to a room that requires approval from all current members.
  *     tags: [Rooms]
  *     security:
  *       - ApiKeyAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - roomId
- *             properties:
- *               roomId:
- *                 type: string
- *                 description: ID of the room to join
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the room to join
  *     responses:
  *       200:
  *         description: Join request sent successfully
@@ -426,7 +421,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
     // Cerca l'API key nell'header 'X-API-Key'
     const apiKey = req.header('X-API-Key');
     
-    const { roomId } = req.body;
+    const { roomId } = req.params;
     
     if (!apiKey || !roomId) {
       return res.status(400).json({ message: "apiKey and roomId are required" });
@@ -492,7 +487,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/join-requests:
+ * /api/rooms/{roomId}/join-requests:
  *   get:
  *     summary: List all join requests for a room
  *     description: Returns a list of all pending join requests for a specific room. Only members of the room can view join requests.
@@ -500,18 +495,13 @@ app.post(requireJoinRoom_route, async (req, res) => {
  *       - Rooms
  *     security:
  *       - ApiKeyAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - roomId
- *             properties:
- *               roomId:
- *                 type: string
- *                 description: ID of the room
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the room
  *     responses:
  *       200:
  *         description: Join requests retrieved successfully
@@ -544,7 +534,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
  *                           approveStatus:
  *                             type: string
  *       400:
- *         description: API key and/or roomId missing
+ *         description: API key missing
  *       401:
  *         description: Invalid API Key
  *       403:
@@ -559,7 +549,7 @@ app.get(listJoinRequests_route, async (req, res) => {
     // Cerca l'API key nell'header 'X-API-Key'
     const apiKey = req.header('X-API-Key');
 
-    const { roomId } = req.body;
+    const { roomId } = req.params;
     
     if (!apiKey || !roomId) {
       return res.status(400).json({ message: "apiKey and roomId are required" });
@@ -629,6 +619,127 @@ app.get(listJoinRequests_route, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/rooms/{roomId}/join-requests/{requestId}/approve:
+ *   patch:
+ *     summary: Approve a request to join a room
+ *     description: Approves a pending join request. If all members approve, the requesting user is automatically added to the room.
+ *     tags:
+ *       - Rooms
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the room
+ *       - in: path
+ *         name: requestId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the join request to approve
+ *     responses:
+ *       200:
+ *         description: Join request successfully approved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: API key missing
+ *       401:
+ *         description: Invalid API Key
+ *       403:
+ *         description: User not allowed to approve this request
+ *       404:
+ *         description: Join request not found
+ *       409:
+ *         description: Join request already approved by this user
+ *       500:
+ *         description: Internal server error
+ */
+app.patch(approveJoinRequest_route, async (req, res) => {
+  try {
+    // Cerca l'API key nell'header 'X-API-Key'
+    const apiKey = req.header('X-API-Key');
+
+    const { roomId, requestId } = req.params;
+
+    if (!apiKey || !roomId || !requestId) {
+      return res.status(400).json({ message: "apiKey, roomId, and requestId are required" });
+    }
+
+    // Trova l'utente associato alla apiKey
+    const user = await getUserFromApiKey(apiKey);
+    if (!user) {
+      return res.status(401).json({ message: "Invalid API Key: user not found" });
+    }
+
+    // Trova la richiesta di join nel database
+    const joinRequest = await joinRequestsCollection.findOne({ requestId: requestId, roomId: roomId });
+    if (!joinRequest) {
+      return res.status(404).json({ message: "Join request not found" });
+    }
+
+    // Check if the user is allowed to approve and if already approved
+    const approveStatusIndex = joinRequest.approveStatus.findIndex(status => status.memberApiKey === apiKey);
+    if (approveStatusIndex === -1) {
+      return res.status(403).json({ message: "User is not allowed to approve this request" });
+    }
+    if (joinRequest.approveStatus[approveStatusIndex].approved) {
+      return res.status(409).json({ message: "Join request already approved by this user" });
+    }
+
+    // Update the database with the approval
+    const result = await joinRequestsCollection.updateOne(
+      { requestId: requestId, "approveStatus.memberApiKey": apiKey },
+      { $set: { "approveStatus.$.approved": true } }
+    );
+    if (!result.acknowledged) {
+      throw new Error("Join request approval failed");
+    }
+
+    // Update the joinRequest in memory
+    joinRequest.approveStatus[approveStatusIndex].approved = true;
+
+    console.log(`User ${user.username} approved join request ${requestId}`);
+
+    // Se tutti gli utenti hanno approvato la richiesta aggiungi l'utente alla stanza
+    const allApproved = joinRequest.approveStatus.every(status => status.approved);
+
+    if (allApproved) {
+      // Aggiungi l'utente alla stanza
+      const roomUpdateResult = await roomsCollection.updateOne(
+        { roomId: roomId },
+        { $addToSet: { members: joinRequest.apiKey } }
+      );
+      if (!roomUpdateResult.acknowledged) {
+        throw new Error("Failed to add user to room");
+      }
+      return res.status(200).json({
+        message: `Join request approved and user added to room ${roomId}`,
+      });
+    }
+
+    return res.status(200).json({
+      message: `Join request approved, waiting for other members to approve`,
+    });
+
+  } catch (error) {
+    console.error("Error approving join request:", error);
+    return res.status(500).json({
+      message: "An error occurred while approving the join request",
+      error: error.message,
+    });
+  }
+});
 
 
 
