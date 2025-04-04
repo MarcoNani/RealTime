@@ -120,24 +120,24 @@ const messages = []; // Array contenente i messaggi (associazione messaggio uten
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // users
-const generateApiKey_route = "/api/generateApiKey";
-const changeUserName_route = "/api/changeUserName";
+const generateApiKey_route = "/api/users/generate-api-key";
+const changeUserName_route = "/api/change-username";
 
 // rooms
-const createRoom_route = "/api/createRoom"; // POST
-const requireJoinRoom_route = "/api/requireJoinRoom"; // POST
-const listJoinRequests_route = "/api/listJoinRequests"; // GET
-const approveJoinRequest_route = "/api/approveJoinRequest"; // PATCH
-const denyJoinRequest_route = "/api/denyJoinRequest"; // PATCH
-const exitRoom_route = "/api/exitRoom"; // DELETE
-const listRoomMembers_route = "/api/listRoomMembers"; // GET
-const listMyRooms_route = "/api/listMyRooms"; // GET
+const createRoom_route = "/api/rooms/create"; // POST
+const requireJoinRoom_route = "/api/rooms/join-request"; // POST
+const listJoinRequests_route = "/api/rooms/join-requests"; // GET
+const approveJoinRequest_route = "/api/rooms/approve-join-request"; // PATCH
+const denyJoinRequest_route = "/api/rooms/deny-join-request"; // PATCH
+const exitRoom_route = "/api/rooms/exit"; // DELETE
+const listRoomMembers_route = "/api/rooms/members"; // GET
+const listMyRooms_route = "/api/my"; // GET
 
 //////// USERS ////////
 
 /**
  * @swagger
- * /api/generateApiKey:
+ * /api/users/generate-api-key:
  *   post:
  *     summary: Generate API Key for a user
  *     description: Generates an API key for a user (given the wanted username (name displayed) or generate a new username if not given) and return user information (including the generated API Key).
@@ -209,7 +209,7 @@ app.post(generateApiKey_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/changeUserName:
+ * /api/change-username:
  *   put:
  *     summary: Change the username of a user
  *     description: Changes the username of a user (given the apiKey) and return the new username.
@@ -291,7 +291,7 @@ app.put(changeUserName_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/createRoom:
+ * /api/rooms/create:
  *   post:
  *     summary: Create a new room
  *     description: Creates a new room with the authenticated user as the first member.
@@ -374,7 +374,7 @@ app.post(createRoom_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/requireJoinRoom:
+ * /api/rooms/join-request:
  *   post:
  *     summary: Request to join a room
  *     description: Sends a join request to a room that requires approval from all current members.
