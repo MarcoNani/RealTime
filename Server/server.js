@@ -203,7 +203,7 @@ app.post(createRoom_route, async (req, res) => {
       message: `Room created successfully with ID: ${roomId}`,
       data: {
         roomId: roomId,
-        members: [api_key], // Includi i membri della stanza
+        members: [getUserFromApiKey(api_key).username], // Includi i membri della stanza
       },
     });
   } catch (error) {
