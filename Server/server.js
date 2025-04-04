@@ -406,7 +406,7 @@ app.post(createRoom_route, async (req, res) => {
  *                 data:
  *                   type: object
  *                   properties:
- *                     apiKey:
+ *                     requestId:
  *                       type: string
  *                     roomId:
  *                       type: string
@@ -477,7 +477,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
     return res.status(200).json({
       message: `Join request sent successfully for room ID: ${roomId}`,
       data: {
-        apiKey: apiKey,
+        requestId: joinRequest.requestId,
         roomId: roomId,
       },
     });
