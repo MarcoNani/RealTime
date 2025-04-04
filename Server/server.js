@@ -4,6 +4,55 @@ import { Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
 import { connect, close } from "./db.js";
 import { config } from "dotenv";
+// Swagger
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
+
+
+// ----------
+//  SWAGGER
+// ----------
+
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "RealTime API",
+      version: "1.0.0",
+      description: "API per la gestione di utenti e stanze in tempo reale",
+    },
+    servers: [
+      {
+        url: `http://localhost:${process.env.PORTA || 3000}`,
+        description: "Development server (development branch)",
+      },
+      {
+        url: 'https://realtime-demo.baunon.com',
+        description: "Demo production server (main branch)",
+      }
+    ],
+    components: {
+      securitySchemes: {
+        ApiKeyAuth: {
+          type: "apiKey",
+          in: "header",
+          name: "X-API-Key",
+        },
+      },
+    },
+    security: [
+      {
+        ApiKeyAuth: [],
+      },
+    ],
+  },
+  apis: ["./server.js"], // percorso ai file che contengono le annotazioni
+};
+
+const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
+
+
 
 config(); //per utilizzo .env
 
@@ -67,6 +116,9 @@ const messages = []; // Array contenente i messaggi (associazione messaggio uten
 
 //// ENDPOINTS ////
 
+// Swagger UI
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // users
 const generateApiKey_route = "/api/generateApiKey";
 const changeUserName_route = "/api/changeUserName";
@@ -83,10 +135,48 @@ const listMyRooms_route = "/api/listMyRooms"; // GET
 
 //////// USERS ////////
 
+/**
+ * @swagger
+ * /api/generateApiKey:
+ *   post:
+ *     summary: Generate API Key for a user
+ *     description: Generates an API key for a user (given the wanted username (name displayed) or generate a new username if not given) and return user information (including the generated API Key).
+ *     tags: [Users]
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 description: Wanted username (name displayed) (optional)
+ *     responses:
+ *       201:
+ *         description: API key generated and stored successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     apiKey:
+ *                       type: string
+ *                     username:
+ *                       type: string
+ * 
+ *       500:
+ *         description: Internal server error
+ */
 app.post(generateApiKey_route, async (req, res) => {
   try {
     const username =
-      req.body.username || `Utente-${Math.floor(Math.random() * 1000)}`; // Estrai il nome utente dal corpo della richiesta o genera casuale se non fornito
+      req.body.username || `User-${Math.floor(Math.random() * 1000)}`; // Estrai il nome utente dal corpo della richiesta o genera casuale se non fornito
 
     const api_key = await api_key_generator(); // Genera la chiave API
 
@@ -117,6 +207,37 @@ app.post(generateApiKey_route, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/changeUserName:
+ *   put:
+ *     summary: Change the username of a user
+ *     description: Changes the username of a user (given the apiKey) and return the new username.
+ *     tags: [Users]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - newName
+ *             properties:
+ *               newName:
+ *                 type: string
+ *                 description: New username (name displayed)
+ *     responses:
+ *       200:
+ *         description: Username changed successfully
+ *       400:
+ *         description: apiKey and/or newName missing
+ *       401:
+ *         description: Invalid API Key
+ *       500:
+ *         description: Internal server error
+ */
 app.put(changeUserName_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
@@ -133,7 +254,7 @@ app.put(changeUserName_route, async (req, res) => {
     // Trova l'utente associato alla apiKey
     const user = await getUserFromApiKey(apiKey);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(401).json({ message: "Invalid API Key: user not found" });
     }
 
     // Aggiorna il nome utente
@@ -168,6 +289,41 @@ app.put(changeUserName_route, async (req, res) => {
 
 //////// ROOMS ////////
 
+/**
+ * @swagger
+ * /api/createRoom:
+ *   post:
+ *     summary: Create a new room
+ *     description: Creates a new room with the authenticated user as the first member.
+ *     tags: [Rooms]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       201:
+ *         description: Room created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     roomId:
+ *                       type: string
+ *                     members:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *       400:
+ *         description: API key is missing
+ *       401:
+ *         description: Invalid API Key
+ *       500:
+ *         description: Internal server error
+ */
 app.post(createRoom_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
@@ -180,7 +336,7 @@ app.post(createRoom_route, async (req, res) => {
     // Trova l'utente associato alla apiKey
     const user = await getUserFromApiKey(api_key);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(401).json({ message: "Invalid API Key: user not found" });
     }
 
     // Genera un nuovo ID per la stanza
@@ -203,9 +359,10 @@ app.post(createRoom_route, async (req, res) => {
       message: `Room created successfully with ID: ${roomId}`,
       data: {
         roomId: roomId,
-        members: [getUserFromApiKey(api_key).username], // Includi i membri della stanza
+        members: [user.username], // Includi i membri della stanza
       },
-    });
+    }
+  );
   } catch (error) {
     console.error("Error creating room:", error);
     return res.status(500).json({
@@ -215,6 +372,55 @@ app.post(createRoom_route, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/requireJoinRoom:
+ *   post:
+ *     summary: Request to join a room
+ *     description: Sends a join request to a room that requires approval from all current members.
+ *     tags: [Rooms]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - roomId
+ *             properties:
+ *               roomId:
+ *                 type: string
+ *                 description: ID of the room to join
+ *     responses:
+ *       200:
+ *         description: Join request sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     apiKey:
+ *                       type: string
+ *                     roomId:
+ *                       type: string
+ *       400:
+ *         description: API key and/or roomId missing
+ *       401:
+ *         description: Invalid API Key
+ *       404:
+ *         description: Room not found
+ *       409:
+ *         description: User already in the room
+ *       500:
+ *         description: Internal server error
+ */
 app.post(requireJoinRoom_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
@@ -229,7 +435,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
     // Trova l'utente associato alla apiKey
     const user = await getUserFromApiKey(apiKey);
     if (!user) {
-      return res.status(404).json({ message: "User (apiKey) not found" });
+      return res.status(401).json({ message: "Invalid API Key: user not found" });
     }
 
     // Trova la stanza nel database
@@ -240,7 +446,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
 
     // Verifica se l'utente è già nella stanza
     if (room.members.includes(apiKey)) {
-      return res.status(400).json({ message: "The user is already in the room" });
+      return res.status(409).json({ message: "The user is already in the room" });
     }
 
     // Aggiungi la richiesta di join alla collection delle join requests
