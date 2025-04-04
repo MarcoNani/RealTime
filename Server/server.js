@@ -490,6 +490,145 @@ app.post(requireJoinRoom_route, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/rooms/join-requests:
+ *   get:
+ *     summary: List all join requests for a room
+ *     description: Returns a list of all pending join requests for a specific room. Only members of the room can view join requests.
+ *     tags:
+ *       - Rooms
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - roomId
+ *             properties:
+ *               roomId:
+ *                 type: string
+ *                 description: ID of the room
+ *     responses:
+ *       200:
+ *         description: Join requests retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     roomId:
+ *                       type: string
+ *                     joinRequests:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           requestId:
+ *                             type: string
+ *                           roomId:
+ *                             type: string
+ *                           requestorUsername:
+ *                             type: string
+ *                           requestedAt:
+ *                             type: string
+ *                             format: date-time
+ *                           approveStatus:
+ *                             type: string
+ *       400:
+ *         description: API key and/or roomId missing
+ *       401:
+ *         description: Invalid API Key
+ *       403:
+ *         description: Unauthorized access (user not a member of the room)
+ *       404:
+ *         description: Room not found
+ *       500:
+ *         description: Internal server error
+ */
+app.get(listJoinRequests_route, async (req, res) => {
+  try {
+    // Cerca l'API key nell'header 'X-API-Key'
+    const apiKey = req.header('X-API-Key');
+
+    const { roomId } = req.body;
+    
+    if (!apiKey || !roomId) {
+      return res.status(400).json({ message: "apiKey and roomId are required" });
+    }
+
+    // Trova l'utente associato alla apiKey
+    const user = await getUserFromApiKey(apiKey);
+    if (!user) {
+      return res.status(401).json({ message: "Invalid API Key: user not found" });
+    }
+
+    // Trova la stanza nel database
+    const room = await roomsCollection.findOne({ roomId: roomId });
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    // Verifica se l'utente è un membro della stanza
+    if (!room.members.includes(apiKey)) {
+      return res.status(403).json({ message: "User is not a member of the room" });
+    }
+
+    // Find join requests for the room
+    const joinRequests = await joinRequestsCollection.find({ roomId: roomId }).toArray();
+
+    // If there are no join requests, return empty array
+    if (joinRequests.length === 0) {
+      return res.status(200).json({
+        message: `No join requests found for room ${roomId}`,
+        data: {
+          roomId: roomId,
+          joinRequests: []
+        }
+      });
+    }
+
+    // Get usernames for requestors
+    const requestorApiKeys = joinRequests.map(request => request.apiKey);
+    const requestors = await usersCollection.find({ apiKey: { $in: requestorApiKeys } }).toArray();
+    const apiKeyToUsername = {};
+    requestors.forEach(user => {
+      apiKeyToUsername[user.apiKey] = user.username;
+    });
+
+    // Enhance join requests with requestor usernames
+    const enhancedRequests = joinRequests.map(request => ({
+      requestId: request.requestId,
+      roomId: request.roomId,
+      requestorUsername: apiKeyToUsername[request.apiKey] || 'Unknown User',
+      requestedAt: request.requestedAt,
+      approveStatus: request.approveStatus
+    }));
+
+    return res.status(200).json({
+      message: `Found ${enhancedRequests.length} join requests for room ${roomId}`,
+      data: {
+        roomId: roomId,
+        joinRequests: enhancedRequests
+      }
+    });
+  } catch (error) {
+    console.error("Error listing join requests:", error);
+    return res.status(500).json({
+      message: "An error occurred while listing join requests",
+      error: error.message,
+    });
+  }
+});
+
 
 
 
