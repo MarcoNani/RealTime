@@ -124,12 +124,12 @@ const generateApiKey_route = "/api/users/api-key"; // POST
 const changeUserName_route = "/api/users/change-username"; // PATCH
 
 // rooms
-const createRoom_route = "/api/rooms/create"; // POST
+const createRoom_route = "/api/rooms"; // POST
 const requireJoinRoom_route = "/api/rooms/:roomId/join-request"; // POST
 const listJoinRequests_route = "/api/rooms/:roomId/join-requests"; // GET
 const approveJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/approve"; // PATCH
 const denyJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/deny"; // PATCH
-const exitRoom_route = "/api/rooms/:roomId/exit"; // DELETE
+const exitRoom_route = "/api/rooms/:roomId/members/me"; // DELETE
 const listRoomMembers_route = "/api/rooms/:roomId/members"; // GET
 const listMyRooms_route = "/api/rooms"; // GET
 
@@ -297,7 +297,7 @@ app.patch(changeUserName_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/create:
+ * /api/rooms:
  *   post:
  *     summary: Create a new room
  *     description: Creates a new room with the authenticated user as the first member.
@@ -872,9 +872,9 @@ app.patch(denyJoinRequest_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/{roomId}/exit:
+ * /api/rooms/{roomId}/members/me:
  *   delete:
- *     summary: Exit a room (remove user from room members)
+ *     summary: Exit a room (remove the authenticated user from room members)
  *     description: Allows a user to leave a room they are a member of.
  *     tags:
  *       - Rooms
