@@ -249,9 +249,9 @@ app.patch(changeUserName_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
     const apiKey = req.header('X-API-Key');
-    
+
     const { newName } = req.body;
-    
+
     if (!apiKey || !newName) {
       return res
         .status(400)
@@ -335,7 +335,7 @@ app.post(createRoom_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
     const api_key = req.header('X-API-Key');
-    
+
     if (!api_key) {
       return res.status(400).json({ message: "apiKey is required" });
     }
@@ -369,7 +369,7 @@ app.post(createRoom_route, async (req, res) => {
         members: [user.username], // Includi i membri della stanza
       },
     }
-  );
+    );
   } catch (error) {
     console.error("Error creating room:", error);
     return res.status(500).json({
@@ -427,9 +427,9 @@ app.post(requireJoinRoom_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
     const apiKey = req.header('X-API-Key');
-    
+
     const { roomId } = req.params;
-    
+
     if (!apiKey || !roomId) {
       return res.status(400).json({ message: "apiKey and roomId are required" });
     }
@@ -469,14 +469,14 @@ app.post(requireJoinRoom_route, async (req, res) => {
       requestedAt: new Date(),
       memberDecisions: approveStatusForMembers
     };
-    
+
     // Add the join request to the collection
     const result = await joinRequestsCollection.insertOne(joinRequest);
-    
+
     if (!result.acknowledged) {
       throw new Error("Join request creation failed");
     }
-    
+
     return res.status(200).json({
       message: `Join request sent successfully for room ID: ${roomId}`,
       data: {
@@ -568,7 +568,7 @@ app.get(listJoinRequests_route, async (req, res) => {
     const apiKey = req.header('X-API-Key');
 
     const { roomId } = req.params;
-    
+
     if (!apiKey || !roomId) {
       return res.status(400).json({ message: "apiKey and roomId are required" });
     }
@@ -742,74 +742,74 @@ app.patch(voteJoinRequest_route, async (req, res) => {
 
     if (vote === true) {
       // Update the database with the approval
-    const result = await joinRequestsCollection.updateOne(
-      { requestId: requestId, "memberDecisions.memberApiKey": apiKey },
-      { $set: { "memberDecisions.$.approved": true } }
-    );
-    if (!result.acknowledged) {
-      throw new Error("Join request approval failed");
-    }
-
-    // Update the joinRequest in memory
-    joinRequest.memberDecisions[approveStatusIndex].approved = true;
-
-    console.log(`User ${user.username} approved join request ${requestId}`);
-
-    // Se tutti gli utenti hanno approvato la richiesta aggiungi l'utente alla stanza
-    const allApproved = joinRequest.memberDecisions.every(status => status.approved);
-
-    if (allApproved) {
-      // Update the join request status to approved
-      const updateResult = await joinRequestsCollection.updateOne(
-        { requestId: requestId },
-        { $set: { status: "approved" } }
+      const result = await joinRequestsCollection.updateOne(
+        { requestId: requestId, "memberDecisions.memberApiKey": apiKey },
+        { $set: { "memberDecisions.$.approved": true } }
       );
-      if (!updateResult.acknowledged) {
-        throw new Error("Failed to update join request status to approved");
+      if (!result.acknowledged) {
+        throw new Error("Join request approval failed");
       }
-      
-      // Aggiungi l'utente alla stanza
-      const roomUpdateResult = await roomsCollection.updateOne(
-        { roomId: roomId },
-        { $addToSet: { members: joinRequest.apiKey } }
-      );
-      if (!roomUpdateResult.acknowledged) {
-        throw new Error("Failed to add user to room");
+
+      // Update the joinRequest in memory
+      joinRequest.memberDecisions[approveStatusIndex].approved = true;
+
+      console.log(`User ${user.username} approved join request ${requestId}`);
+
+      // Se tutti gli utenti hanno approvato la richiesta aggiungi l'utente alla stanza
+      const allApproved = joinRequest.memberDecisions.every(status => status.approved);
+
+      if (allApproved) {
+        // Update the join request status to approved
+        const updateResult = await joinRequestsCollection.updateOne(
+          { requestId: requestId },
+          { $set: { status: "approved" } }
+        );
+        if (!updateResult.acknowledged) {
+          throw new Error("Failed to update join request status to approved");
+        }
+
+        // Aggiungi l'utente alla stanza
+        const roomUpdateResult = await roomsCollection.updateOne(
+          { roomId: roomId },
+          { $addToSet: { members: joinRequest.apiKey } }
+        );
+        if (!roomUpdateResult.acknowledged) {
+          throw new Error("Failed to add user to room");
+        }
+        return res.status(200).json({
+          message: `Join request approved and user added to room ${roomId}`,
+        });
       }
+
       return res.status(200).json({
-        message: `Join request approved and user added to room ${roomId}`,
+        message: `Join request approved, waiting for other members to approve`,
       });
-    }
-
-    return res.status(200).json({
-      message: `Join request approved, waiting for other members to approve`,
-    });
     } else {
       // Update the database with the denyal
-    const result = await joinRequestsCollection.updateOne(
-      { requestId: requestId, "memberDecisions.memberApiKey": apiKey },
-      { $set: { "memberDecisions.$.approved": false } }
-    );
-    if (!result.acknowledged) {
-      throw new Error("Join request denyal failed");
-    }
+      const result = await joinRequestsCollection.updateOne(
+        { requestId: requestId, "memberDecisions.memberApiKey": apiKey },
+        { $set: { "memberDecisions.$.approved": false } }
+      );
+      if (!result.acknowledged) {
+        throw new Error("Join request denyal failed");
+      }
 
-    console.log(`User ${user.username} denyed join request ${requestId}`);
+      console.log(`User ${user.username} denyed join request ${requestId}`);
 
-    // Update the reuest status to denied
-    const updateResult = await joinRequestsCollection.updateOne(
-      { requestId: requestId },
-      { $set: { status: "denied" } }
-    );
-    if (!updateResult.acknowledged) {
-      throw new Error("Failed to update join request status to denied");
-    }
+      // Update the reuest status to denied
+      const updateResult = await joinRequestsCollection.updateOne(
+        { requestId: requestId },
+        { $set: { status: "denied" } }
+      );
+      if (!updateResult.acknowledged) {
+        throw new Error("Failed to update join request status to denied");
+      }
 
-    return res.status(200).json({
-      message: `Join request denied`,
-    });
+      return res.status(200).json({
+        message: `Join request denied`,
+      });
     }
-    } catch (error) {
+  } catch (error) {
     console.error("Error approving join request:", error);
     return res.status(500).json({
       message: "An error occurred while approving the join request",
@@ -856,9 +856,9 @@ app.delete(exitRoom_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
     const apiKey = req.header('X-API-Key');
-    
+
     const { roomId } = req.params;
-    
+
     if (!apiKey || !roomId) {
       return res.status(400).json({ message: "apiKey and roomId are required" });
     }
@@ -897,7 +897,7 @@ app.delete(exitRoom_route, async (req, res) => {
       return res.status(200).json({
         message: `User successfully removed from room ${roomId}`,
       });
-    }else{
+    } else {
       return res.status(404).json({ message: "You are not in this room" });
     }
   } catch (error) {
@@ -961,19 +961,19 @@ app.get(listRoomMembers_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
     const apiKey = req.header('X-API-Key');
-    
+
     const { roomId } = req.params;
-    
+
     if (!apiKey || !roomId) {
       return res.status(400).json({ message: "apiKey and roomId are required" });
     }
 
     // Find the room and check if user is a member in a single query
-    const room = await roomsCollection.findOne({ 
+    const room = await roomsCollection.findOne({
       roomId: roomId,
-      members: apiKey 
+      members: apiKey
     });
-    
+
     // If no room is found, either the room doesn't exist or user isn't a member but for the user is allways not found
     if (!room) {
       return res.status(404).json({ message: "Room not found" });
@@ -998,7 +998,7 @@ app.get(listRoomMembers_route, async (req, res) => {
         roomId: roomId,
         members: listOfMembers
       }
-    
+
     });
 
   } catch (error) {
@@ -1060,14 +1060,14 @@ app.get(listMyRooms_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
     const api_key = req.header('X-API-Key');
-    
+
     if (!api_key) {
       return res.status(400).json({ message: "apiKey is required" });
     }
 
     // Trova le stanze in cui l'utente è membro
     const rooms = await roomsCollection.find({ members: api_key }).toArray();
-    
+
     // Map le stanze per sostituire l'apiKey con il nome utente e aggiungere il publicId
     // Extract all unique member API keys from all rooms
     const allMemberApiKeys = [...new Set(rooms.flatMap(room => room.members))];
@@ -1087,14 +1087,14 @@ app.get(listMyRooms_route, async (req, res) => {
     // Map rooms with user details from our lookup
     const roomsWithUsernames = rooms.map(room => {
       return {
-      roomId: room.roomId,
-      members: room.members.map(memberApiKey => {
-        const member = memberMap[memberApiKey] || {};
-        return {
-          publicId: member.publicId || null,
-          username: member.username || null
-        };
-      })
+        roomId: room.roomId,
+        members: room.members.map(memberApiKey => {
+          const member = memberMap[memberApiKey] || {};
+          return {
+            publicId: member.publicId || null,
+            username: member.username || null
+          };
+        })
       };
     });
 
@@ -1114,7 +1114,7 @@ app.get(listMyRooms_route, async (req, res) => {
     });
   }
 });
-    
+
 
 
 
@@ -1136,7 +1136,7 @@ io.on("connection", (socket) => {
         throw "Inexistent user";
       }
       users[socket.id] = { user: user }; //caches the user
-    } catch (error) {}
+    } catch (error) { }
   });
 
   socket.on("typing", (payload) => {
