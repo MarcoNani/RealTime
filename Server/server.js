@@ -8,7 +8,6 @@ import { config } from "dotenv";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
-
 // ----------
 //  SWAGGER
 // ----------
@@ -27,9 +26,9 @@ const swaggerOptions = {
         description: "Development server (development branch)",
       },
       {
-        url: 'https://realtime-demo.baunon.com',
+        url: "https://realtime-demo.baunon.com",
         description: "Demo production server (main branch)",
-      }
+      },
     ],
     components: {
       securitySchemes: {
@@ -50,9 +49,6 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);
-
-
-
 
 config(); //per utilizzo .env
 
@@ -81,7 +77,9 @@ try {
   db = dbclient.db(process.env.DB_NAME);
   usersCollection = db.collection(process.env.USERSCOLLECTION_NAME);
   roomsCollection = db.collection(process.env.ROOMSCOLLECTION_NAME);
-  joinRequestsCollection = db.collection(process.env.JOINREQUESTSCOLLECTION_NAME);
+  joinRequestsCollection = db.collection(
+    process.env.JOINREQUESTSCOLLECTION_NAME
+  );
   console.log("Connessione al database avvenuta con successo.");
 } catch (e) {
   console.error("errore durante la connessione al database: ", e);
@@ -174,7 +172,7 @@ const listRoomDetails_route = "/api/v1/rooms/:roomId"; // GET
  *                       type: string
  *                     username:
  *                       type: string
- * 
+ *
  *       500:
  *         description: Internal server error
  */
@@ -263,7 +261,9 @@ app.patch(changeUserName_route, async (req, res) => {
     // Trova l'utente associato alla apiKey
     const user = await getUserFromApiKey(apiKey);
     if (!user) {
-      return res.status(401).json({ message: "Invalid API Key: user not found" });
+      return res
+        .status(401)
+        .json({ message: "Invalid API Key: user not found" });
     }
 
     // Aggiorna il nome utente
@@ -341,7 +341,9 @@ app.post(createRoom_route, async (req, res) => {
     // Trova l'utente associato alla apiKey
     const user = await getUserFromApiKey(apiKey);
     if (!user) {
-      return res.status(401).json({ message: "Invalid API Key: user not found" });
+      return res
+        .status(401)
+        .json({ message: "Invalid API Key: user not found" });
     }
 
     // Genera un nuovo ID per la stanza
@@ -533,13 +535,17 @@ app.post(requireJoinRoom_route, async (req, res) => {
     const { roomId } = req.params;
 
     if (!apiKey || !roomId) {
-      return res.status(400).json({ message: "apiKey and roomId are required" });
+      return res
+        .status(400)
+        .json({ message: "apiKey and roomId are required" });
     }
 
     // Trova l'utente associato alla apiKey
     const user = await getUserFromApiKey(apiKey);
     if (!user) {
-      return res.status(401).json({ message: "Invalid API Key: user not found" });
+      return res
+        .status(401)
+        .json({ message: "Invalid API Key: user not found" });
     }
 
     // Trova la stanza nel database
@@ -550,7 +556,9 @@ app.post(requireJoinRoom_route, async (req, res) => {
 
     // Verifica se l'utente è già nella stanza
     if (room.members.includes(apiKey)) {
-      return res.status(409).json({ message: "The user is already in the room" });
+      return res
+        .status(409)
+        .json({ message: "The user is already in the room" });
     }
 
     // Aggiungi la richiesta di join alla collection delle join requests
@@ -558,7 +566,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
     const members = room.members;
 
     // Create an approval status object for each member
-    const approveStatusForMembers = members.map(memberApiKey => ({
+    const approveStatusForMembers = members.map((memberApiKey) => ({
       memberApiKey: memberApiKey,
       approved: null // null means not yet voted
     }));
@@ -569,15 +577,18 @@ app.post(requireJoinRoom_route, async (req, res) => {
       apiKey: apiKey,
       status: "pending",
       requestedAt: new Date(),
-      memberDecisions: approveStatusForMembers
+      memberDecisions: approveStatusForMembers,
     };
+
 
     // Add the join request to the collection
     const result = await joinRequestsCollection.insertOne(joinRequest);
 
+
     if (!result.acknowledged) {
       throw new Error("Join request creation failed");
     }
+
 
     return res.status(200).json({
       message: `Join request sent successfully for room ID: ${roomId}`,
@@ -667,18 +678,22 @@ app.post(requireJoinRoom_route, async (req, res) => {
 app.get(listJoinRequests_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
-    const apiKey = req.header('X-API-Key');
+    const apiKey = req.header("X-API-Key");
 
     const { roomId } = req.params;
 
     if (!apiKey || !roomId) {
-      return res.status(400).json({ message: "apiKey and roomId are required" });
+      return res
+        .status(400)
+        .json({ message: "apiKey and roomId are required" });
     }
 
     // Trova l'utente associato alla apiKey
     const user = await getUserFromApiKey(apiKey);
     if (!user) {
-      return res.status(401).json({ message: "Invalid API Key: user not found" });
+      return res
+        .status(401)
+        .json({ message: "Invalid API Key: user not found" });
     }
 
     // Trova la stanza nel database
@@ -689,11 +704,15 @@ app.get(listJoinRequests_route, async (req, res) => {
 
     // Verifica se l'utente è un membro della stanza
     if (!room.members.includes(apiKey)) {
-      return res.status(403).json({ message: "User is not a member of the room" });
+      return res
+        .status(403)
+        .json({ message: "User is not a member of the room" });
     }
 
     // Find join requests for the room
-    const joinRequests = await joinRequestsCollection.find({ roomId: roomId }).toArray();
+    const joinRequests = await joinRequestsCollection
+      .find({ roomId: roomId })
+      .toArray();
 
     // If there are no join requests, return empty array
     if (joinRequests.length === 0) {
@@ -701,24 +720,26 @@ app.get(listJoinRequests_route, async (req, res) => {
         message: `No join requests found for room ${roomId}`,
         data: {
           roomId: roomId,
-          joinRequests: []
-        }
+          joinRequests: [],
+        },
       });
     }
 
     // Get usernames for requestors
-    const requestorApiKeys = joinRequests.map(request => request.apiKey);
-    const requestors = await usersCollection.find({ apiKey: { $in: requestorApiKeys } }).toArray();
+    const requestorApiKeys = joinRequests.map((request) => request.apiKey);
+    const requestors = await usersCollection
+      .find({ apiKey: { $in: requestorApiKeys } })
+      .toArray();
     const apiKeyToUsername = {};
-    requestors.forEach(user => {
+    requestors.forEach((user) => {
       apiKeyToUsername[user.apiKey] = user.username;
     });
 
     // Enhance join requests with requestor usernames
-    const enhancedRequests = joinRequests.map(request => ({
+    const enhancedRequests = joinRequests.map((request) => ({
       requestId: request.requestId,
       roomId: request.roomId,
-      requestorUsername: apiKeyToUsername[request.apiKey] || 'Unknown User',
+      requestorUsername: apiKeyToUsername[request.apiKey] || "Unknown User",
       requestedAt: request.requestedAt,
       approveStatus: request.status,
       memberDecisions: request.memberDecisions
@@ -728,8 +749,8 @@ app.get(listJoinRequests_route, async (req, res) => {
       message: `Found ${enhancedRequests.length} join requests for room ${roomId}`,
       data: {
         roomId: roomId,
-        joinRequests: enhancedRequests
-      }
+        joinRequests: enhancedRequests,
+      },
     });
   } catch (error) {
     console.error("Error listing join requests:", error);
@@ -797,7 +818,7 @@ app.get(listJoinRequests_route, async (req, res) => {
 app.patch(voteJoinRequest_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
-    const apiKey = req.header('X-API-Key');
+    const apiKey = req.header("X-API-Key");
 
     const { roomId, requestId } = req.params;
 
@@ -805,7 +826,9 @@ app.patch(voteJoinRequest_route, async (req, res) => {
     const { vote } = req.body;
 
     if (!apiKey || !roomId || !requestId) {
-      return res.status(400).json({ message: "apiKey, roomId, and requestId are required" });
+      return res
+        .status(400)
+        .json({ message: "apiKey, roomId, and requestId are required" });
     }
 
     // validate the vote
@@ -817,11 +840,16 @@ app.patch(voteJoinRequest_route, async (req, res) => {
     // Trova l'utente associato alla apiKey
     const user = await getUserFromApiKey(apiKey);
     if (!user) {
-      return res.status(401).json({ message: "Invalid API Key: user not found" });
+      return res
+        .status(401)
+        .json({ message: "Invalid API Key: user not found" });
     }
 
     // Trova la richiesta di join nel database
-    const joinRequest = await joinRequestsCollection.findOne({ requestId: requestId, roomId: roomId });
+    const joinRequest = await joinRequestsCollection.findOne({
+      requestId: requestId,
+      roomId: roomId,
+    });
     if (!joinRequest) {
       return res.status(404).json({ message: "Join request not found" });
     }
@@ -957,7 +985,7 @@ app.patch(voteJoinRequest_route, async (req, res) => {
 app.delete(exitRoom_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
-    const apiKey = req.header('X-API-Key');
+    const apiKey = req.header("X-API-Key");
 
     const { roomId } = req.params;
 
@@ -1106,7 +1134,6 @@ app.get(listRoomDetails_route, async (req, res) => {
       }
 
     });
-
   } catch (error) {
     console.error("Error listing room members:", error);
     return res.status(500).json({
@@ -1122,28 +1149,58 @@ app.get(listRoomDetails_route, async (req, res) => {
 //---------------------------------------------------------------------------------------------------------------//
 //---------------------------------------------------------------------------------------------------------------//
 /* 
-    TODO: cache users when the user connects with the socket
+
     TODO: remove from cache the user when the user closes the socket
 */
 
-io.on("connection", (socket) => {
-  io.emit("mustAuth"); //per prima cosa richiede al client di autenticarsi
+// WARNING: variabile che determina il tempo di timeout dell'autenticazione, IN MILLISECONDI
+const AUTENTICATION_TIMEOUT = 60000; // attualmente 1 min
 
+io.on("connection", (socket) => {
+  //--------------------------AUTH--------------------------//
+
+  // richiesta di autenticazione
+  io.emit("mustAuth"); // nel momento in cui il client si connette il server richiede al client di autenticarsi
+
+  // timeout di autenticazione, se il client ci impiega troppo tempo ad autenticarsi termina la connessione chiudendo il socket
+  const authTimeout = setTimeout(() => {
+    if (!users[socket.id]) {
+      socket.emit("AuthFailed", "Authentication timeout"); // ritorna al client l'errore di autenticazione
+
+      socket.disconnect(); // disconnette il client
+    }
+  }, AUTENTICATION_TIMEOUT);
+
+  // gestione richiesta di autenticazione client
   socket.on("auth", async (apiKey) => {
     //arriva la richiesta di autenticazione al server
     try {
-      let user = getUserFromApiKey(apiKey); //controlla l'esistenza dell'user
+      let user = getUserFromApiKey(apiKey); //controlla l'esistenza dell'user nel db
       if (!user) {
         throw "Inexistent user";
       }
-      users[socket.id] = { user: user }; //caches the user
-    } catch (error) { }
+      users[socket.id] = {
+        socket: socket,
+        username: user.username,
+        apiKey: user.apiKey,
+      }; //caches the user
+
+      clearTimeout(authTimeout); // Clear the timeout once authenticated
+      socket.emit("authSuccess");
+    } catch (error) {
+      socket.emit("authFailed", error);
+      socket.disconnect();
+    }
   });
+
+  //--------------------------AUTH--------------------------//
 
   socket.on("typing", (payload) => {
     // Riceve il messaggio di scrittura
-    if (!users[socket.id].is_auth) {
+    if (!users[socket.id]) {
+      socket.emit("authRequired");
       display("Hacker");
+      socket.disconnect();
     } else if (payload.msg_id) {
       // controlla se il messaggio contiene un id messaggio
       // verifica che l'id del messaggio corrisponda ad un messaggio dell'utente corrente (guardando nella lista dei messaggi)
