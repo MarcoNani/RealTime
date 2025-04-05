@@ -126,10 +126,10 @@ const changeUserName_route = "/api/users/change-username"; // PATCH
 // rooms
 const createRoom_route = "/api/rooms"; // POST
 const listMyRooms_route = "/api/rooms"; // GET
-const requireJoinRoom_route = "/api/rooms/:roomId/join-request"; // POST
+const requireJoinRoom_route = "/api/rooms/:roomId/join-requests"; // POST
 const listJoinRequests_route = "/api/rooms/:roomId/join-requests"; // GET
-const voteJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/vote/me"; // PATCH
-const exitRoom_route = "/api/rooms/:roomId/members/me"; // DELETE
+const voteJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/votes"; // PATCH
+const exitRoom_route = "/api/rooms/:roomId/members"; // DELETE
 const listRoomDetails_route = "/api/rooms/:roomId"; // GET
 
 //////// USERS ////////
@@ -484,7 +484,7 @@ app.get(listMyRooms_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/{roomId}/join-request:
+ * /api/rooms/{roomId}/join-requests:
  *   post:
  *     summary: Request to join a room
  *     description: Sends a join request to a room that requires approval from all current members.
@@ -743,7 +743,7 @@ app.get(listJoinRequests_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/{roomId}/join-requests/{requestId}/vote/me:
+ * /api/rooms/{roomId}/join-requests/{requestId}/votes:
  *   patch:
  *     summary: Vote on a join request for a room.
  *     description: |
@@ -923,7 +923,7 @@ app.patch(voteJoinRequest_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/{roomId}/members/me:
+ * /api/rooms/{roomId}/members:
  *   delete:
  *     summary: Exit a room (remove the authenticated user from room members)
  *     description: Allows a user to leave a room they are a member of.
