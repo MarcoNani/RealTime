@@ -120,8 +120,8 @@ const messages = []; // Array contenente i messaggi (associazione messaggio uten
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // users
-const generateApiKey_route = "/api/users/generate-api-key";
-const changeUserName_route = "/api/change-username";
+const generateApiKey_route = "/api/users/api-key"; // POST
+const changeUserName_route = "/api/users/change-username"; // PATCH
 
 // rooms
 const createRoom_route = "/api/rooms/create"; // POST
@@ -137,7 +137,7 @@ const listMyRooms_route = "/api/rooms"; // GET
 
 /**
  * @swagger
- * /api/users/generate-api-key:
+ * /api/users/api-key:
  *   post:
  *     summary: Generate API Key for a user
  *     description: Generates an API key for a user (given the wanted username (name displayed) or generate a new username if not given) and return user information (including the generated API Key).
@@ -215,8 +215,8 @@ app.post(generateApiKey_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/change-username:
- *   put:
+ * /api/users/change-username:
+ *   patch:
  *     summary: Change the username of a user
  *     description: Changes the username of a user (given the apiKey) and return the new username.
  *     tags: [Users]
@@ -244,7 +244,7 @@ app.post(generateApiKey_route, async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-app.put(changeUserName_route, async (req, res) => {
+app.patch(changeUserName_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
     const apiKey = req.header('X-API-Key');
