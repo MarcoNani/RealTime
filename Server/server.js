@@ -926,6 +926,20 @@ app.delete(exitRoom_route, async (req, res) => {
         throw new Error("Failed to remove user from room");
       }
 
+      // Membro rimosso dalla stanza
+      // Check if the room has only one member (the current user who's leaving)
+      if (room.members.length === 1) {
+        // Room will have no more members after the user leaves, delete it
+        const deleteResult = await roomsCollection.deleteOne({ roomId: roomId });
+        if (!deleteResult.acknowledged) {
+          throw new Error("Failed to delete empty room");
+        }
+        console.log(`Room ${roomId} deleted after last member left`);
+        return res.status(200).json({
+          message: `User successfully removed from room ${roomId} and room deleted because it was now empty`,
+        });
+      }
+
       return res.status(200).json({
         message: `User successfully removed from room ${roomId}`,
       });
