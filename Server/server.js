@@ -98,11 +98,15 @@ async function apiKeyGenerator() {
   // WARNING: when uuidv4 will finish the program will be stuck in an infinite loop
   let apiKey;
   do {
-    apiKey = uuidv4().replace(/-/g, "");
+    apiKey = generateUUID();
   } while (
     (await usersCollection.find({ apiKey: apiKey }).toArray()).length !== 0
   );
   return apiKey;
+}
+
+function generateUUID() { // Funzione per generare un UUID senza trattini
+  return uuidv4().replace(/-/g, "");
 }
 
 function display(item_to_display) {
@@ -318,10 +322,6 @@ app.patch(changeUserName_route, async (req, res) => {
  *                   properties:
  *                     roomId:
  *                       type: string
- *                     members:
- *                       type: array
- *                       items:
- *                         type: string
  *       400:
  *         description: API key is missing
  *       401:
@@ -345,7 +345,7 @@ app.post(createRoom_route, async (req, res) => {
     }
 
     // Genera un nuovo ID per la stanza
-    const roomId = uuidv4(); // Genera un ID unico per la stanza
+    const roomId = generateUUID(); // Genera un ID unico per la stanza
 
     // Crea la stanza nel database
     const result = await roomsCollection.insertOne({
@@ -361,10 +361,9 @@ app.post(createRoom_route, async (req, res) => {
     console.log("Inserted Room ID:", result.insertedId);
 
     return res.status(201).json({
-      message: `Room created successfully with ID: ${roomId}`,
+      message: `Room created successfully`,
       data: {
         roomId: roomId,
-        members: [user.username], // Includi i membri della stanza
       },
     }
     );
@@ -565,7 +564,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
     }));
 
     const joinRequest = {
-      requestId: uuidv4(), // Genera un ID unico per la richiesta
+      requestId: generateUUID(), // Genera un ID unico per la richiesta
       roomId: roomId,
       apiKey: apiKey,
       status: "pending",
@@ -1175,7 +1174,7 @@ io.on("connection", (socket) => {
         name: users[socket.id].name,
         payload: payload.text,
         time: new Date(),
-        msg_id: uuidv4(),
+        msg_id: generateUUID(),
       }; // realizzo l'oggetto contenente i dettagli sul messaggio
       display(message_obj); // Invia a tutti i client l'oggetto messaggio
       messages.push({ id: socket.id, msg_id: message_obj.msg_id }); // Aggiungo l'oggetto messaggio alla lista dei messaggi
