@@ -955,6 +955,105 @@ app.delete(exitRoom_route, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/rooms/:roomId/members:
+ *   get:
+ *     summary: List members of a room
+ *     description: List of members of a room (given the roomId).
+ *     tags:
+ *       - Rooms
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the room to list members
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved room members
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     roomId:
+ *                       type: string
+ *                     members:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           username:
+ *                             type: string
+ *       400:
+ *         description: API key and/or roomId missing
+ *       404:
+ *         description: Room not found or user not in room
+ *       500:
+ *         description: Internal server error
+ */
+app.get(listRoomMembers_route, async (req, res) => {
+  try {
+    // Cerca l'API key nell'header 'X-API-Key'
+    const apiKey = req.header('X-API-Key');
+    
+    const { roomId } = req.params;
+    
+    if (!apiKey || !roomId) {
+      return res.status(400).json({ message: "apiKey and roomId are required" });
+    }
+
+    // Find the room and check if user is a member in a single query
+    const room = await roomsCollection.findOne({ 
+      roomId: roomId,
+      members: apiKey 
+    });
+    
+    // If no room is found, either the room doesn't exist or user isn't a member but for the user is allways not found
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    // the user is a member of the room, so we can proceed to get the members
+
+    // Get usernames for all members
+    const memberApiKeys = room.members;
+
+    const members = await usersCollection.find({ apiKey: { $in: memberApiKeys } }).toArray();
+
+    const listOfMembers = members.map(member => ({
+      username: member.username
+      // TODO: add publicId
+    }));
+
+    // Return the list of members and the roomId
+    return res.status(200).json({
+      message: `Found ${listOfMembers.length} members in room ${roomId}`,
+      data: {
+        roomId: roomId,
+        members: listOfMembers
+      }
+    
+    });
+
+  } catch (error) {
+    console.error("Error listing room members:", error);
+    return res.status(500).json({
+      message: "An error occurred while listing room members",
+      error: error.message,
+    });
+  }
+});
+
   
 
 
