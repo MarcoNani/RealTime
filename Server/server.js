@@ -1062,7 +1062,111 @@ app.get(listRoomMembers_route, async (req, res) => {
   }
 });
 
-  
+/**
+ * @swagger
+ * /api/rooms:
+ *   get:
+ *     summary: List rooms where the user is a member
+ *     description: Returns all rooms where the user with the provided API key is a member, along with member details if some member detail is not present in the db it will be setted as null.
+ *     tags:
+ *       - Rooms
+ *     security:
+ *       - ApiKeyAuth: []
+ *     responses:
+ *       200:
+ *         description: List of rooms successfully retrieved
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     rooms:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           roomId:
+ *                             type: string
+ *                           members:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 publicId:
+ *                                   type: string
+ *                                   nullable: true
+ *                                 username:
+ *                                   type: string
+ *                                   nullable: true
+ *       400:
+ *         description: API key missing
+ *       500:
+ *         description: Internal server error
+ */
+app.get(listMyRooms_route, async (req, res) => {
+  try {
+    // Cerca l'API key nell'header 'X-API-Key'
+    const api_key = req.header('X-API-Key');
+    
+    if (!api_key) {
+      return res.status(400).json({ message: "apiKey is required" });
+    }
+
+    // Trova le stanze in cui l'utente è membro
+    const rooms = await roomsCollection.find({ members: api_key }).toArray();
+    
+    // Map le stanze per sostituire l'apiKey con il nome utente e aggiungere il publicId
+    // Extract all unique member API keys from all rooms
+    const allMemberApiKeys = [...new Set(rooms.flatMap(room => room.members))];
+
+    // Fetch all user details in a single query
+    const members = await usersCollection.find({ apiKey: { $in: allMemberApiKeys } }).toArray();
+
+    // Create a lookup map for faster access
+    const memberMap = {};
+    members.forEach(member => {
+      memberMap[member.apiKey] = {
+        publicId: member.publicId,
+        username: member.username
+      };
+    });
+
+    // Map rooms with user details from our lookup
+    const roomsWithUsernames = rooms.map(room => {
+      return {
+      roomId: room.roomId,
+      members: room.members.map(memberApiKey => {
+        const member = memberMap[memberApiKey] || {};
+        return {
+          publicId: member.publicId || null,
+          username: member.username || null
+        };
+      })
+      };
+    });
+
+
+    // Ritorna la lista delle stanze e i membri
+    return res.status(200).json({
+      message: `Found ${roomsWithUsernames.length} rooms for the autenticated user`,
+      data: {
+        rooms: roomsWithUsernames
+      }
+    });
+  } catch (error) {
+    console.error("Error listing rooms:", error);
+    return res.status(500).json({
+      message: "An error occurred while listing rooms",
+      error: error.message,
+    });
+  }
+});
+    
 
 
 
