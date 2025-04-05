@@ -127,8 +127,9 @@ const changeUserName_route = "/api/users/change-username"; // PATCH
 const createRoom_route = "/api/rooms"; // POST
 const requireJoinRoom_route = "/api/rooms/:roomId/join-request"; // POST
 const listJoinRequests_route = "/api/rooms/:roomId/join-requests"; // GET
-const approveJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/approve"; // PATCH
-const denyJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/deny"; // PATCH
+// const approveJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/approve"; // PATCH
+// const denyJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/deny"; // PATCH
+const voteJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/vote/me"; // PATCH
 const exitRoom_route = "/api/rooms/:roomId/members/me"; // DELETE
 const listRoomMembers_route = "/api/rooms/:roomId/members"; // GET
 const listMyRooms_route = "/api/rooms"; // GET
@@ -457,7 +458,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
     // Create an approval status object for each member
     const approveStatusForMembers = members.map(memberApiKey => ({
       memberApiKey: memberApiKey,
-      approved: false
+      approved: null // null means not yet voted
     }));
 
     const joinRequest = {
@@ -618,7 +619,7 @@ app.get(listJoinRequests_route, async (req, res) => {
       requestorUsername: apiKeyToUsername[request.apiKey] || 'Unknown User',
       requestedAt: request.requestedAt,
       approveStatus: request.status,
-      memberDecisions: request.approveStatus
+      memberDecisions: request.memberDecisions
     }));
 
     return res.status(200).json({
@@ -639,10 +640,13 @@ app.get(listJoinRequests_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/{roomId}/join-requests/{requestId}/approve:
+ * /api/rooms/{roomId}/join-requests/{requestId}/vote/me:
  *   patch:
- *     summary: Approve a request to join a room
- *     description: Approves a pending join request. If all members approve, the requesting user is automatically added to the room.
+ *     summary: Vote on a join request for a room.
+ *     description: |
+ *       Allows a user to approve or deny a join request for a specific room passing the vote in the body of the request (true = approve, false = deny). \
+ *       If all members approve, the requesting user is automatically added to the room. \
+ *       If the request is denied, the requesting user will not be added to the room.
  *     tags:
  *       - Rooms
  *     security:
@@ -653,46 +657,60 @@ app.get(listJoinRequests_route, async (req, res) => {
  *         required: true
  *         schema:
  *           type: string
- *         description: ID of the room
+ *         description: The ID of the room associated with the join request.
  *       - in: path
  *         name: requestId
  *         required: true
  *         schema:
  *           type: string
- *         description: The ID of the join request to approve
+ *         description: The ID of the join request being voted on.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               vote:
+ *                 type: boolean
+ *                 description: The vote for the join request (true for approval, false for denial).
+ *             required:
+ *               - vote
  *     responses:
  *       200:
- *         description: Join request successfully approved
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
+ *         description: Successfully processed the vote.
  *       400:
- *         description: API key missing
+ *         description: API key and/or roomId and/or requestId missing and/or invalid vote value.
  *       401:
- *         description: Invalid API Key
+ *         description: Invalid API key.
  *       403:
- *         description: User not allowed to approve this request
+ *         description: User is not allowed to vote on this join request.
  *       404:
- *         description: Join request not found
+ *         description: Join request not found.
  *       409:
- *         description: Join request already approved by this user
+ *         description: User has already voted on this join request.
  *       500:
- *         description: Internal server error
+ *         description: Internal server error.
  */
-app.patch(approveJoinRequest_route, async (req, res) => {
+app.patch(voteJoinRequest_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
     const apiKey = req.header('X-API-Key');
 
     const { roomId, requestId } = req.params;
 
+    // read the body to get the vote (true or false)
+    const { vote } = req.body;
+
     if (!apiKey || !roomId || !requestId) {
       return res.status(400).json({ message: "apiKey, roomId, and requestId are required" });
     }
+
+    // validate the vote
+    if (vote !== true && vote !== false) {
+      return res.status(400).json({ message: "vote must be true or false" });
+    }
+
 
     // Trova l'utente associato alla apiKey
     const user = await getUserFromApiKey(apiKey);
@@ -706,33 +724,50 @@ app.patch(approveJoinRequest_route, async (req, res) => {
       return res.status(404).json({ message: "Join request not found" });
     }
 
-    // Check if the user is allowed to approve and if already approved
-    const approveStatusIndex = joinRequest.approveStatus.findIndex(status => status.memberApiKey === apiKey);
-    if (approveStatusIndex === -1) {
-      return res.status(403).json({ message: "User is not allowed to approve this request" });
-    }
-    if (joinRequest.approveStatus[approveStatusIndex].approved) {
-      return res.status(409).json({ message: "Join request already approved by this user" });
+    // Check if the request is still in pending state
+    if (joinRequest.status !== "pending") {
+      return res.status(409).json({ message: "Join request is no longer pending so you can no more vote for this join request" });
     }
 
-    // Update the database with the approval
+    // Check if the user is allowed to vote and if already voted
+    const approveStatusIndex = joinRequest.memberDecisions.findIndex(status => status.memberApiKey === apiKey);
+    if (approveStatusIndex === -1) {
+      return res.status(403).json({ message: "User is not allowed to vote on this request" });
+    }
+    if (joinRequest.memberDecisions[approveStatusIndex].approved !== null) {
+      return res.status(409).json({ message: "User has already voted on this join request" });
+    }
+
+
+
+    if (vote === true) {
+      // Update the database with the approval
     const result = await joinRequestsCollection.updateOne(
-      { requestId: requestId, "approveStatus.memberApiKey": apiKey },
-      { $set: { "approveStatus.$.approved": true } }
+      { requestId: requestId, "memberDecisions.memberApiKey": apiKey },
+      { $set: { "memberDecisions.$.approved": true } }
     );
     if (!result.acknowledged) {
       throw new Error("Join request approval failed");
     }
 
     // Update the joinRequest in memory
-    joinRequest.approveStatus[approveStatusIndex].approved = true;
+    joinRequest.memberDecisions[approveStatusIndex].approved = true;
 
     console.log(`User ${user.username} approved join request ${requestId}`);
 
     // Se tutti gli utenti hanno approvato la richiesta aggiungi l'utente alla stanza
-    const allApproved = joinRequest.approveStatus.every(status => status.approved);
+    const allApproved = joinRequest.memberDecisions.every(status => status.approved);
 
     if (allApproved) {
+      // Update the join request status to approved
+      const updateResult = await joinRequestsCollection.updateOne(
+        { requestId: requestId },
+        { $set: { status: "approved" } }
+      );
+      if (!updateResult.acknowledged) {
+        throw new Error("Failed to update join request status to approved");
+      }
+      
       // Aggiungi l'utente alla stanza
       const roomUpdateResult = await roomsCollection.updateOne(
         { roomId: roomId },
@@ -749,98 +784,11 @@ app.patch(approveJoinRequest_route, async (req, res) => {
     return res.status(200).json({
       message: `Join request approved, waiting for other members to approve`,
     });
-
-  } catch (error) {
-    console.error("Error approving join request:", error);
-    return res.status(500).json({
-      message: "An error occurred while approving the join request",
-      error: error.message,
-    });
-  }
-});
-
-/**
- * @swagger
- * /api/rooms/{roomId}/join-requests/{requestId}/deny:
- *   patch:
- *     summary: Deny a request to join a room
- *     description: Deny a pending join request. If the request is denied, the requesting user will not be added to the room.
- *     tags:
- *       - Rooms
- *     security:
- *       - ApiKeyAuth: []
- *     parameters:
- *       - in: path
- *         name: roomId
- *         required: true
- *         schema:
- *           type: string
- *         description: ID of the room
- *       - in: path
- *         name: requestId
- *         required: true
- *         schema:
- *           type: string
- *         description: The ID of the join request to deny
- *     responses:
- *       200:
- *         description: Join request successfully denied
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *       400:
- *         description: API key and/or roomId and/or requestId missing
- *       401:
- *         description: Invalid API Key
- *       403:
- *         description: User not allowed to deny this request
- *       404:
- *         description: Join request not found
- *       409:
- *         description: Join request already approved by this user
- *       500:
- *         description: Internal server error
- */
-app.patch(denyJoinRequest_route, async (req, res) => {
-  try {
-    // Cerca l'API key nell'header 'X-API-Key'
-    const apiKey = req.header('X-API-Key');
-
-    const { roomId, requestId } = req.params;
-
-    if (!apiKey || !roomId || !requestId) {
-      return res.status(400).json({ message: "apiKey, roomId, and requestId are required" });
-    }
-
-    // Trova l'utente associato alla apiKey
-    const user = await getUserFromApiKey(apiKey);
-    if (!user) {
-      return res.status(401).json({ message: "Invalid API Key: user not found" });
-    }
-
-    // Trova la richiesta di join nel database
-    const joinRequest = await joinRequestsCollection.findOne({ requestId: requestId, roomId: roomId });
-    if (!joinRequest) {
-      return res.status(404).json({ message: "Join request not found" });
-    }
-
-    // Check if the user is allowed to deny and if already approved
-    const approveStatusIndex = joinRequest.approveStatus.findIndex(status => status.memberApiKey === apiKey);
-    if (approveStatusIndex === -1) {
-      return res.status(403).json({ message: "User is not allowed to deny this request" });
-    }
-    if (joinRequest.approveStatus[approveStatusIndex].approved) {
-      return res.status(409).json({ message: "Join request already approved by this user" });
-    }
-
-    // Update the database with the denyal
+    } else {
+      // Update the database with the denyal
     const result = await joinRequestsCollection.updateOne(
-      { requestId: requestId, "approveStatus.memberApiKey": apiKey },
-      { $set: { "approveStatus.$.approved": false } }
+      { requestId: requestId, "memberDecisions.memberApiKey": apiKey },
+      { $set: { "memberDecisions.$.approved": false } }
     );
     if (!result.acknowledged) {
       throw new Error("Join request denyal failed");
@@ -860,8 +808,8 @@ app.patch(denyJoinRequest_route, async (req, res) => {
     return res.status(200).json({
       message: `Join request denied`,
     });
-
-  } catch (error) {
+    }
+    } catch (error) {
     console.error("Error approving join request:", error);
     return res.status(500).json({
       message: "An error occurred while approving the join request",
