@@ -167,6 +167,8 @@ const listMyRooms_route = "/api/rooms"; // GET
  *                   properties:
  *                     apiKey:
  *                       type: string
+ *                     publicId:
+ *                       type: string
  *                     username:
  *                       type: string
  * 
@@ -180,8 +182,11 @@ app.post(generateApiKey_route, async (req, res) => {
 
     const api_key = await api_key_generator(); // Genera la chiave API
 
+    const publicId = await api_key_generator(); // Genera un ID pubblico unico
+
     const result = await usersCollection.insertOne({
       apiKey: api_key,
+      publicId: publicId,
       username: username,
     }); // Inserisce i dati nel database
 
@@ -195,6 +200,7 @@ app.post(generateApiKey_route, async (req, res) => {
       message: `API key generated and stored successfully for user: ${username}`,
       data: {
         apiKey: api_key,
+        publicId: publicId,
         username: username,
       },
     });
