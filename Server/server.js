@@ -963,7 +963,7 @@ app.delete(exitRoom_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/:roomId/members:
+ * /api/rooms/{roomId}/members:
  *   get:
  *     summary: List members of a room
  *     description: List of members of a room (given the roomId).
@@ -998,6 +998,8 @@ app.delete(exitRoom_route, async (req, res) => {
  *                       items:
  *                         type: object
  *                         properties:
+ *                           publicId:
+ *                             type: string
  *                           username:
  *                             type: string
  *       400:
@@ -1037,8 +1039,8 @@ app.get(listRoomMembers_route, async (req, res) => {
     const members = await usersCollection.find({ apiKey: { $in: memberApiKeys } }).toArray();
 
     const listOfMembers = members.map(member => ({
+      publicId: member.publicId,
       username: member.username
-      // TODO: add publicId
     }));
 
     // Return the list of members and the roomId
