@@ -129,9 +129,9 @@ const requireJoinRoom_route = "/api/rooms/:roomId/join-request"; // POST
 const listJoinRequests_route = "/api/rooms/:roomId/join-requests"; // GET
 const approveJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/approve"; // PATCH
 const denyJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/deny"; // PATCH
-const exitRoom_route = "/api/rooms/exit"; // DELETE
-const listRoomMembers_route = "/api/rooms/members"; // GET
-const listMyRooms_route = "/api/my"; // GET
+const exitRoom_route = "/api/rooms/:roomId/exit"; // DELETE
+const listRoomMembers_route = "/api/rooms/:roomId/members"; // GET
+const listMyRooms_route = "/api/rooms"; // GET
 
 //////// USERS ////////
 
@@ -787,7 +787,7 @@ app.patch(approveJoinRequest_route, async (req, res) => {
  *                 message:
  *                   type: string
  *       400:
- *         description: API key missing
+ *         description: API key and/or roomId and/or requestId missing
  *       401:
  *         description: Invalid API Key
  *       403:
@@ -859,6 +859,83 @@ app.patch(denyJoinRequest_route, async (req, res) => {
     console.error("Error approving join request:", error);
     return res.status(500).json({
       message: "An error occurred while approving the join request",
+      error: error.message,
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/rooms/{roomId}/exit:
+ *   delete:
+ *     summary: Exit a room (remove user from room members)
+ *     description: Allows a user to leave a room they are a member of.
+ *     tags:
+ *       - Rooms
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: roomId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the room to exit
+ *     responses:
+ *       200:
+ *         description: User successfully removed from room
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: API key and/or roomId missing
+ *       404:
+ *         description: Room not found or user not in room
+ *       500:
+ *         description: Internal server error
+ */
+app.delete(exitRoom_route, async (req, res) => {
+  try {
+    // Cerca l'API key nell'header 'X-API-Key'
+    const apiKey = req.header('X-API-Key');
+    
+    const { roomId } = req.params;
+    
+    if (!apiKey || !roomId) {
+      return res.status(400).json({ message: "apiKey and roomId are required" });
+    }
+
+    const room = await roomsCollection.findOne({ roomId: roomId });
+    if (!room) {
+      return res.status(404).json({ message: "Room not found" });
+    }
+
+    // Verifica se l'utente è un membro della stanza
+    if (room.members.includes(apiKey)) {
+      // L'utente è nella stanza, quindi lo rimuoviamo
+      const result = await roomsCollection.updateOne(
+        { roomId: roomId },
+        { $pull: { members: apiKey } }
+      );
+
+      if (!result.acknowledged) {
+        throw new Error("Failed to remove user from room");
+      }
+
+      return res.status(200).json({
+        message: `User successfully removed from room ${roomId}`,
+      });
+    }else{
+      return res.status(404).json({ message: "You are not in this room" });
+    }
+  } catch (error) {
+    console.error("Error exiting room:", error);
+    return res.status(500).json({
+      message: "An error occurred while exiting the room",
       error: error.message,
     });
   }
