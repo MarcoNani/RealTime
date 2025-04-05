@@ -131,7 +131,7 @@ const listJoinRequests_route = "/api/rooms/:roomId/join-requests"; // GET
 // const denyJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/deny"; // PATCH
 const voteJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/vote/me"; // PATCH
 const exitRoom_route = "/api/rooms/:roomId/members/me"; // DELETE
-const listRoomMembers_route = "/api/rooms/:roomId/members"; // GET
+const listRoomDetails_route = "/api/rooms/:roomId"; // GET
 const listMyRooms_route = "/api/rooms"; // GET
 
 //////// USERS ////////
@@ -911,10 +911,10 @@ app.delete(exitRoom_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/{roomId}/members:
+ * /api/rooms/{roomId}:
  *   get:
- *     summary: List members of a room
- *     description: List of members of a room (given the roomId).
+ *     summary: Obtain details of a room
+ *     description: Obtain details of a room including the list of members of a room (given the roomId).
  *     tags:
  *       - Rooms
  *     security:
@@ -950,6 +950,9 @@ app.delete(exitRoom_route, async (req, res) => {
  *                             type: string
  *                           username:
  *                             type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
  *       400:
  *         description: API key and/or roomId missing
  *       404:
@@ -957,7 +960,7 @@ app.delete(exitRoom_route, async (req, res) => {
  *       500:
  *         description: Internal server error
  */
-app.get(listRoomMembers_route, async (req, res) => {
+app.get(listRoomDetails_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
     const apiKey = req.header('X-API-Key');
@@ -996,7 +999,8 @@ app.get(listRoomMembers_route, async (req, res) => {
       message: `Found ${listOfMembers.length} members in room ${roomId}`,
       data: {
         roomId: roomId,
-        members: listOfMembers
+        members: listOfMembers,
+        createdAt: room.createdAt
       }
 
     });
