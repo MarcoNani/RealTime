@@ -94,15 +94,15 @@ async function getUserFromApiKey(apiKey) {
   return user;
 }
 
-async function api_key_generator() {
+async function apiKeyGenerator() {
   // WARNING: when uuidv4 will finish the program will be stuck in an infinite loop
-  let api_key;
+  let apiKey;
   do {
-    api_key = uuidv4().replace(/-/g, "");
+    apiKey = uuidv4().replace(/-/g, "");
   } while (
-    (await usersCollection.find({ apiKey: api_key }).toArray()).length !== 0
+    (await usersCollection.find({ apiKey: apiKey }).toArray()).length !== 0
   );
-  return api_key;
+  return apiKey;
 }
 
 function display(item_to_display) {
@@ -120,23 +120,23 @@ const messages = []; // Array contenente i messaggi (associazione messaggio uten
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // users
-const generateApiKey_route = "/api/users/api-key"; // POST
-const changeUserName_route = "/api/users/change-username"; // PATCH
+const generateApiKey_route = "/api/v1/users/api-key"; // POST
+const changeUserName_route = "/api/v1/users/change-username"; // PATCH
 
 // rooms
-const createRoom_route = "/api/rooms"; // POST
-const listMyRooms_route = "/api/rooms"; // GET
-const requireJoinRoom_route = "/api/rooms/:roomId/join-requests"; // POST
-const listJoinRequests_route = "/api/rooms/:roomId/join-requests"; // GET
-const voteJoinRequest_route = "/api/rooms/:roomId/join-requests/:requestId/votes"; // PATCH
-const exitRoom_route = "/api/rooms/:roomId/members"; // DELETE
-const listRoomDetails_route = "/api/rooms/:roomId"; // GET
+const createRoom_route = "/api/v1/rooms"; // POST
+const listMyRooms_route = "/api/v1/rooms"; // GET
+const requireJoinRoom_route = "/api/v1/rooms/:roomId/join-requests"; // POST
+const listJoinRequests_route = "/api/v1/rooms/:roomId/join-requests"; // GET
+const voteJoinRequest_route = "/api/v1/rooms/:roomId/join-requests/:requestId/votes"; // PATCH
+const exitRoom_route = "/api/v1/rooms/:roomId/members"; // DELETE
+const listRoomDetails_route = "/api/v1/rooms/:roomId"; // GET
 
 //////// USERS ////////
 
 /**
  * @swagger
- * /api/users/api-key:
+ * /api/v1/users/api-key:
  *   post:
  *     summary: Generate API Key for a user
  *     description: Generates an API key for a user (given the wanted username (name displayed) or generate a new username if not given) and return user information (including the generated API Key).
@@ -179,12 +179,12 @@ app.post(generateApiKey_route, async (req, res) => {
     const username =
       req.body.username || `User-${Math.floor(Math.random() * 1000)}`; // Estrai il nome utente dal corpo della richiesta o genera casuale se non fornito
 
-    const api_key = await api_key_generator(); // Genera la chiave API
+    const apiKey = await apiKeyGenerator(); // Genera la chiave API
 
-    const publicId = await api_key_generator(); // Genera un ID pubblico unico
+    const publicId = await apiKeyGenerator(); // Genera un ID pubblico unico
 
     const result = await usersCollection.insertOne({
-      apiKey: api_key,
+      apiKey: apiKey,
       publicId: publicId,
       username: username,
     }); // Inserisce i dati nel database
@@ -198,7 +198,7 @@ app.post(generateApiKey_route, async (req, res) => {
     return res.status(201).json({
       message: `API key generated and stored successfully for user: ${username}`,
       data: {
-        apiKey: api_key,
+        apiKey: apiKey,
         publicId: publicId,
         username: username,
       },
@@ -214,7 +214,7 @@ app.post(generateApiKey_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/users/change-username:
+ * /api/v1/users/change-username:
  *   patch:
  *     summary: Change the username of a user
  *     description: Changes the username of a user (given the apiKey) and return the new username.
@@ -296,7 +296,7 @@ app.patch(changeUserName_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms:
+ * /api/v1/rooms:
  *   post:
  *     summary: Create a new room
  *     description: Creates a new room with the authenticated user as the first member.
@@ -332,14 +332,14 @@ app.patch(changeUserName_route, async (req, res) => {
 app.post(createRoom_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
-    const api_key = req.header('X-API-Key');
+    const apiKey = req.header('X-API-Key');
 
-    if (!api_key) {
+    if (!apiKey) {
       return res.status(400).json({ message: "apiKey is required" });
     }
 
     // Trova l'utente associato alla apiKey
-    const user = await getUserFromApiKey(api_key);
+    const user = await getUserFromApiKey(apiKey);
     if (!user) {
       return res.status(401).json({ message: "Invalid API Key: user not found" });
     }
@@ -350,7 +350,7 @@ app.post(createRoom_route, async (req, res) => {
     // Crea la stanza nel database
     const result = await roomsCollection.insertOne({
       roomId: roomId,
-      members: [api_key], // Aggiungi l'utente come membro della stanza
+      members: [apiKey], // Aggiungi l'utente come membro della stanza
       createdAt: new Date(),
     });
 
@@ -379,7 +379,7 @@ app.post(createRoom_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms:
+ * /api/v1/rooms:
  *   get:
  *     summary: List rooms where the user is a member
  *     description: Returns all rooms where the user with the provided API key is a member, along with member details if some member detail is not present in the db it will be setted as null.
@@ -426,14 +426,14 @@ app.post(createRoom_route, async (req, res) => {
 app.get(listMyRooms_route, async (req, res) => {
   try {
     // Cerca l'API key nell'header 'X-API-Key'
-    const api_key = req.header('X-API-Key');
+    const apiKey = req.header('X-API-Key');
 
-    if (!api_key) {
+    if (!apiKey) {
       return res.status(400).json({ message: "apiKey is required" });
     }
 
     // Trova le stanze in cui l'utente è membro
-    const rooms = await roomsCollection.find({ members: api_key }).toArray();
+    const rooms = await roomsCollection.find({ members: apiKey }).toArray();
 
     // Map le stanze per sostituire l'apiKey con il nome utente e aggiungere il publicId
     // Extract all unique member API keys from all rooms
@@ -484,7 +484,7 @@ app.get(listMyRooms_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/{roomId}/join-requests:
+ * /api/v1/rooms/{roomId}/join-requests:
  *   post:
  *     summary: Request to join a room
  *     description: Sends a join request to a room that requires approval from all current members.
@@ -598,7 +598,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/{roomId}/join-requests:
+ * /api/v1/rooms/{roomId}/join-requests:
  *   get:
  *     summary: List all join requests for a room
  *     description: Returns a list of all join requests for a specific room, including their approval status and member decisions. Only members of the room can view join requests.
@@ -743,7 +743,7 @@ app.get(listJoinRequests_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/{roomId}/join-requests/{requestId}/votes:
+ * /api/v1/rooms/{roomId}/join-requests/{requestId}/votes:
  *   patch:
  *     summary: Vote on a join request for a room.
  *     description: |
@@ -923,7 +923,7 @@ app.patch(voteJoinRequest_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/{roomId}/members:
+ * /api/v1/rooms/{roomId}/members:
  *   delete:
  *     summary: Exit a room (remove the authenticated user from room members)
  *     description: Allows a user to leave a room they are a member of.
@@ -1014,7 +1014,7 @@ app.delete(exitRoom_route, async (req, res) => {
 
 /**
  * @swagger
- * /api/rooms/{roomId}:
+ * /api/v1/rooms/{roomId}:
  *   get:
  *     summary: Obtain details of a room
  *     description: Obtain details of a room including the list of members of a room (given the roomId).
