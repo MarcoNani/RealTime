@@ -1,8 +1,7 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
-import { v4 as uuidv4 } from "uuid";
-import { connect, close } from "./src/db.js";
+import { connect, close, usersCollection, roomsCollection, joinRequestsCollection } from "./src/db.js";
 import { config } from "dotenv";
 // Swagger
 import swaggerJSDoc from "swagger-jsdoc";
@@ -74,22 +73,14 @@ const port_server = process.env.PORTA || 3000;
 //     DB
 // ----------
 
-let dbclient;
-let db;
-let usersCollection;
-let roomsCollection;
-let joinRequestsCollection;
-
 try {
-  dbclient = await connect();
-  db = dbclient.db(process.env.DB_NAME);
-  usersCollection = db.collection(process.env.USERSCOLLECTION_NAME);
-  roomsCollection = db.collection(process.env.ROOMSCOLLECTION_NAME);
-  joinRequestsCollection = db.collection(process.env.JOINREQUESTSCOLLECTION_NAME);
+  await connect();
   console.log("Connessione al database avvenuta con successo.");
 } catch (e) {
-  console.error("errore durante la connessione al database: ", e);
+  console.error("Errore durante la connessione al database: ", e);
 }
+
+
 
 //// FUNCTIONS ////
 function display(item_to_display) {
