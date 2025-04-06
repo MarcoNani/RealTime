@@ -2,11 +2,15 @@ import express from "express";
 import http from "http";
 import { Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
-import { connect, close } from "./db.js";
+import { connect, close } from "./src/db.js";
 import { config } from "dotenv";
 // Swagger
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+
+
+// Helper
+import * as helpers from "./src/utils/helpers.js";
 
 
 // ----------
@@ -88,27 +92,6 @@ try {
 }
 
 //// FUNCTIONS ////
-
-async function getUserFromApiKey(apiKey) {
-  const user = await usersCollection.findOne({ apiKey: apiKey });
-  return user;
-}
-
-async function apiKeyGenerator() {
-  // WARNING: when uuidv4 will finish the program will be stuck in an infinite loop
-  let apiKey;
-  do {
-    apiKey = generateUUID();
-  } while (
-    (await usersCollection.find({ apiKey: apiKey }).toArray()).length !== 0
-  );
-  return apiKey;
-}
-
-function generateUUID() { // Funzione per generare un UUID senza trattini
-  return uuidv4().replace(/-/g, "");
-}
-
 function display(item_to_display) {
   io.emit("display", item_to_display);
 }
@@ -183,9 +166,9 @@ app.post(generateApiKey_route, async (req, res) => {
     const username =
       req.body.username || `User-${Math.floor(Math.random() * 1000)}`; // Estrai il nome utente dal corpo della richiesta o genera casuale se non fornito
 
-    const apiKey = await apiKeyGenerator(); // Genera la chiave API
+    const apiKey = await helpers.apiKeyGenerator(); // Genera la chiave API
 
-    const publicId = await apiKeyGenerator(); // Genera un ID pubblico unico
+    const publicId = await helpers.apiKeyGenerator(); // Genera un ID pubblico unico
 
     const result = await usersCollection.insertOne({
       apiKey: apiKey,
@@ -261,7 +244,7 @@ app.patch(changeUserName_route, async (req, res) => {
     }
 
     // Trova l'utente associato alla apiKey
-    const user = await getUserFromApiKey(apiKey);
+    const user = await helpers.getUserFromApiKey(apiKey);
     if (!user) {
       return res.status(401).json({ message: "Invalid API Key: user not found" });
     }
@@ -339,13 +322,13 @@ app.post(createRoom_route, async (req, res) => {
     }
 
     // Trova l'utente associato alla apiKey
-    const user = await getUserFromApiKey(apiKey);
+    const user = await helpers.getUserFromApiKey(apiKey);
     if (!user) {
       return res.status(401).json({ message: "Invalid API Key: user not found" });
     }
 
     // Genera un nuovo ID per la stanza
-    const roomId = generateUUID(); // Genera un ID unico per la stanza
+    const roomId = helpers.generateUUID(); // Genera un ID unico per la stanza
 
     // Crea la stanza nel database
     const result = await roomsCollection.insertOne({
@@ -537,7 +520,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
     }
 
     // Trova l'utente associato alla apiKey
-    const user = await getUserFromApiKey(apiKey);
+    const user = await helpers.getUserFromApiKey(apiKey);
     if (!user) {
       return res.status(401).json({ message: "Invalid API Key: user not found" });
     }
@@ -564,7 +547,7 @@ app.post(requireJoinRoom_route, async (req, res) => {
     }));
 
     const joinRequest = {
-      requestId: generateUUID(), // Genera un ID unico per la richiesta
+      requestId: helpers.generateUUID(), // Genera un ID unico per la richiesta
       roomId: roomId,
       apiKey: apiKey,
       status: "pending",
@@ -676,7 +659,7 @@ app.get(listJoinRequests_route, async (req, res) => {
     }
 
     // Trova l'utente associato alla apiKey
-    const user = await getUserFromApiKey(apiKey);
+    const user = await helpers.getUserFromApiKey(apiKey);
     if (!user) {
       return res.status(401).json({ message: "Invalid API Key: user not found" });
     }
@@ -815,7 +798,7 @@ app.patch(voteJoinRequest_route, async (req, res) => {
 
 
     // Trova l'utente associato alla apiKey
-    const user = await getUserFromApiKey(apiKey);
+    const user = await helpers.getUserFromApiKey(apiKey);
     if (!user) {
       return res.status(401).json({ message: "Invalid API Key: user not found" });
     }
@@ -1119,104 +1102,6 @@ app.get(listRoomDetails_route, async (req, res) => {
 
 
 
-//---------------------------------------------------------------------------------------------------------------//
-//---------------------------------------------------------------------------------------------------------------//
-/* 
-
-    TODO: remove from cache the user when the user closes the socket
-*/
-
-// WARNING: variabile che determina il tempo di timeout dell'autenticazione, IN MILLISECONDI
-const AUTENTICATION_TIMEOUT = 60000; // attualmente 1 min
-
-io.on("connection", (socket) => {
-  //--------------------------AUTH--------------------------//
-
-  // richiesta di autenticazione
-  io.emit("mustAuth"); // nel momento in cui il client si connette il server richiede al client di autenticarsi
-
-  // timeout di autenticazione, se il client ci impiega troppo tempo ad autenticarsi termina la connessione chiudendo il socket
-  const authTimeout = setTimeout(() => {
-    if (!users[socket.id]) {
-      socket.emit("AuthFailed", "Authentication timeout"); // ritorna al client l'errore di autenticazione
-
-      socket.disconnect(); // disconnette il client
-    }
-  }, AUTENTICATION_TIMEOUT);
-
-  // gestione richiesta di autenticazione client
-  socket.on("auth", async (apiKey) => {
-    //arriva la richiesta di autenticazione al server
-    try {
-      let user = getUserFromApiKey(apiKey); //controlla l'esistenza dell'user nel db
-      if (!user) {
-        throw "Inexistent user";
-      }
-      users[socket.id] = {
-        socket: socket,
-        username: user.username,
-        apiKey: user.apiKey,
-      }; //caches the user
-
-      clearTimeout(authTimeout); // Clear the timeout once authenticated
-      socket.emit("authSuccess");
-    } catch (error) {
-      socket.emit("authFailed", error);
-      socket.disconnect();
-    }
-  });
-
-  //--------------------------AUTH--------------------------//
-
-  socket.on("typing", (payload) => {
-    // Riceve il messaggio di scrittura
-    if (!users[socket.id]) {
-      socket.emit("authRequired");
-      display("Hacker");
-      socket.disconnect();
-    } else if (payload.msg_id) {
-      // controlla se il messaggio contiene un id messaggio
-      // verifica che l'id del messaggio corrisponda ad un messaggio dell'utente corrente (guardando nella lista dei messaggi)
-      console.log("Received message with local message id: " + payload.msg_id);
-      if (
-        messages.find(
-          (msg) => msg.msg_id === payload.msg_id && msg.id === socket.id
-        )
-      ) {
-        // Il messaggio è dell'utente corrente
-        console.log("Message is from current user");
-        // Aggiorna il messaggio con il nuovo payload
-        const message_obj = {
-          name: users[socket.id].name,
-          payload: payload.text,
-          time: new Date(),
-          msg_id: payload.msg_id,
-        }; // realizzo l'oggetto contenente i dettagli sul messaggio
-        display(message_obj); // Invia a tutti i client l'oggetto messaggio
-      } else {
-        console.log("Message is not from current user");
-        display("Hacker"); // Invia a tutti i client l'oggetto di errore
-      }
-    } else {
-      // Se il messaggio non contiene un id messaggio
-      // creo un nuovo messaggio con un nuovo id
-      const message_obj = {
-        name: users[socket.id].name,
-        payload: payload.text,
-        time: new Date(),
-        msg_id: generateUUID(),
-      }; // realizzo l'oggetto contenente i dettagli sul messaggio
-      display(message_obj); // Invia a tutti i client l'oggetto messaggio
-      messages.push({ id: socket.id, msg_id: message_obj.msg_id }); // Aggiungo l'oggetto messaggio alla lista dei messaggi
-    }
-  });
-
-  socket.on("disconnect", () => {
-    // Quando un utente si disconnette
-    console.log(`Utente disconnesso: ${user.name} (${user.id})`); // Logga la disconnessione
-    delete users[socket.id]; // Rimuove l'utente dalla lista
-  });
-});
 
 server.listen(port_server, () => {
   console.log(`Server in ascolto su http://localhost:${port_server}`);
