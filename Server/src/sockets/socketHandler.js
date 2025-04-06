@@ -1,28 +1,83 @@
 // File: socketHandler.js
+// Helper
+import * as helpers from "../utils/helpers.js";
 
-/* 
+export function socketHandler(io) {
+  //// FUNCTIONS ////
+  function display(item_to_display) {
+    io.emit("display", item_to_display);
+  }
 
-    TODO: remove from cache the user when the user closes the socket
-*/
 
-// WARNING: variabile che determina il tempo di timeout dell'autenticazione, IN MILLISECONDI
-const AUTENTICATION_TIMEOUT = 60000; // attualmente 1 min
+  //// CONSTANTS ////
 
-io.on("connection", (socket) => {
+  const users = {};
+  const messages = []; // Array contenente i messaggi (associazione messaggio utente)
+
+  /* 
+  
+      TODO: remove from cache the user when the user closes the socket
+  */
+
+  // WARNING: variabile che determina il tempo di timeout dell'autenticazione, IN MILLISECONDI
+  const AUTENTICATION_TIMEOUT = 60000; // attualmente 1 min
+
+  io.on("connection", (socket) => {
     //--------------------------AUTH--------------------------//
-  
+
+
+    // quando un client si connette il primo messaggio che invia al server e "auth" in cui invia la apikey
+    // il server risponde con "authSuccess" se l'apiKey è corretta e con "authFailed" se non lo è
+    // il server invia anche un messaggio di errore se il client non si autentica entro 60 secondi
+
+    socket.on("auth", async (message) => {
+      const apiKey = message.apiKey; // Estrae la apiKey dal messaggio
+      console.log("Received auth request with apiKey:", apiKey); // Logga la richiesta di autenticazione
+      // Controllo se l'utente esiste nel db
+      // Trova l'utente associato alla apiKey
+      const user = await helpers.getUserFromApiKey(apiKey);
+
+
+
+
+
+      if (!user) {
+        console.log("User not found"); // Logga l'errore
+        socket.emit("authFailed", "Inexistent user"); // Se l'utente non esiste, invia un messaggio di errore
+        socket.disconnect(); // Disconnetti il client
+      } else {
+        console.log("User found:", user.username); // Logga l'utente trovato
+        // Se l'utente esiste, memorizza le informazioni dell'utente nella memoria del server
+        users[socket.id] = {
+          socket: socket,
+          username: user.username,
+          apiKey: user.apiKey,
+        }; // Salva l'utente nella cache del server
+
+        console.log(users); // Logga gli utenti connessi
+
+        socket.emit("authSuccess"); // Invia un messaggio di successo al client
+        console.log("User authenticated:", user.username); // Logga l'autenticazione dell'utente
+      }
+
+
+
+    });
+
+    /*
+
     // richiesta di autenticazione
-    io.emit("mustAuth"); // nel momento in cui il client si connette il server richiede al client di autenticarsi
-  
+    socket.emit("mustAuth"); // nel momento in cui il client si connette il server richiede al client di autenticarsi
+
     // timeout di autenticazione, se il client ci impiega troppo tempo ad autenticarsi termina la connessione chiudendo il socket
     const authTimeout = setTimeout(() => {
       if (!users[socket.id]) {
         socket.emit("AuthFailed", "Authentication timeout"); // ritorna al client l'errore di autenticazione
-  
+
         socket.disconnect(); // disconnette il client
       }
     }, AUTENTICATION_TIMEOUT);
-  
+
     // gestione richiesta di autenticazione client
     socket.on("auth", async (apiKey) => {
       //arriva la richiesta di autenticazione al server
@@ -36,7 +91,7 @@ io.on("connection", (socket) => {
           username: user.username,
           apiKey: user.apiKey,
         }; //caches the user
-  
+
         clearTimeout(authTimeout); // Clear the timeout once authenticated
         socket.emit("authSuccess");
       } catch (error) {
@@ -44,9 +99,9 @@ io.on("connection", (socket) => {
         socket.disconnect();
       }
     });
-  
+
     //--------------------------AUTH--------------------------//
-  
+
     socket.on("typing", (payload) => {
       // Riceve il messaggio di scrittura
       if (!users[socket.id]) {
@@ -89,11 +144,13 @@ io.on("connection", (socket) => {
         messages.push({ id: socket.id, msg_id: message_obj.msg_id }); // Aggiungo l'oggetto messaggio alla lista dei messaggi
       }
     });
-  
+
     socket.on("disconnect", () => {
       // Quando un utente si disconnette
       console.log(`Utente disconnesso: ${user.name} (${user.id})`); // Logga la disconnessione
       delete users[socket.id]; // Rimuove l'utente dalla lista
     });
+
+    */
   });
-  
+}

@@ -6,10 +6,14 @@ import { config } from "dotenv";
 // Swagger
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
-
-
 // Helper
 import * as helpers from "./src/utils/helpers.js";
+// Sockets
+import { socketHandler } from "./src/sockets/socketHandler.js";
+
+
+
+
 
 
 // ----------
@@ -65,9 +69,16 @@ app.use(express.json()); // per parse JSON bodies
 app.use(express.static("public")); // per frontend statico
 
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, { path: "/socket.io" }); // crea server socket.io con path /socket.io
 
 const port_server = process.env.PORTA || 3000;
+
+
+// ----------
+//  SOCKETS
+// ----------
+
+socketHandler(io); // gestisce i socket
 
 // ----------
 //     DB
@@ -82,15 +93,6 @@ try {
 
 
 
-//// FUNCTIONS ////
-function display(item_to_display) {
-  io.emit("display", item_to_display);
-}
-
-//// CONSTANTS ////
-
-const users = {};
-const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
 //// ENDPOINTS ////
 

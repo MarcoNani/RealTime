@@ -1,18 +1,35 @@
-const socket = io();
+const socket = io({ path: "/socket.io" });
 const input = document.getElementById("message");
 const chat = document.getElementById("chat");
 const usernameInput = document.getElementById("username");
 const setUsernameBtn = document.getElementById("setUsername");
 const autoScrollToggle = document.getElementById("autoScrollToggle");
-const apikeyInput = document.getElementById("apikey");
+const apikeyInput = document.getElementById("apiKey");
 const apikeyBtn = document.getElementById("getApikey");
 
+
+let authStatus = false; // Stato di autenticazione
+
 let username = "";
-let apikey = "";
+let apiKey = "";
 let currentMessageID = undefined;
 let send = true;
 
 let messageDictionary = {};
+
+// Funzione per ottenere i parametri dall'URL
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  console.log(urlParams);
+  return urlParams.get(param);
+}
+
+// Leggi la apiKey dall'URL e impostala come valore di default
+apiKey = getQueryParam("apiKey") || "";
+apikeyInput.value = apiKey;
+
+
+
 
 // Funzione per scrollare verso il basso
 function scrollToBottom() {
@@ -22,11 +39,33 @@ function scrollToBottom() {
   }
 }
 
-socket.on("setUsername", (name) => {
-  // Riceve il proprio username
-  username = name; // Imposta la variabile con il proprio username
-  usernameInput.value = name; // Imposta il campo di input con il proprio username
+
+// Quando ci si collega al server il server gli si invia la apiKey nell'header
+// Il server ci chiede di autenticarci
+// A questo punto noi gli inviamo la apiKey
+// Il server ci risponde con lo stato di autenticazione
+// Se l'autenticazione va a buon fine rimaniamo in attesa di ricevere messaggi e possiamo inviare i nostri messaggi
+
+
+
+socket.on("connect", () => {
+  // Quando ci si collega al server
+  console.log("Connected to server"); // Mostra un messaggio di connessione
+  console.log("Sending API Key:", apiKey);
+  socket.emit("auth", { apiKey: apiKey }); // Invia la apiKey al server
 });
+
+socket.on("authSuccess", () => {
+  // Quando l'autenticazione va a buon fine
+  console.log("Authentication successful"); // Mostra un messaggio di successo
+});
+
+socket.on("authFailed", (error) => {
+  // Quando l'autenticazione fallisce
+  console.error("Authentication failed:", error); // Mostra un messaggio di errore
+});
+
+/*
 
 setUsernameBtn.addEventListener("click", () => {
   // Quando si clicca sul bottone per cambiare nome
@@ -37,22 +76,6 @@ setUsernameBtn.addEventListener("click", () => {
     username = newName; // Imposta la variabile con il nuovo nome
   }
 });
-
-apikeyBtn.addEventListener("click",async ()=>{
-    //quando si clicca sul bottone per ottenere un'apikey
-    try {
-        const response = await fetch("http://localhost:3000/generateApiKey");
-        if (!response.ok) {
-          throw new Error("Errore nella richiesta API");
-        }
-        const data = await response.json();
-        console.log("API Key ottenuta:", data.apiKey);
-        apikeyInput.text = data.apiKey;
-        return data.apiKey;
-      } catch (error) {
-        console.error("Errore:", error);
-      }
-})
 
 input.addEventListener("input", () => {
   // Quando si scrive nel campo di input
@@ -121,3 +144,6 @@ input.addEventListener("keydown", (event) => {
     input.value = ""; // ripulisci il campo di input
   }
 });
+
+
+*/
