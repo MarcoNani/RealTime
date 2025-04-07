@@ -612,6 +612,8 @@ app.post(requireJoinRoom_route, async (req, res) => {
  *                             type: string
  *                           roomId:
  *                             type: string
+ *                           requestorPublicId:
+ *                             type: string
  *                           requestorUsername:
  *                             type: string
  *                           requestedAt:
@@ -625,7 +627,9 @@ app.post(requireJoinRoom_route, async (req, res) => {
  *                             items:
  *                               type: object
  *                               properties:
- *                                 memberApiKey:
+ *                                 memberPublicId:
+ *                                   type: string
+ *                                 memberUsername:
  *                                   type: string
  *                                 approved:
  *                                   type: boolean
@@ -671,6 +675,8 @@ app.get(listJoinRequests_route, async (req, res) => {
     // Find join requests for the room
     const joinRequests = await joinRequestsCollection.find({ roomId: roomId }).toArray();
 
+    console.log("Join requests:", joinRequests);
+
     // If there are no join requests, return empty array
     if (joinRequests.length === 0) {
       return res.status(200).json({
@@ -682,22 +688,39 @@ app.get(listJoinRequests_route, async (req, res) => {
       });
     }
 
-    // Get usernames for requestors
-    const requestorApiKeys = joinRequests.map(request => request.apiKey);
-    const requestors = await usersCollection.find({ apiKey: { $in: requestorApiKeys } }).toArray();
-    const apiKeyToUsername = {};
-    requestors.forEach(user => {
-      apiKeyToUsername[user.apiKey] = user.username;
+    // Combine all relevant API keys (requestors and members) into a single set
+    const allApiKeys = [
+      ...new Set([
+      ...joinRequests.map(request => request.apiKey),
+      ...joinRequests.flatMap(request => request.memberDecisions.map(decision => decision.memberApiKey))
+      ])
+    ];
+
+    // Fetch all user details in a single query
+    const users = await usersCollection.find({ apiKey: { $in: allApiKeys } }).toArray();
+
+    // Create a lookup map for user details
+    const apiKeyToUserDetails = {};
+    users.forEach(user => {
+      apiKeyToUserDetails[user.apiKey] = {
+      publicId: user.publicId,
+      username: user.username
+      };
     });
 
-    // Enhance join requests with requestor usernames
+    // Enhance join requests with requestor and member details
     const enhancedRequests = joinRequests.map(request => ({
       requestId: request.requestId,
       roomId: request.roomId,
-      requestorUsername: apiKeyToUsername[request.apiKey] || 'Unknown User',
+      requestorPublicId: apiKeyToUserDetails[request.apiKey]?.publicId || 'Unknown Public ID',
+      requestorUsername: apiKeyToUserDetails[request.apiKey]?.username || 'Unknown Username',
       requestedAt: request.requestedAt,
       approveStatus: request.status,
-      memberDecisions: request.memberDecisions
+      memberDecisions: request.memberDecisions.map(decision => ({
+      memberPublicId: apiKeyToUserDetails[decision.memberApiKey]?.publicId || null,
+      memberUsername: apiKeyToUserDetails[decision.memberApiKey]?.username || null,
+      approved: decision.approved
+      }))
     }));
 
     return res.status(200).json({
