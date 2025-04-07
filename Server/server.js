@@ -31,11 +31,15 @@ const swaggerOptions = {
     servers: [
       {
         url: `http://localhost:${process.env.PORTA || 3000}`,
-        description: "Development server (development branch)",
+        description: "Local development server (development branch)",
       },
       {
-        url: 'https://realtime-demo.baunon.com',
-        description: "Demo production server (main branch)",
+        url: `https://realtime-development.onrender.com`,
+        description: "Online development server (development branch)",
+      },
+      {
+        url: 'https://realtime-production.onrender.com',
+        description: "Production server (main branch)",
       }
     ],
     components: {
