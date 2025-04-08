@@ -75,6 +75,24 @@ export function socketHandler(io) {
       }
     });
 
+
+    //----------------------END-AUTH--------------------------//
+
+
+    socket.on("disconnect", () => {
+      // Quando un utente si disconnette
+      console.log("User disconnected (socket id):", socket.id); // Logga la disconnessione dell'utente
+      // Rimuovi l'utente dalla cache del server
+      for (const apiKey in users) {
+        if (users[apiKey].socket.id === socket.id) {
+          delete users[apiKey]; // Rimuovi l'utente dalla cache
+          console.log("User removed from cache (apiKey):", apiKey); // Logga la rimozione dell'utente dalla cache
+          break;
+        }
+      }
+    });
+
+
     /*
 
     // richiesta di autenticazione
@@ -156,12 +174,9 @@ export function socketHandler(io) {
       }
     });
 
-    socket.on("disconnect", () => {
-      // Quando un utente si disconnette
-      console.log(`Utente disconnesso: ${user.name} (${user.id})`); // Logga la disconnessione
-      delete users[socket.id]; // Rimuove l'utente dalla lista
-    });
-
     */
   });
+
+  
+
 }
