@@ -30,12 +30,6 @@ export function socketHandler(io) {
   const users = {}; // Oggetto contenente gli utenti connessi (chiave: apiKey, valore: socket e dettagli utente)
   const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
-  /* 
-  
-      TODO: remove from cache the user when the user closes the socket
-  */
-
-  // WARNING: variabile che determina il tempo di timeout dell'autenticazione, IN MILLISECONDI
   const AUTENTICATION_TIMEOUT = 60000; // attualmente 1 min
 
   io.on("connection", (socket) => {
@@ -50,7 +44,6 @@ export function socketHandler(io) {
         notifyFailAuth(socket, "Authentication timeout");
       }
     }, AUTENTICATION_TIMEOUT);
-
 
     socket.on("auth", async (message) => {
       const apiKey = message.apiKey; // Estrae la apiKey dal messaggio
@@ -75,9 +68,7 @@ export function socketHandler(io) {
       }
     });
 
-
     //----------------------END-AUTH--------------------------//
-
 
     socket.on("disconnect", () => {
       // Quando un utente si disconnette
@@ -94,43 +85,6 @@ export function socketHandler(io) {
 
 
     /*
-
-    // richiesta di autenticazione
-    socket.emit("mustAuth"); // nel momento in cui il client si connette il server richiede al client di autenticarsi
-
-    // timeout di autenticazione, se il client ci impiega troppo tempo ad autenticarsi termina la connessione chiudendo il socket
-    const authTimeout = setTimeout(() => {
-      if (!users[socket.id]) {
-        socket.emit("AuthFailed", "Authentication timeout"); // ritorna al client l'errore di autenticazione
-
-        socket.disconnect(); // disconnette il client
-      }
-    }, AUTENTICATION_TIMEOUT);
-
-    // gestione richiesta di autenticazione client
-    socket.on("auth", async (apiKey) => {
-      //arriva la richiesta di autenticazione al server
-      try {
-        let user = getUserFromApiKey(apiKey); //controlla l'esistenza dell'user nel db
-        if (!user) {
-          throw "Inexistent user";
-        }
-        users[socket.id] = {
-          socket: socket,
-          username: user.username,
-          apiKey: user.apiKey,
-        }; //caches the user
-
-        clearTimeout(authTimeout); // Clear the timeout once authenticated
-        socket.emit("authSuccess");
-      } catch (error) {
-        socket.emit("authFailed", error);
-        socket.disconnect();
-      }
-    });
-
-    //--------------------------AUTH--------------------------//
-
     socket.on("typing", (payload) => {
       // Riceve il messaggio di scrittura
       if (!users[socket.id]) {
@@ -176,7 +130,4 @@ export function socketHandler(io) {
 
     */
   });
-
-  
-
 }
