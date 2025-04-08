@@ -4,8 +4,24 @@ import * as helpers from "../utils/helpers.js";
 
 export function socketHandler(io) {
   //// FUNCTIONS ////
-  function display(item_to_display) {
-    io.emit("display", item_to_display);
+  function notifyFailAuth(socket, message) {
+    // Funzione per gestire il fallimento dell'autenticazione
+    console.log("Authentication failed"); // Logga l'errore
+    socket.emit("authFailed", message); // Invia un messaggio di errore al client
+    socket.disconnect(); // Disconnetti il client
+  }
+
+  function notifySuccessAuth(socket, user) {
+    // Funzione per gestire il successo dell'autenticazione
+    console.log("Authentication successful"); // Logga il successo
+
+    const detailsToDisplay = {
+      name: user.username,
+      publicId: user.publicId
+    }; // Crea un oggetto con i dettagli dell'utente da inviare al client
+
+    socket.emit("authSuccess", { detailsToDisplay }); // Invia un messaggio di successo al client
+    console.log("User authenticated:", user.username); // Logga l'autenticazione dell'utente
   }
 
 
@@ -28,6 +44,14 @@ export function socketHandler(io) {
     // il server risponde con "authSuccess" se l'apiKey è corretta e con "authFailed" se non lo è
     // il server invia anche un messaggio di errore se il client non si autentica entro 60 secondi
 
+    // timeout di autenticazione, se il client ci impiega troppo tempo ad autenticarsi termina la connessione chiudendo il socket
+    const authTimeout = setTimeout(() => {
+      if (!users[socket.id]) {
+        notifyFailAuth(socket, "Authentication timeout");
+      }
+    }, AUTENTICATION_TIMEOUT);
+
+
     socket.on("auth", async (message) => {
       const apiKey = message.apiKey; // Estrae la apiKey dal messaggio
       console.log("Received auth request with apiKey:", apiKey); // Logga la richiesta di autenticazione
@@ -37,9 +61,7 @@ export function socketHandler(io) {
 
 
       if (!user) {
-        console.log("User not found"); // Logga l'errore
-        socket.emit("authFailed", "Inexistent user"); // Se l'utente non esiste, invia un messaggio di errore
-        socket.disconnect(); // Disconnetti il client
+        notifyFailAuth(socket, "Inexistent user");
       } else {
         console.log("User found:", user.username); // Logga l'utente trovato
         // Se l'utente esiste, memorizza le informazioni dell'utente nella memoria del server
@@ -48,15 +70,8 @@ export function socketHandler(io) {
           userDetails: user
         }; // Salva l'utente nella cache del server
 
-        // console.log(users); // Logga gli utenti connessi
-
-        const detailsToDisplay = {
-          name: user.username,
-          publicId: user.publicId
-        }; // Crea un oggetto con i dettagli dell'utente da inviare al client
-
-        socket.emit("authSuccess", {detailsToDisplay}); // Invia un messaggio di successo al client
-        console.log("User authenticated:", user.username); // Logga l'autenticazione dell'utente
+        notifySuccessAuth(socket, user); // Invia un messaggio di successo al client
+        clearTimeout(authTimeout); // Cancella il timeout di autenticazione
       }
     });
 
