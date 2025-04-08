@@ -55,9 +55,10 @@ socket.on("connect", () => {
   socket.emit("auth", { apiKey: apiKey }); // Invia la apiKey al server
 });
 
-socket.on("authSuccess", () => {
+socket.on("authSuccess", (message) => {
   // Quando l'autenticazione va a buon fine
   console.log("Authentication successful"); // Mostra un messaggio di successo
+  console.log(message); // Mostra i dettagli dell'utente
 });
 
 socket.on("authFailed", (error) => {

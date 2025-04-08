@@ -11,7 +11,7 @@ export function socketHandler(io) {
 
   //// CONSTANTS ////
 
-  const users = {};
+  const users = {}; // Oggetto contenente gli utenti connessi (chiave: apiKey, valore: socket e dettagli utente)
   const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
   /* 
@@ -24,8 +24,6 @@ export function socketHandler(io) {
 
   io.on("connection", (socket) => {
     //--------------------------AUTH--------------------------//
-
-
     // quando un client si connette il primo messaggio che invia al server e "auth" in cui invia la apikey
     // il server risponde con "authSuccess" se l'apiKey è corretta e con "authFailed" se non lo è
     // il server invia anche un messaggio di errore se il client non si autentica entro 60 secondi
@@ -38,9 +36,6 @@ export function socketHandler(io) {
       const user = await helpers.getUserFromApiKey(apiKey);
 
 
-
-
-
       if (!user) {
         console.log("User not found"); // Logga l'errore
         socket.emit("authFailed", "Inexistent user"); // Se l'utente non esiste, invia un messaggio di errore
@@ -48,20 +43,21 @@ export function socketHandler(io) {
       } else {
         console.log("User found:", user.username); // Logga l'utente trovato
         // Se l'utente esiste, memorizza le informazioni dell'utente nella memoria del server
-        users[socket.id] = {
+        users[user.apiKey] = {
           socket: socket,
-          username: user.username,
-          apiKey: user.apiKey,
+          userDetails: user
         }; // Salva l'utente nella cache del server
 
-        console.log(users); // Logga gli utenti connessi
+        // console.log(users); // Logga gli utenti connessi
 
-        socket.emit("authSuccess"); // Invia un messaggio di successo al client
+        const detailsToDisplay = {
+          name: user.username,
+          publicId: user.publicId
+        }; // Crea un oggetto con i dettagli dell'utente da inviare al client
+
+        socket.emit("authSuccess", {detailsToDisplay}); // Invia un messaggio di successo al client
         console.log("User authenticated:", user.username); // Logga l'autenticazione dell'utente
       }
-
-
-
     });
 
     /*
