@@ -20,14 +20,14 @@ export function socketHandler(io) {
       publicId: user.publicId
     }; // Crea un oggetto con i dettagli dell'utente da inviare al client
 
-    socket.emit("authSuccess", { detailsToDisplay }); // Invia un messaggio di successo al client
+    socket.emit("authSuccess", { ...detailsToDisplay }); // Invia un messaggio di successo al client
     console.log("User authenticated:", user.username); // Logga l'autenticazione dell'utente
   }
 
 
   //// CONSTANTS ////
 
-  const users = {}; // Oggetto contenente gli utenti connessi (chiave: apiKey, valore: socket e dettagli utente)
+  const users = {}; // Oggetto contenente gli utenti connessi (chiave: socketId, valore: apiKey e dettagli utente)
   const messages = []; // Array contenente i messaggi (associazione messaggio utente)
 
   const AUTENTICATION_TIMEOUT = 60000; // attualmente 1 min
@@ -58,10 +58,7 @@ export function socketHandler(io) {
       } else {
         console.log("User found:", user.username); // Logga l'utente trovato
         // Se l'utente esiste, memorizza le informazioni dell'utente nella memoria del server
-        users[user.apiKey] = {
-          socket: socket,
-          userDetails: user
-        }; // Salva l'utente nella cache del server
+        users[socket.id] = { ...user }; // Salva i dettagli dell'utente direttamente come attributi di users[socket.id]
 
         notifySuccessAuth(socket, user); // Invia un messaggio di successo al client
         clearTimeout(authTimeout); // Cancella il timeout di autenticazione
@@ -72,21 +69,18 @@ export function socketHandler(io) {
 
     socket.on("disconnect", () => {
       // Quando un utente si disconnette
-      console.log("User disconnected (socket id):", socket.id); // Logga la disconnessione dell'utente
+      console.log("User disconnected (socketId apiKey):", socket.id, users[socket.id].apiKey); // Logga la disconnessione dell'utente
       // Rimuovi l'utente dalla cache del server
-      for (const apiKey in users) {
-        if (users[apiKey].socket.id === socket.id) {
-          delete users[apiKey]; // Rimuovi l'utente dalla cache
-          console.log("User removed from cache (apiKey):", apiKey); // Logga la rimozione dell'utente dalla cache
-          break;
-        }
-      }
+      delete users[socket.id]; // Rimuovi l'utente dalla memoria del server
     });
 
 
     /*
     socket.on("typing", (payload) => {
       // Riceve il messaggio di scrittura
+
+
+
       if (!users[socket.id]) {
         socket.emit("authRequired");
         display("Hacker");
@@ -127,7 +121,6 @@ export function socketHandler(io) {
         messages.push({ id: socket.id, msg_id: message_obj.msg_id }); // Aggiungo l'oggetto messaggio alla lista dei messaggi
       }
     });
-
-    */
+*/
   });
 }
