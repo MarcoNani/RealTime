@@ -1,3 +1,14 @@
+Creare libreria di cifratura con funzioni che utilizzano il keystore
+
+2 funzioni cifra e decifra
+
+argomenti: testo - roomid
+
+BASE64
+
+
+
+
 COLORE 
 bordino vivido interno bianco colorato appena
 colore associato a Username e che viene preso da una lista predefinita di modo da non avere pugni nell'occhio
