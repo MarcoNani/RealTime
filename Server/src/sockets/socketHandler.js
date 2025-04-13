@@ -261,56 +261,6 @@ export function socketHandler(io) {
 
       });
 
-
-
-
-
-
-
-      /*
-
-      if (!users[socket.id]) {
-        socket.emit("authRequired");
-        display("Hacker");
-        socket.disconnect();
-      } else if (payload.msg_id) {
-        // controlla se il messaggio contiene un id messaggio
-        // verifica che l'id del messaggio corrisponda ad un messaggio dell'utente corrente (guardando nella lista dei messaggi)
-        console.log("Received message with local message id: " + payload.msg_id);
-        if (
-          messages.find(
-            (msg) => msg.msg_id === payload.msg_id && msg.id === socket.id
-          )
-        ) {
-          // Il messaggio è dell'utente corrente
-          console.log("Message is from current user");
-          // Aggiorna il messaggio con il nuovo payload
-          const message_obj = {
-            name: users[socket.id].name,
-            payload: payload.text,
-            time: new Date(),
-            msg_id: payload.msg_id,
-          }; // realizzo l'oggetto contenente i dettagli sul messaggio
-          display(message_obj); // Invia a tutti i client l'oggetto messaggio
-        } else {
-          console.log("Message is not from current user");
-          display("Hacker"); // Invia a tutti i client l'oggetto di errore
-        }
-      } else {
-        // Se il messaggio non contiene un id messaggio
-        // creo un nuovo messaggio con un nuovo id
-        const message_obj = {
-          name: users[socket.id].name,
-          payload: payload.text,
-          time: new Date(),
-          msg_id: generateUUID(),
-        }; // realizzo l'oggetto contenente i dettagli sul messaggio
-        display(message_obj); // Invia a tutti i client l'oggetto messaggio
-        messages.push({ id: socket.id, msg_id: message_obj.msg_id }); // Aggiungo l'oggetto messaggio alla lista dei messaggi
-      }
-
-      */
-
     });
 
   });
