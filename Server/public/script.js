@@ -8,10 +8,18 @@ const apikeyInput = document.getElementById("apiKey");
 const apikeyBtn = document.getElementById("getApikey");
 
 
+function uuidv4() {
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
+    (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
+  );
+}
+
+
 let authStatus = false; // Stato di autenticazione
 
 let username = "";
 let apiKey = "";
+let roomId = "";
 let currentMessageID = undefined;
 let send = true;
 
@@ -28,7 +36,7 @@ function getQueryParam(param) {
 apiKey = getQueryParam("apiKey") || "";
 apikeyInput.value = apiKey;
 
-
+roomId = getQueryParam("roomId") || "";
 
 
 // Funzione per scrollare verso il basso
@@ -39,14 +47,11 @@ function scrollToBottom() {
   }
 }
 
-
 // Quando ci si collega al server il server gli si invia la apiKey nell'header
 // Il server ci chiede di autenticarci
 // A questo punto noi gli inviamo la apiKey
 // Il server ci risponde con lo stato di autenticazione
 // Se l'autenticazione va a buon fine rimaniamo in attesa di ricevere messaggi e possiamo inviare i nostri messaggi
-
-
 
 socket.on("connect", () => {
   // Quando ci si collega al server
@@ -59,11 +64,43 @@ socket.on("authSuccess", (message) => {
   // Quando l'autenticazione va a buon fine
   console.log("Authentication successful"); // Mostra un messaggio di successo
   console.log(message); // Mostra i dettagli dell'utente
+
+  authStatus = true; // Imposta lo stato di autenticazione a true
+
+  requestMessageId(roomId); // Richiede l'id del messaggio
 });
 
 socket.on("authFailed", (error) => {
   // Quando l'autenticazione fallisce
   console.error("Authentication failed:", error); // Mostra un messaggio di errore
+});
+
+
+
+function requestMessageId(roomId) {
+  if (authStatus) {
+    // Se l'autenticazione è andata a buon fine
+    // Richiedo l'id del messaggio (voglio inziare a scrivere)
+
+    let messageIdPayload = {
+      sendId: uuidv4(),
+      roomId: roomId
+    };
+
+    console.log("Requesting message ID with payload:", messageIdPayload); // Mostra il payload
+    socket.emit("messageId", messageIdPayload); // Invia la richiesta al server
+  }
+}
+
+socket.on("messageId", (payload) => {
+  // Quando si riceve l'id del messaggio
+  console.log("Received message ID:", payload); // Mostra l'id del messaggio
+  currentMessageID = payload.messageId; // Imposta l'id del messaggio corrente
+});
+
+socket.on("ack", (payload) => {
+  // Quando si riceve l'id del messaggio
+  console.info("Received ack message:", payload); // Mostra l'id del messaggio
 });
 
 /*
@@ -145,6 +182,5 @@ input.addEventListener("keydown", (event) => {
     input.value = ""; // ripulisci il campo di input
   }
 });
-
 
 */

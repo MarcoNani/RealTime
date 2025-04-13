@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { usersCollection } from '../db.js'; // Importa la collection dal modulo db
+import { roomsCollection } from '../db.js'; // Importa la collection dal modulo db
 
 /**
  * Retrieves a user from the database using their API key.
@@ -9,6 +10,18 @@ import { usersCollection } from '../db.js'; // Importa la collection dal modulo 
 export async function getUserFromApiKey(apiKey) {
   return await usersCollection.findOne({ apiKey });
 }
+
+
+/**
+ * Retrieves a list of room IDs where a user is a member.
+ * @param {string} apiKey - The API key of the user.
+ * @returns {Promise<string[]>} - A list of room IDs.
+ */
+export async function getRoomIdsForUser(apiKey) {
+  const rooms = await roomsCollection.find({ members: apiKey }).toArray();
+  return rooms.map(room => room.roomId);
+}
+
 
 /**
  * Generates a unique API key that does not already exist in the database.
@@ -22,6 +35,7 @@ export async function apiKeyGenerator() {
   return apiKey;
 }
 
+
 /**
  * Generates a UUID without dashes.
  * @returns {string} - A UUID string without dashes.
@@ -29,3 +43,4 @@ export async function apiKeyGenerator() {
 export function generateUUID() {
   return uuidv4().replace(/-/g, '');
 }
+

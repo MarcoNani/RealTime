@@ -2,6 +2,9 @@
 // Helper
 import * as helpers from "../utils/helpers.js";
 
+
+
+
 export function socketHandler(io) {
   //// FUNCTIONS ////
   function notifyFailAuth(socket, message) {
@@ -25,10 +28,30 @@ export function socketHandler(io) {
   }
 
 
+  function authMiddleware(socket, next) {
+    if (!sockets[socket.id]) {
+      console.log("Unauthorized access attempt by socket:", socket.id);
+      socket.emit("authRequired", "Authentication is required.");
+      socket.disconnect();
+    } else {
+      next();
+    }
+  }
+
+  function isUserMemberOfRoom(apiKey, roomId) {
+    const user = users[apiKey]; // Retrieve the user associated with the apiKey
+    if (!user) {
+      return false; // User not found
+    }
+    return user.listRooms.includes(roomId); // Check if the roomId is in the user's list of rooms
+  }
+
+
   //// CONSTANTS ////
 
-  const users = {}; // Oggetto contenente gli utenti connessi (chiave: socketId, valore: apiKey e dettagli utente)
-  const messages = []; // Array contenente i messaggi (associazione messaggio utente)
+  const users = {}; // Oggetto contenente gli utenti connessi (key: apiKey, value: publicId, username, listRooms)
+  const sockets = {}; // Oggetto che contiene l'associazione tra socketId e apiKey
+  let messages = []; // Array contenente i messaggi (associazione messaggio, stanza, utente)
 
   const AUTENTICATION_TIMEOUT = 60000; // attualmente 1 min
 
@@ -57,8 +80,25 @@ export function socketHandler(io) {
         notifyFailAuth(socket, "Inexistent user");
       } else {
         console.log("User found:", user.username); // Logga l'utente trovato
-        // Se l'utente esiste, memorizza le informazioni dell'utente nella memoria del server
-        users[socket.id] = { ...user }; // Salva i dettagli dell'utente direttamente come attributi di users[socket.id]
+
+        // Save user details in the users object
+        let listRooms = await helpers.getRoomIdsForUser(user.apiKey); // Estrae la lista delle stanze associate all'utente
+
+        users[apiKey] = {
+          publicId: user.publicId,
+          username: user.username,
+          listRooms: listRooms,
+        };
+
+
+        // Save the association between socketId and apiKey in the sockets object
+        sockets[socket.id] = apiKey; // Associa il socketId alla apiKey
+
+        // DEBUG
+        console.log(users); // Logga gli utenti connessi
+        console.log(sockets); // Logga i socketId associati alle apiKey
+
+        console.log("User authenticated:", user.username); // Logga l'autenticazione dell'utente
 
         notifySuccessAuth(socket, user); // Invia un messaggio di successo al client
         clearTimeout(authTimeout); // Cancella il timeout di autenticazione
@@ -68,18 +108,103 @@ export function socketHandler(io) {
     //----------------------END-AUTH--------------------------//
 
     socket.on("disconnect", () => {
-      // Quando un utente si disconnette
-      console.log("User disconnected (socketId apiKey):", socket.id, users[socket.id].apiKey); // Logga la disconnessione dell'utente
-      // Rimuovi l'utente dalla cache del server
-      delete users[socket.id]; // Rimuovi l'utente dalla memoria del server
+
+      if (sockets[socket.id]) { // If the socketId is in the cache (the user is authenticated)
+        let apiKey = sockets[socket.id]; // Estrae la apiKey associata al socketId
+
+        console.log("User disconnected (socketId apiKey):", socket.id, sockets[socket.id]); // Logga la disconnessione dell'utente
+
+        delete sockets[socket.id]; // Rimuovi il socketId dalla cache del server
+        delete users[apiKey]; // Rimuovi l'utente dalla cache del server
+
+        messages = messages.filter((message) => message.socketId !== socket.id); // Rimuovi i messaggi associati al socketId dalla lista dei messaggi
+
+        // DEBUG
+        console.log(users); // Logga gli utenti connessi
+        console.log(sockets); // Logga i socketId associati alle apiKey
+
+      } else {
+        // User not authenticated
+        console.log("User disconnected:", socket.id); // Logga la disconnessione dell'utente
+      }
     });
 
 
-    /*
-    socket.on("typing", (payload) => {
+    socket.on("messageId", (message) => {
+      // Il client invia una richiesta per ottenere l'id del messaggio da utilizzare inviando una sendId
+      // Il server genera un id unico per il messaggio e lo restituisce al client
+
+      // AUTENTICAZIONE
+      // Controlla se l'utente è autenticato
+      // Se l'utente non è autenticato, invia un messaggio di errore e disconnette il socket
+      // Se l'utente è autenticato, inizia la logica di gestione del routing del messaggio
+
+      authMiddleware(socket, () => {
+        // Check if the user wnat to obtain a messageId for a roomId where he is a member
+        const sendId = message.sendId; // Extract sendId from the message
+        const roomId = message.roomId; // Extract roomId from the message
+        console.log("Received messageId request with sendId:", sendId);
+        console.log("Received messageId request with roomId:", roomId);
+
+        if (isUserMemberOfRoom(sockets[socket.id], roomId)) {
+          console.log("User is a member of the room:", message.roomId); // Logga che l'utente è membro della stanza
+
+          console.log("Received messageId request and auth wint good"); // Logga la richiesta di id messaggio
+
+
+
+          // Generate a messageId for the message
+          const messageId = helpers.generateUUID(); // Genera un id unico per il messaggio
+          console.log("Generated messageId:", messageId); // Logga l'id del messaggio generato
+
+          // Save the messageId in the messages array
+          const timestamp = new Date();
+          timestamp.setSeconds(0, 0); // Set seconds and milliseconds to 0 for minute precision
+          messages.push({ messageId: messageId, socketId: socket.id, roomId: roomId, timeWindow: timestamp });
+
+          console.log(messages); // Logga i messaggi salvati
+
+          // Send the messageId back to the client
+          socket.emit("messageId", { messageId, sendId, roomId }); // Invia l'id del messaggio al client
+          console.log("Sent messageId to client:", messageId); // Logga l'id del messaggio inviato al client
+
+        } else {
+          console.log("User is not a member of the room:", message.roomId); // Logga che l'utente non è membro della stanza
+          socket.emit("ack", { sendId: sendId, legal: false, message: "You are not a member of the room you want to write on" }); // Invia un messaggio di errore al client
+        }
+
+
+
+
+
+      });
+    });
+
+
+
+    socket.on("typing", (message) => {
+      // RICEVE: messaggeId, roomId, sendId, payload
+      // Controlla se messageId appartiene al mittente
+      // Controlla se il mittente appartiene alla roomId specificata nel messaggio
+      // Costruisce l'oggetto del messaggio da recapitare
+      // Invio il messaggio a tutti i membri della stanza
+
+      // --- LISTA DEI MESSAGGI ---
+      // Oggetto che contiene i messaggi inviati dagli utenti
+      // 
+
+
       // Riceve il messaggio di scrittura
+      // Controllo se l'utente è autenticato
+      // Se l'utente non è autenticato, invia un messaggio di errore e disconnette il socket
+      // Se l'utente è autenticato, inizia la logica di gestione del routing del messaggio
+      // ROUTING DEL MESSAGGIO
+      // 
 
 
+
+
+      /*
 
       if (!users[socket.id]) {
         socket.emit("authRequired");
@@ -120,7 +245,10 @@ export function socketHandler(io) {
         display(message_obj); // Invia a tutti i client l'oggetto messaggio
         messages.push({ id: socket.id, msg_id: message_obj.msg_id }); // Aggiungo l'oggetto messaggio alla lista dei messaggi
       }
+
+      */
+
     });
-*/
+
   });
 }
