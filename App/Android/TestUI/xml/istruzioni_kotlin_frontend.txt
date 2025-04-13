@@ -1,3 +1,5 @@
+Fare l'app che funziona bene (nel senso che quando giri lo schermo e avviene il redraw dell'activity non scompare tutto e simile)
+
 Creare libreria di cifratura con funzioni che utilizzano il keystore
 
 2 funzioni cifra e decifra
