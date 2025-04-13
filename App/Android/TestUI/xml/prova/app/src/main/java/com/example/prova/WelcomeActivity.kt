@@ -30,7 +30,7 @@ class WelcomeActivity : AppCompatActivity() {
         val sharedPref = getSharedPreferences("RealTimePrefs", Context.MODE_PRIVATE)
         val apiKey = sharedPref.getString("API_KEY", null)
 
-        // toast api key
+        // toast api key da toglire prima di mandare in prod
         Toast.makeText(this, "API key: $apiKey", Toast.LENGTH_SHORT).show()
 
         if (apiKey != null) {
@@ -135,6 +135,6 @@ data class ApiData(
 
 // Interfaccia Retrofit per le chiamate API
 interface ApiService {
-    @POST("/api/generateApiKey/") // Sostituisci con l'endpoint corretto
+    @POST("/api/v1/users/api-key/") // Sostituisci con l'endpoint corretto
     fun registerUser(@Body request: UserRequest): Call<ApiResponse>
 }
