@@ -5,7 +5,7 @@ const usernameInput = document.getElementById("username");
 const setUsernameBtn = document.getElementById("setUsername");
 const autoScrollToggle = document.getElementById("autoScrollToggle");
 const apikeyInput = document.getElementById("apiKey");
-const apikeyBtn = document.getElementById("getApikey");
+const roomIdInput = document.getElementById("roomId");
 
 
 function uuidv4() {
@@ -28,7 +28,7 @@ let messageDictionary = {};
 // Funzione per ottenere i parametri dall'URL
 function getQueryParam(param) {
   const urlParams = new URLSearchParams(window.location.search);
-  console.log(urlParams);
+  console.debug(urlParams);
   return urlParams.get(param);
 }
 
@@ -37,12 +37,13 @@ apiKey = getQueryParam("apiKey") || "";
 apikeyInput.value = apiKey;
 
 roomId = getQueryParam("roomId") || "";
+roomIdInput.value = roomId;
 
 
 // Funzione per scrollare verso il basso
 function scrollToBottom() {
   if (autoScrollToggle.checked) {
-    console.log("Scrolling to bottom");
+    console.debug("Scrolling to bottom");
     chat.scrollTop = chat.scrollHeight;
   }
 }
@@ -62,8 +63,7 @@ socket.on("connect", () => {
 
 socket.on("authSuccess", (message) => {
   // Quando l'autenticazione va a buon fine
-  console.log("Authentication successful"); // Mostra un messaggio di successo
-  console.log(message); // Mostra i dettagli dell'utente
+  console.info("Authentication successful, recieved:", message); // Mostra un messaggio di successo
 
   authStatus = true; // Imposta lo stato di autenticazione a true
 
@@ -94,7 +94,7 @@ function requestMessageId(roomId) {
 
 socket.on("messageId", (payload) => {
   // Quando si riceve l'id del messaggio
-  console.log("Received message ID:", payload); // Mostra l'id del messaggio
+  console.info("Received message ID:", payload); // Mostra l'id del messaggio
   currentMessageID = payload.messageId; // Imposta l'id del messaggio corrente
 
   typing(); // Inizia a scrivere un messaggio
