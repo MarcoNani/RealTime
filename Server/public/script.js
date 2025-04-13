@@ -5,7 +5,7 @@ const usernameInput = document.getElementById("username");
 const setUsernameBtn = document.getElementById("setUsername");
 const autoScrollToggle = document.getElementById("autoScrollToggle");
 const apikeyInput = document.getElementById("apiKey");
-const apikeyBtn = document.getElementById("getApikey");
+const roomIdInput = document.getElementById("roomId");
 
 
 function uuidv4() {
@@ -28,7 +28,7 @@ let messageDictionary = {};
 // Funzione per ottenere i parametri dall'URL
 function getQueryParam(param) {
   const urlParams = new URLSearchParams(window.location.search);
-  console.log(urlParams);
+  console.debug(urlParams);
   return urlParams.get(param);
 }
 
@@ -37,12 +37,13 @@ apiKey = getQueryParam("apiKey") || "";
 apikeyInput.value = apiKey;
 
 roomId = getQueryParam("roomId") || "";
+roomIdInput.value = roomId;
 
 
 // Funzione per scrollare verso il basso
 function scrollToBottom() {
   if (autoScrollToggle.checked) {
-    console.log("Scrolling to bottom");
+    console.debug("Scrolling to bottom");
     chat.scrollTop = chat.scrollHeight;
   }
 }
@@ -62,8 +63,7 @@ socket.on("connect", () => {
 
 socket.on("authSuccess", (message) => {
   // Quando l'autenticazione va a buon fine
-  console.log("Authentication successful"); // Mostra un messaggio di successo
-  console.log(message); // Mostra i dettagli dell'utente
+  console.info("Authentication successful, recieved:", message); // Mostra un messaggio di successo
 
   authStatus = true; // Imposta lo stato di autenticazione a true
 
@@ -94,14 +94,63 @@ function requestMessageId(roomId) {
 
 socket.on("messageId", (payload) => {
   // Quando si riceve l'id del messaggio
-  console.log("Received message ID:", payload); // Mostra l'id del messaggio
+  console.info("Received message ID:", payload); // Mostra l'id del messaggio
   currentMessageID = payload.messageId; // Imposta l'id del messaggio corrente
+
+  typing(); // Inizia a scrivere un messaggio
+
+  setTimeout(finish, 1000); // Invia il messaggio finale dopo 1 secondo
 });
 
 socket.on("ack", (payload) => {
   // Quando si riceve l'id del messaggio
   console.info("Received ack message:", payload); // Mostra l'id del messaggio
 });
+
+
+function typing() { // Funzione per scrivere un messaggio
+  const message_obj = {
+    sendId: uuidv4(), // Genera un id univoco per il messaggio
+    messageId: currentMessageID, // Imposta l'id del messaggio corrente
+    roomId: roomId, // Imposta l'id della stanza
+    payload: "test...",
+  };
+
+  console.log("Sending typing message with local message id:", message_obj); // Mostra il messaggio
+
+  socket.emit("typing", message_obj); // Invia il messaggio al server
+}
+
+
+function finish() { // Funzione per scrivere un messaggio
+  const message_obj = {
+    sendId: uuidv4(), // Genera un id univoco per il messaggio
+    messageId: currentMessageID, // Imposta l'id del messaggio corrente
+    roomId: roomId, // Imposta l'id della stanza
+    payload: "testo finale",
+  };
+
+  console.log("Sending finish message with local message id:", message_obj); // Mostra il messaggio
+
+  socket.emit("finish", message_obj); // Invia il messaggio al server
+}
+
+
+
+
+socket.on("finish", (payload) => {
+  // Quando si riceve un messaggio di scrittura
+  console.warn("Ricevuta una versione finale:", payload); // Mostra l'id del messaggio
+});
+
+
+socket.on("typing", (payload) => {
+  // Quando si riceve un messaggio di scrittura
+  console.warn("Ricevuto un typing:", payload); // Mostra l'id del messaggio
+});
+
+//input.addEventListener("input", typing());
+
 
 /*
 

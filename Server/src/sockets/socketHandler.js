@@ -3,34 +3,54 @@
 import * as helpers from "../utils/helpers.js";
 
 
+// OVERRIDE CONSOLE METHODS
+console.debug = () => { }; // Disabilita i log di debug
+console.warn = () => { };  // Disabilita i log di warning
+console.error = () => { }; // Disabilita i log di errore
+
+
 
 
 export function socketHandler(io) {
   //// FUNCTIONS ////
   function notifyFailAuth(socket, message) {
     // Funzione per gestire il fallimento dell'autenticazione
-    console.log("Authentication failed"); // Logga l'errore
+    console.warn("Authentication failed"); // Logga l'errore
     socket.emit("authFailed", message); // Invia un messaggio di errore al client
     socket.disconnect(); // Disconnetti il client
   }
 
   function notifySuccessAuth(socket, user) {
     // Funzione per gestire il successo dell'autenticazione
-    console.log("Authentication successful"); // Logga il successo
 
     const detailsToDisplay = {
-      name: user.username,
+      username: user.username,
       publicId: user.publicId
     }; // Crea un oggetto con i dettagli dell'utente da inviare al client
 
     socket.emit("authSuccess", { ...detailsToDisplay }); // Invia un messaggio di successo al client
-    console.log("User authenticated:", user.username); // Logga l'autenticazione dell'utente
+    console.debug("User authenticated:", user.username); // Logga l'autenticazione dell'utente
   }
 
+  function sendMessageToRoom(io, senderSocketId, roomId, event, data) {
+    // Trova tutti gli utenti che appartengono alla stanza
+    const members = Object.entries(users).filter(([apiKey, user]) =>
+      user.listRooms.includes(roomId)
+    );
+
+    // Invia il messaggio a ciascun membro
+    members.forEach(([apiKey, user]) => {
+      const socketId = Object.keys(sockets).find((id) => sockets[id] === apiKey);
+      if (socketId && socketId !== senderSocketId) {
+        // Invia il messaggio solo se il socketId è diverso da quello del mittente
+        io.to(socketId).emit(event, data);
+      }
+    });
+  }
 
   function authMiddleware(socket, next) {
     if (!sockets[socket.id]) {
-      console.log("Unauthorized access attempt by socket:", socket.id);
+      console.warn("Unauthorized access attempt by socket:", socket.id);
       socket.emit("authRequired", "Authentication is required.");
       socket.disconnect();
     } else {
@@ -70,7 +90,7 @@ export function socketHandler(io) {
 
     socket.on("auth", async (message) => {
       const apiKey = message.apiKey; // Estrae la apiKey dal messaggio
-      console.log("Received auth request with apiKey:", apiKey); // Logga la richiesta di autenticazione
+      console.debug("Received auth request with apiKey:", apiKey); // Logga la richiesta di autenticazione
       // Controllo se l'utente esiste nel db
       // Trova l'utente associato alla apiKey
       const user = await helpers.getUserFromApiKey(apiKey);
@@ -79,7 +99,7 @@ export function socketHandler(io) {
       if (!user) {
         notifyFailAuth(socket, "Inexistent user");
       } else {
-        console.log("User found:", user.username); // Logga l'utente trovato
+        console.debug("User found:", user.username); // Logga l'utente trovato
 
         // Save user details in the users object
         let listRooms = await helpers.getRoomIdsForUser(user.apiKey); // Estrae la lista delle stanze associate all'utente
@@ -95,8 +115,9 @@ export function socketHandler(io) {
         sockets[socket.id] = apiKey; // Associa il socketId alla apiKey
 
         // DEBUG
-        console.log(users); // Logga gli utenti connessi
-        console.log(sockets); // Logga i socketId associati alle apiKey
+        console.info("users:", users); // Logga gli utenti connessi
+        console.info("sockets:", sockets); // Logga i socketId associati alle apiKey
+        console.info("messages:", messages); // Logga i messaggi salvati
 
         console.log("User authenticated:", user.username); // Logga l'autenticazione dell'utente
 
@@ -120,8 +141,9 @@ export function socketHandler(io) {
         messages = messages.filter((message) => message.socketId !== socket.id); // Rimuovi i messaggi associati al socketId dalla lista dei messaggi
 
         // DEBUG
-        console.log(users); // Logga gli utenti connessi
-        console.log(sockets); // Logga i socketId associati alle apiKey
+        console.info("users:", users); // Logga gli utenti connessi
+        console.info("sockets:", sockets); // Logga i socketId associati alle apiKey
+        console.info("messages:", messages); // Logga i messaggi salvati
 
       } else {
         // User not authenticated
@@ -143,33 +165,34 @@ export function socketHandler(io) {
         // Check if the user wnat to obtain a messageId for a roomId where he is a member
         const sendId = message.sendId; // Extract sendId from the message
         const roomId = message.roomId; // Extract roomId from the message
-        console.log("Received messageId request with sendId:", sendId);
-        console.log("Received messageId request with roomId:", roomId);
+        console.debug("Received messageId request with sendId:", sendId);
+        console.debug("Received messageId request with roomId:", roomId);
 
         if (isUserMemberOfRoom(sockets[socket.id], roomId)) {
-          console.log("User is a member of the room:", message.roomId); // Logga che l'utente è membro della stanza
+          console.debug("User is a member of the room:", message.roomId); // Logga che l'utente è membro della stanza
 
-          console.log("Received messageId request and auth wint good"); // Logga la richiesta di id messaggio
+          console.log("Received messageId request and auth went good"); // Logga la richiesta di id messaggio
 
 
 
           // Generate a messageId for the message
           const messageId = helpers.generateUUID(); // Genera un id unico per il messaggio
-          console.log("Generated messageId:", messageId); // Logga l'id del messaggio generato
+          console.debug("Generated messageId:", messageId); // Logga l'id del messaggio generato
 
           // Save the messageId in the messages array
           const timestamp = new Date();
           timestamp.setSeconds(0, 0); // Set seconds and milliseconds to 0 for minute precision
           messages.push({ messageId: messageId, socketId: socket.id, roomId: roomId, timeWindow: timestamp });
 
-          console.log(messages); // Logga i messaggi salvati
+          console.info("messages:", messages); // Logga i messaggi salvati
+
 
           // Send the messageId back to the client
           socket.emit("messageId", { messageId, sendId, roomId }); // Invia l'id del messaggio al client
           console.log("Sent messageId to client:", messageId); // Logga l'id del messaggio inviato al client
 
         } else {
-          console.log("User is not a member of the room:", message.roomId); // Logga che l'utente non è membro della stanza
+          console.warn("User is not a member of the room:", message.roomId); // Logga che l'utente non è membro della stanza
           socket.emit("ack", { sendId: sendId, legal: false, message: "You are not a member of the room you want to write on" }); // Invia un messaggio di errore al client
         }
 
@@ -181,74 +204,148 @@ export function socketHandler(io) {
     });
 
 
-
     socket.on("typing", (message) => {
-      // RICEVE: messaggeId, roomId, sendId, payload
-      // Controlla se messageId appartiene al mittente
-      // Controlla se il mittente appartiene alla roomId specificata nel messaggio
+      // RICEVE: sendId, messaggeId, roomId, payload
+      // Controlla se messageId appartiene al mittente, è associato alla stanza e il mittente è un membro della stanza
       // Costruisce l'oggetto del messaggio da recapitare
       // Invio il messaggio a tutti i membri della stanza
 
-      // --- LISTA DEI MESSAGGI ---
-      // Oggetto che contiene i messaggi inviati dagli utenti
-      // 
+      // Ritorno al mittente un messaggio di ack con sendId, legal: true, message: "Message sent"
+
+      // Se invece ci sono problemi con l'invio del messaggio, ritorno al mittente un messaggio di ack con sendId, legal: false, message: "motivo del rifiuto"
+
+      authMiddleware(socket, () => {
+        // L'utente è autenticato, procedi con la logica del messaggio
+        console.log("Received typing message with messageId:", message.messageId); // Logga la ricezione del messaggio di digitazione
+
+        const sendId = message.sendId;
+        const roomId = message.roomId;
+        const messageId = message.messageId;
+        const payload = message.payload;
+        console.debug("Received typing message with sendId:", sendId);
+        console.debug("Received typing message with roomId:", roomId);
+        console.debug("Received typing message with messageId:", messageId);
+        console.debug("Received typing message with payload:", payload);
+
+        if (isUserMemberOfRoom(sockets[socket.id], roomId)) {
+          console.debug("User is a member of the room:", roomId);
+
+          // Trova il messaggio con messageId, socketId e roomId uguali a quelli richiesti
+          const messageObj = messages.find((msg) => msg.messageId === messageId && msg.socketId === socket.id && msg.roomId === roomId);
+
+          if (messageObj) {
+            console.debug("Message found:", messageObj);
+
+            // Invia un messaggio di ack al mittente
+            socket.emit("ack", { sendId: sendId });
+            console.debug("Sent ack to sender:", sendId);
+
+            // Invia il messaggio a tutti i membri della stanza
+            sendMessageToRoom(io, socket.id, roomId, "typing", {
+              messageId: messageId,
+              roomId: roomId,
+              payload: payload,
+              timestamp: new Date().toISOString(),
+              publicId: users[sockets[socket.id]].publicId,
+            });
 
 
-      // Riceve il messaggio di scrittura
-      // Controllo se l'utente è autenticato
-      // Se l'utente non è autenticato, invia un messaggio di errore e disconnette il socket
-      // Se l'utente è autenticato, inizia la logica di gestione del routing del messaggio
-      // ROUTING DEL MESSAGGIO
-      // 
+
+            console.log("Sent typing message to room:", roomId); // Logga l'invio del messaggio alla stanza
 
 
 
+          } else {
+            console.warn("Message not found or not authorized");
+            socket.emit("ack", { sendId: sendId, legal: false, message: "Can't edit this message, create a new one" });
+          }
 
-      /*
-
-      if (!users[socket.id]) {
-        socket.emit("authRequired");
-        display("Hacker");
-        socket.disconnect();
-      } else if (payload.msg_id) {
-        // controlla se il messaggio contiene un id messaggio
-        // verifica che l'id del messaggio corrisponda ad un messaggio dell'utente corrente (guardando nella lista dei messaggi)
-        console.log("Received message with local message id: " + payload.msg_id);
-        if (
-          messages.find(
-            (msg) => msg.msg_id === payload.msg_id && msg.id === socket.id
-          )
-        ) {
-          // Il messaggio è dell'utente corrente
-          console.log("Message is from current user");
-          // Aggiorna il messaggio con il nuovo payload
-          const message_obj = {
-            name: users[socket.id].name,
-            payload: payload.text,
-            time: new Date(),
-            msg_id: payload.msg_id,
-          }; // realizzo l'oggetto contenente i dettagli sul messaggio
-          display(message_obj); // Invia a tutti i client l'oggetto messaggio
-        } else {
-          console.log("Message is not from current user");
-          display("Hacker"); // Invia a tutti i client l'oggetto di errore
         }
-      } else {
-        // Se il messaggio non contiene un id messaggio
-        // creo un nuovo messaggio con un nuovo id
-        const message_obj = {
-          name: users[socket.id].name,
-          payload: payload.text,
-          time: new Date(),
-          msg_id: generateUUID(),
-        }; // realizzo l'oggetto contenente i dettagli sul messaggio
-        display(message_obj); // Invia a tutti i client l'oggetto messaggio
-        messages.push({ id: socket.id, msg_id: message_obj.msg_id }); // Aggiungo l'oggetto messaggio alla lista dei messaggi
-      }
+        else {
+          console.warn("User is not a member of the room:", roomId);
+          socket.emit("ack", { sendId: sendId, legal: false, message: "You are not a member of the room you want to write on" });
+        }
 
-      */
+
+
+      });
 
     });
+
+
+    socket.on("finish", (message) => {
+      // Molto simile a typing ma è la versione finale del messaggio quindi lo rimuove dallla lista dei messaggi del server
+
+      authMiddleware(socket, () => {
+        // L'utente è autenticato, procedi con la logica del messaggio
+
+        console.log("Received finish message with messageId:", message.messageId); // Logga la ricezione del messaggio di digitazione
+
+
+        const sendId = message.sendId;
+        const roomId = message.roomId;
+        const messageId = message.messageId;
+        const payload = message.payload;
+        console.debug("Received typing message with sendId:", sendId);
+        console.debug("Received typing message with roomId:", roomId);
+        console.debug("Received typing message with messageId:", messageId);
+        console.debug("Received typing message with payload:", payload);
+
+        if (isUserMemberOfRoom(sockets[socket.id], roomId)) {
+          console.debug("User is a member of the room:", roomId);
+
+          // Trova il messaggio con messageId, socketId e roomId uguali a quelli richiesti
+          const messageObj = messages.find((msg) => msg.messageId === messageId && msg.socketId === socket.id && msg.roomId === roomId);
+
+          if (messageObj) {
+            console.debug("Message found:", messageObj);
+
+            // Invia un messaggio di ack al mittente
+            socket.emit("ack", { sendId: sendId });
+            console.debug("Sent ack to sender:", sendId);
+
+            // Invia il messaggio a tutti i membri della stanza
+            sendMessageToRoom(io, socket.id, roomId, "finish", {
+              messageId: messageId,
+              roomId: roomId,
+              payload: payload,
+              timestamp: new Date().toISOString(),
+              publicId: users[sockets[socket.id]].publicId,
+            });
+
+            // Rimuovi il messaggio dalla lista dei messaggi del server per impedire che venga modificato successivamente
+            messages = messages.filter((msg) => msg.messageId !== messageId);
+            console.debug("Removed message from server messages list:", messageObj);
+
+            console.info("messages:", messages); // Logga i messaggi salvati
+
+
+
+
+            console.log("Sent finish message to room:", roomId); // Logga l'invio del messaggio alla stanza
+
+
+
+          } else {
+            console.warn("Message not found or not authorized");
+            socket.emit("ack", { sendId: sendId, legal: false, message: "Can't edit this message, create a new one" });
+          }
+
+        }
+        else {
+          console.warn("User is not a member of the room:", roomId);
+          socket.emit("ack", { sendId: sendId, legal: false, message: "You are not a member of the room you want to write on" });
+        }
+
+
+
+      });
+
+
+    });
+
+
+
 
   });
 }
