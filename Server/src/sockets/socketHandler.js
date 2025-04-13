@@ -24,7 +24,7 @@ export function socketHandler(io) {
     // Funzione per gestire il successo dell'autenticazione
 
     const detailsToDisplay = {
-      name: user.username,
+      username: user.username,
       publicId: user.publicId
     }; // Crea un oggetto con i dettagli dell'utente da inviare al client
 
