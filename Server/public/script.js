@@ -96,12 +96,37 @@ socket.on("messageId", (payload) => {
   // Quando si riceve l'id del messaggio
   console.log("Received message ID:", payload); // Mostra l'id del messaggio
   currentMessageID = payload.messageId; // Imposta l'id del messaggio corrente
+
+  typing(); // Inizia a scrivere un messaggio
 });
 
 socket.on("ack", (payload) => {
   // Quando si riceve l'id del messaggio
   console.info("Received ack message:", payload); // Mostra l'id del messaggio
 });
+
+
+function typing() { // Funzione per scrivere un messaggio
+  const message_obj = {
+    sendId: uuidv4(), // Genera un id univoco per il messaggio
+    messageId: currentMessageID, // Imposta l'id del messaggio corrente
+    roomId: roomId, // Imposta l'id della stanza
+    payload: "test1", // Prende il valore del campo di input
+  };
+
+  console.log("Sending message with local message id:", message_obj); // Mostra il messaggio
+
+  socket.emit("typing", message_obj); // Invia il messaggio al server
+}
+
+
+socket.on("typing", (payload) => {
+  // Quando si riceve un messaggio di scrittura
+  console.warn("Ricevuto un typing:", payload); // Mostra l'id del messaggio
+});
+
+//input.addEventListener("input", typing());
+
 
 /*
 

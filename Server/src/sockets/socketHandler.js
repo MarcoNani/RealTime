@@ -27,6 +27,21 @@ export function socketHandler(io) {
     console.log("User authenticated:", user.username); // Logga l'autenticazione dell'utente
   }
 
+  function sendMessageToRoom(io, senderSocketId, roomId, event, data) {
+    // Trova tutti gli utenti che appartengono alla stanza
+    const members = Object.entries(users).filter(([apiKey, user]) =>
+      user.listRooms.includes(roomId)
+    );
+
+    // Invia il messaggio a ciascun membro
+    members.forEach(([apiKey, user]) => {
+      const socketId = Object.keys(sockets).find((id) => sockets[id] === apiKey);
+      if (socketId && socketId !== senderSocketId) {
+        // Invia il messaggio solo se il socketId è diverso da quello del mittente
+        io.to(socketId).emit(event, data);
+      }
+    });
+  }
 
   function authMiddleware(socket, next) {
     if (!sockets[socket.id]) {
@@ -181,25 +196,73 @@ export function socketHandler(io) {
     });
 
 
-
     socket.on("typing", (message) => {
-      // RICEVE: messaggeId, roomId, sendId, payload
-      // Controlla se messageId appartiene al mittente
-      // Controlla se il mittente appartiene alla roomId specificata nel messaggio
+      // RICEVE: sendId, messaggeId, roomId, payload
+      // Controlla se messageId appartiene al mittente, è associato alla stanza e il mittente è un membro della stanza
       // Costruisce l'oggetto del messaggio da recapitare
       // Invio il messaggio a tutti i membri della stanza
 
-      // --- LISTA DEI MESSAGGI ---
-      // Oggetto che contiene i messaggi inviati dagli utenti
-      // 
+      // Ritorno al mittente un messaggio di ack con sendId, legal: true, message: "Message sent"
+
+      // Se invece ci sono problemi con l'invio del messaggio, ritorno al mittente un messaggio di ack con sendId, legal: false, message: "motivo del rifiuto"
+
+      authMiddleware(socket, () => {
+        // L'utente è autenticato, procedi con la logica del messaggio
+
+        const sendId = message.sendId;
+        const roomId = message.roomId;
+        const messageId = message.messageId;
+        const payload = message.payload;
+        console.debug("Received typing message with sendId:", sendId);
+        console.debug("Received typing message with roomId:", roomId);
+        console.debug("Received typing message with messageId:", messageId);
+        console.debug("Received typing message with payload:", payload);
+
+        if (isUserMemberOfRoom(sockets[socket.id], roomId)) {
+          console.debug("User is a member of the room:", roomId);
+
+          // Trova il messaggio con messageId, socketId e roomId uguali a quelli richiesti
+          const messageObj = messages.find((msg) => msg.messageId === messageId && msg.socketId === socket.id && msg.roomId === roomId);
+
+          if (messageObj) {
+            console.debug("Message found:", messageObj);
+
+            // Invia un messaggio di ack al mittente
+            socket.emit("ack", { sendId: sendId });
+            console.debug("Sent ack to sender:", sendId);
+
+            // Invia il messaggio a tutti i membri della stanza
+            sendMessageToRoom(io, socket.id, roomId, "typing", {
+              messageId: messageId,
+              roomId: roomId,
+              payload: payload,
+              timestamp: new Date().toISOString(),
+              publicId: users[sockets[socket.id]].publicId,
+            });
 
 
-      // Riceve il messaggio di scrittura
-      // Controllo se l'utente è autenticato
-      // Se l'utente non è autenticato, invia un messaggio di errore e disconnette il socket
-      // Se l'utente è autenticato, inizia la logica di gestione del routing del messaggio
-      // ROUTING DEL MESSAGGIO
-      // 
+
+            console.log("Sent typing message to room:", roomId); // Logga l'invio del messaggio alla stanza
+
+
+
+          } else {
+            console.debug("Message not found or not authorized");
+            socket.emit("ack", { sendId: sendId, legal: false, message: "Can't edit this message, create a new one" });
+          }
+
+        }
+        else {
+          console.debug("User is not a member of the room:", roomId);
+          socket.emit("ack", { sendId: sendId, legal: false, message: "You are not a member of the room you want to write on" });
+        }
+
+
+
+      });
+
+
+
 
 
 
