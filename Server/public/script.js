@@ -98,6 +98,8 @@ socket.on("messageId", (payload) => {
   currentMessageID = payload.messageId; // Imposta l'id del messaggio corrente
 
   typing(); // Inizia a scrivere un messaggio
+
+  setTimeout(finish, 1000); // Invia il messaggio finale dopo 1 secondo
 });
 
 socket.on("ack", (payload) => {
@@ -111,13 +113,35 @@ function typing() { // Funzione per scrivere un messaggio
     sendId: uuidv4(), // Genera un id univoco per il messaggio
     messageId: currentMessageID, // Imposta l'id del messaggio corrente
     roomId: roomId, // Imposta l'id della stanza
-    payload: "test1", // Prende il valore del campo di input
+    payload: "test...",
   };
 
-  console.log("Sending message with local message id:", message_obj); // Mostra il messaggio
+  console.log("Sending typing message with local message id:", message_obj); // Mostra il messaggio
 
   socket.emit("typing", message_obj); // Invia il messaggio al server
 }
+
+
+function finish() { // Funzione per scrivere un messaggio
+  const message_obj = {
+    sendId: uuidv4(), // Genera un id univoco per il messaggio
+    messageId: currentMessageID, // Imposta l'id del messaggio corrente
+    roomId: roomId, // Imposta l'id della stanza
+    payload: "testo finale",
+  };
+
+  console.log("Sending finish message with local message id:", message_obj); // Mostra il messaggio
+
+  socket.emit("finish", message_obj); // Invia il messaggio al server
+}
+
+
+
+
+socket.on("finish", (payload) => {
+  // Quando si riceve un messaggio di scrittura
+  console.warn("Ricevuta una versione finale:", payload); // Mostra l'id del messaggio
+});
 
 
 socket.on("typing", (payload) => {

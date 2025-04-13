@@ -263,5 +263,74 @@ export function socketHandler(io) {
 
     });
 
+
+    socket.on("finish", (message) => {
+      // Molto simile a typing ma è la versione finale del messaggio quindi lo rimuove dallla lista dei messaggi del server
+
+      authMiddleware(socket, () => {
+        // L'utente è autenticato, procedi con la logica del messaggio
+
+        const sendId = message.sendId;
+        const roomId = message.roomId;
+        const messageId = message.messageId;
+        const payload = message.payload;
+        console.debug("Received typing message with sendId:", sendId);
+        console.debug("Received typing message with roomId:", roomId);
+        console.debug("Received typing message with messageId:", messageId);
+        console.debug("Received typing message with payload:", payload);
+
+        if (isUserMemberOfRoom(sockets[socket.id], roomId)) {
+          console.debug("User is a member of the room:", roomId);
+
+          // Trova il messaggio con messageId, socketId e roomId uguali a quelli richiesti
+          const messageObj = messages.find((msg) => msg.messageId === messageId && msg.socketId === socket.id && msg.roomId === roomId);
+
+          if (messageObj) {
+            console.debug("Message found:", messageObj);
+
+            // Invia un messaggio di ack al mittente
+            socket.emit("ack", { sendId: sendId });
+            console.debug("Sent ack to sender:", sendId);
+
+            // Invia il messaggio a tutti i membri della stanza
+            sendMessageToRoom(io, socket.id, roomId, "finish", {
+              messageId: messageId,
+              roomId: roomId,
+              payload: payload,
+              timestamp: new Date().toISOString(),
+              publicId: users[sockets[socket.id]].publicId,
+            });
+
+            // Rimuovi il messaggio dalla lista dei messaggi del server per impedire che venga modificato successivamente
+            messages = messages.filter((msg) => msg.messageId !== messageId);
+            console.debug("Removed message from server messages list:", messageObj);
+
+
+
+            console.log("Sent finish message to room:", roomId); // Logga l'invio del messaggio alla stanza
+
+
+
+          } else {
+            console.debug("Message not found or not authorized");
+            socket.emit("ack", { sendId: sendId, legal: false, message: "Can't edit this message, create a new one" });
+          }
+
+        }
+        else {
+          console.debug("User is not a member of the room:", roomId);
+          socket.emit("ack", { sendId: sendId, legal: false, message: "You are not a member of the room you want to write on" });
+        }
+
+
+
+      });
+
+
+    });
+
+
+
+    
   });
 }
