@@ -61,8 +61,3 @@ Home lista chat
 Preferenze:
 	- server a cui puntare
 	- cambio username
-
-
-
-
-prova
