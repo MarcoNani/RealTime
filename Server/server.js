@@ -533,6 +533,12 @@ app.post(requireJoinRoom_route, async (req, res) => {
       return res.status(409).json({ message: "The user is already in the room" });
     }
 
+    // Invalido tutte le richieste di join precedenti dell'utente per la stanza (per evitare conflitti (accetto una richiesta e l'altra è in pending))
+    await joinRequestsCollection.updateMany(
+      { roomId: roomId, apiKey: apiKey, status: "pending" },
+      { $set: { status: "invalidated" } }
+    );
+
     // Aggiungi la richiesta di join alla collection delle join requests
     // Extract members from the room
     const members = room.members;
