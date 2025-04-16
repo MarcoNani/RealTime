@@ -2,7 +2,7 @@
 *Non il canale televisivo*
 
 ## Caso d'uso di esempio
-Tutti noi abbiamo quell'amico o quell'amica con il quale passiamo le serate in chat. Tutti noi sappiamo quello che si prova a fissare la scritta "stra scrivendo" sotto al nome dell'interlocutore.
+Tutti noi abbiamo quell'amico o quell'amica con il quale passiamo le serate in chat. Tutti noi sappiamo quello che si prova a fissare la scritta "sta scrivendo" sotto al nome dell'interlocutore.
 Una volta che la scritta scompare e compare sul nostro display il messaggio noi lo leggiamo e poi inziamo a rispondere.
 Non avete mai pensato "chissà cosa starà scrivendo" oppure "che spreco di tempo, se ci vedessimo di persona oppure se stassimo parlando al telefono sarebbe tutto più veloce"?
 L'obbiettivo di **RealTime** è proprio questo: permettere di vedere ciò che l'interlocutore stà scrivendo man mano che lo scrive. Si risparmia così moltissimo tempo!
@@ -34,17 +34,31 @@ In RealTime sarà possibile visualizzare la **trascrizione automatica dei messag
 Un altro aspetto importante nelle chat moderne sono le immagini (intese come foto e video).
 Anche in RealTime sarà quindi possibile condividere foto/video, non solo saremo in grado di inviare foto/video già scattate ma saremo anche in grado di scattare foto/video direttamente dall'app. Queste ultime verranno condivise in tempo reale nel senso che da quando si apre la fotocamera l'interlocutore vedrà il nostro **flusso video che si fermerà nel momento in cui noi premeremo il tasto di scatto** per rimanere così fisso e impresso nella chat il fotogramma che abbiamo scattato.
 
-### 4. Cifratura:
-Un altro importantissimo aspetto, quando si parla di messaggi, è la cifratura. RealTime utilizzerà tecniche avanzate d cifratura per permetterci di esprimerci in libertà e in sicurezza, tutto questo senza però gnerare difficoltà all'utente.
+### 4. Contatto con il *contatto*
+Per creare una nuova chat su RealTime con un proprio amico sarà sufficente, e necessario, fare **toccare il proprio telefono con il telefono dell'amico,** in pochi istanti e in modo automatico verrà creata la chatroom e avverrà lo scambio sicuro della chiave di cifratura che verrà memorizzata in modo sicuro all'interno del chip dedicato.Da questo momento in poi **sarà possibile chattare anche a migliaia di chilometri di distanza come se ci si trovasse ancora faccia a faccia come nel momento del *contatto***.
+Niente username da condividere, niente numeri di telefono.
+E chissà, magari un giorno qualcuno farà un viaggio per incontrarsi di persona con il proprio amico conosciuto online per poterci chattare su RealTime.
+
+### 5. Cifratura:
+Un altro importantissimo aspetto, quando si parla di messaggi, è la cifratura. RealTime utilizzerà tecniche avanzate d cifratura per permetterci di esprimerci in libertà e in sicurezza, tutto questo senza però gnerare difficoltà all'utente infatti lo scambio di chiavi avviene in modo automatico al momento del *contatto*. Più sicuro di così.
 Il server di RealTime memorizzerà i dati necessari per lo scambio di messaggi solo per poco tempo e in ogni caso **il payload dei messaggi non sarà visibile in chiaro nemmeno a noi di RealTime**.
 
-### 5. Portabilità:
+### 6. Portabilità:
 I messaggi che vengono scambiati su RealTime sono di proprietà delle persone che se li scambiano. Vogliamo quindi permettervi di gestirli in modo più semplice possibile:
-- realizzare delle **bei file di export** per visualizzare in modo carino i vostri messaggi al di fuori di RealTime.
-- realizzare dei **file di export JSON** per permettervi di effettuare le elaborazioni che volete sui vostri messaggi, di importarli in altri sistemi o di visualizzarli come più preferite
+- realizzare dei **bei file di export** per visualizzare in modo carino i vostri messaggi al di fuori di RealTime.
+- realizzare dei **file di export JSON** per permettervi di effettuare le elaborazioni che volete sui vostri messaggi, di importarli in altri sistemi o di visualizzarli come più preferite.
+
+## Documentazione e altre cose da nerd
+Noi di RealTime amiamo il software libero e per questo motivo vogliamo rendere il protocollo di comunicazione di RealTime, il sorgente del server web e del client per Android libero, leggibile e modificabile da chiunque:
+sarà possibile utilizzare il server ufficiale di RealTime oppure hostarsi il proprio server in modo da non dover dipendere, e fidarsi, di nessuno.
+Inoltre potete verificare voi stessi il codice del client e quindi verificare che la cifratura end-to-end sia davverò quella che noi vi diciamo sia.
+
+### Documentazione
+Il protocollo di comunicazione tramite WebSocket e le API saranno ben documentati in modo da poter facilmente contribuire al progetto oppure di scrivere il proprio personale client per RealTime.
 
 ## Piattaforme
-Vogliamo rendere dispobibile un app Android nativa per utilizzare RealTime.
+Stiamo sviluppando un app Android nativa per utilizzare RealTime.
+
 
 ## Demo
 Se siete curiosi di provare un assaggio di RealTime vi rimandiamo alla demo disponibile collegandosi a https://realtime-demo.baunon.com/
