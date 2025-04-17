@@ -1,0 +1,63 @@
+Fare l'app che funziona bene (nel senso che quando giri lo schermo e avviene il redraw dell'activity non scompare tutto e simile)
+
+Creare libreria di cifratura con funzioni che utilizzano il keystore
+
+2 funzioni cifra e decifra
+
+argomenti: testo - roomid
+
+BASE64
+
+
+
+
+COLORE 
+bordino vivido interno bianco colorato appena
+colore associato a Username e che viene preso da una lista predefinita di modo da non avere pugni nell'occhio
+USA SOLO ULTIMI 7 COLORI DI PAINT
+
+
+CHAT
+	- deve avere la possibilità di:
+		- alzare e abbassare la tastiera a piacimento, (tasto)
+		- vincolare lo scroll dei messaggi, (tasto toggle)
+		- mostrare i messaggi dal lato corretto, (stesso lato di WhatsApp)
+		- modificare il messaggio nella bolla mettendo la textbox nella bolla stessa dello stesso solo se il messaggio è ancora modificabile e di proprietà.
+		- segnalare errore di ricapito dopo 1 secondo di mancato acknowledgemet di scrittura da parte del server verificandolo con send id  !!IN CASO DI CONFLITTO TRA SERVER E MESSAGGIO IN TYPING PROPRIETARIO HA RAGIONE LA TEXTBOX!!
+		- deve identificare il proprietario 
+		- inserire il nome del proprietario come "titolo" del messaggio.
+		- inserire il timestamp del messaggio al di sotto del messaggio,
+		- identificare se il messaggio è ancora in scrittura, 
+		- se l'msg è in scrittura mettere typing… e tilde vicino al timestamp (posizionato dal lato opposto del messaggio)
+		- una volta che il messaggio viene confermato bloccare il timestamp
+		- cercare nella chat
+		- esportare la chat
+		- salvare i messaggi in database locale di android
+		- comunicare i messaggi tramite websocket (architettura indicata su mirio - spiegata da nani - che conoscerò)
+		- il banner in alto deve essere sfumato verso il trasparente dall' alto e deve contenere 
+	- non deve permettere di:
+		- modificare i messaggi vecchi (non ultimo) e non di proprietà.
+ 
+
+CHAT INSIGHT!!!!
+Devi displayare il numero di unità custom dei caratteri scritti da ogni singola persona in "banane" nel lato opposto dell'elenchino dei membri che viene caricato da db e poi si aggiorna in base a quello che risponde l'api
+
+ABOUT
+mettere la versione in centro bella quella presa dalla build
+mettere il loghino bello grosso in alto in centro
+link a piè pagina:
+	- link per il sito
+	- link per la repo
+	- contatti: una mail in una variabile per il momento realtime@example.com @string di kotlin
+
+	
+Home lista chat
+	- non a lista di chat ma container card singoli per ogni chat con lista membri e numero di "banane" come nell'info chat, per cambiare la chat selezionata si scorre in orizzontale e per vedere i membri se vanno in overflow verticalmente gestione dello scroll autonoma di android, per entrare nella chat si clicca sulla card. (per reference guardare il video sul gruppo degli stock market)
+	- display delle chat tramite query al database e aggiorna lista con api request su server 
+	- mettere un floating action button predisposto per puntare ad una nuova activity ("new chat")
+	- solito banner realtime con fade
+	- button che manda all'activity delle preferenze (impostazioni scritto figo)
+
+Preferenze:
+	- server a cui puntare
+	- cambio username

@@ -28,6 +28,10 @@
         <activity
             android:name=".MainActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".ChatListActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

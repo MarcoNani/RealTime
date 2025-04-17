@@ -1,0 +1,50 @@
+sequenceDiagram
+title RealTime socket comunication D1
+%% in this diagram the Client A connect to the Server where Client B is already connected, Client A start to write a new message and after two input Client A press the enter button and send a finish message
+
+
+participant Client A
+participant Server
+participant Client B
+
+
+Client A->>Server: connect
+
+Client A->>+Server: auth
+Note right of Client A: apiKey: a123
+
+Server-->>-Client A: authSuccess
+Note left of Server: username: user_a, publicId: pa123
+
+Client A->>+Server: messageId
+Note right of Client A: sendId: s1, roomId: r1
+
+Server-->>-Client A: messageId
+Note left of Server: messageId: msg1, sendId: s1, roomId: r1
+
+Client A->>+Server: typing
+Note right of Client A: sendId: s2, messageId: msg1, roomId: r1, payload: chipertext
+
+Server-->>Client A: ack
+Note left of Server: sendId: s2, (legal: true, message: everything good)
+
+Server->>-Client B: typing
+Note right of Server: messageId: msg1, roomId: r1, payload: chipertext, timestamp: ISO 8601, publicId: pa123
+
+Client A->>+Server: typing
+Note right of Client A: sendId: s3, messageId: msg1, roomId: r1, payload: chipertext+other_ciphertext
+
+Server-->>Client A: ack
+Note left of Server: sendId: s3, (legal: true, message: everything good)
+
+Server->>-Client B: typing
+Note right of Server: messageId: msg1, roomId: r1, payload: chipertext+other_ciphertext, timestamp: ISO 8601, publicId: pa123
+
+Client A->>+Server: finish
+Note right of Client A: sendId: s4, messageId: msg1, roomId: r1, payload: final_chipertext
+
+Server-->>Client A: ack
+Note left of Server: sendId: s4, (legal: true, message: everything good)
+
+Server->>-Client B: finish
+Note right of Server: messageId: msg1, roomId: r1, payload: final_chipertext, timestamp: ISO 8601, publicId: pa123
