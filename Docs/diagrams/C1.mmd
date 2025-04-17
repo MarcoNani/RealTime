@@ -1,0 +1,66 @@
+sequenceDiagram
+Title: Key exchange and chatroom creation C1
+    participant KeystoreA as Keystore (A)
+    participant A as Device A
+    participant Server as Server API
+    participant B as Device B
+    participant KeystoreB as Keystore (B)
+
+    Note over A, B: 👉👈 Phase 1 – First tap
+
+    A->>KeystoreA: Ask to generate RSA key pair
+    KeystoreA-->>KeystoreA: Generate and store RSA key pair
+    KeystoreA-->>A: PublicKey (A)
+
+    B->>KeystoreB: Ask to generate AES key
+    KeystoreB->>KeystoreB: Generate and store AES key
+
+    Note over A, Server: 📡 API call - Create the room
+    A->>Server: POST /api/v1/rooms
+    Server-->>A: roomId
+
+    A->>B: Send PublicKey (A) & roomId via NFC
+
+    Note over B, Server: 📡 API call - Request to join the room
+
+    B->>Server: POST /api/v1/rooms/{roomId}/join-requests
+    Server-->>B: requestId
+
+
+    B->>KeystoreB: Load PublicKey (A)
+    B->>KeystoreB: Ask to encrypt AES with PublicKey (A)
+    KeystoreB-->>B: Encrypted AES
+
+
+
+    Note over A, B: 👉👈 Phase 2 – Second tap
+
+    B->>A: Send Encrypted AES & requestId via NFC
+
+    A->>KeystoreA: Ask to decrypt Encrypted AES with PrivateKey (A)
+    KeystoreA-->>KeystoreA: Store AES Key
+
+    Note over KeystoreA, KeystoreB: 🔐 Both devices now share the same AES key
+
+    Note over A, Server: 📡 API call - Approve join request
+    A->>Server: PATCH /api/v1/rooms/{roomId}/join-requests/{requestId}/votes    {"vote": true}
+    Server-->>A: 200
+
+    A->>KeystoreA: Ask to delete RSA key pair
+    KeystoreA-->>KeystoreA: Delete RSA key pair
+
+    A->>A: Open chat activity (roomId)
+
+    Note over B, Server: 📡 API call - Ckeck if i am in the room (if not retry until time out)
+
+    B->>Server: GET /api/v1/rooms/{roomId}
+    Server-->>B: 200
+
+    B->>KeystoreB: Ask to delete PublicKey (A)
+    KeystoreB-->>KeystoreB: Delete PublicKey (A)
+
+    B->>B: Open chat activity (roomId)
+
+
+
+    Note over A, B: ✅ Both devices are now ready to chat in RealTime
