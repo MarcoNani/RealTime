@@ -35,12 +35,12 @@ Un altro aspetto importante nelle chat moderne sono le immagini (intese come fot
 Anche in RealTime sarà quindi possibile condividere foto/video, non solo saremo in grado di inviare foto/video già scattate ma saremo anche in grado di scattare foto/video direttamente dall'app. Queste ultime verranno condivise in tempo reale nel senso che da quando si apre la fotocamera l'interlocutore vedrà il nostro **flusso video che si fermerà nel momento in cui noi premeremo il tasto di scatto** per rimanere così fisso e impresso nella chat il fotogramma che abbiamo scattato.
 
 ### 4. Contatto con il *contatto*
-Per creare una nuova chat su RealTime con un proprio amico sarà sufficente, e necessario, fare **toccare il proprio telefono con il telefono dell'amico,** in pochi istanti e in modo automatico verrà creata la chatroom e avverrà lo scambio sicuro della chiave di cifratura che verrà memorizzata in modo sicuro all'interno del chip dedicato.Da questo momento in poi **sarà possibile chattare anche a migliaia di chilometri di distanza come se ci si trovasse ancora faccia a faccia come nel momento del *contatto***.
+Per creare una nuova chat su RealTime con un proprio amico sarà sufficente, e necessario, fare **toccare il proprio telefono con il telefono dell'amico,** in pochi istanti e in modo automatico verrà creata la chatroom e avverrà lo scambio sicuro della chiave di cifratura che verrà memorizzata in modo sicuro all'interno del chip dedicato. Da questo momento in poi **sarà possibile chattare anche a migliaia di chilometri di distanza come se ci si trovasse ancora faccia a faccia come nel momento del *contatto***.
 Niente username da condividere, niente numeri di telefono.
 E chissà, magari un giorno qualcuno farà un viaggio per incontrarsi di persona con il proprio amico conosciuto online per poterci chattare su RealTime.
 
 ### 5. Cifratura:
-Un altro importantissimo aspetto, quando si parla di messaggi, è la cifratura. RealTime utilizzerà tecniche avanzate d cifratura per permetterci di esprimerci in libertà e in sicurezza, tutto questo senza però gnerare difficoltà all'utente infatti lo scambio di chiavi avviene in modo automatico al momento del *contatto*. Più sicuro di così.
+Un altro importantissimo aspetto, quando si parla di messaggi, è la cifratura. RealTime utilizzerà tecniche avanzate di cifratura per permetterci di esprimerci in libertà e in sicurezza, tutto questo senza però generare difficoltà all'utente infatti lo scambio di chiavi avviene in modo automatico al momento del *contatto*. Più sicuro di così.
 Il server di RealTime memorizzerà i dati necessari per lo scambio di messaggi solo per poco tempo e in ogni caso **il payload dei messaggi non sarà visibile in chiaro nemmeno a noi di RealTime**.
 
 ### 6. Portabilità:
