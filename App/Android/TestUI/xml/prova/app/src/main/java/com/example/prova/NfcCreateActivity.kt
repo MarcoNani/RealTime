@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import android.app.AlertDialog
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -14,13 +15,11 @@ import androidx.lifecycle.lifecycleScope
 import com.example.prova.api.ApiService
 import com.example.prova.api.RetrofitProvider
 import com.example.prova.model.CreateRoomResponse
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.spec.RSAKeyGenParameterSpec
-
-import retrofit2.Call
-import retrofit2.Callback
 import retrofit2.Response
 
 import java.util.UUID
@@ -76,26 +75,52 @@ class NfcCreateActivity : AppCompatActivity() {
         debug(debugTextView, "Server: $server")
 
         if (apiKey != null && server != null) {
-            createRoom(apiKey, server)
+            // Ottieni il roomId prima di proseguire
+            lifecycleScope.launch {
+                val roomId = createRoom(apiKey, server, rsaKeyAlias)
 
-            debug(debugTextView, "Room created")
-            setLedState(1, true)
+                debug(debugTextView, "roomId: $roomId")
+
+                if (roomId == null) {
+                    // Something went wrong during the room creation
+                    debug(debugTextView, "Something went wrong during the room creation")
+                    return@launch
+                }
+
+                // Dopo aver ottenuto il roomId, continua
+                debug(debugTextView, "Room created with ID: $roomId")
+                setLedState(1, true)
+
+                // Puoi continuare a usare roomId per altre operazioni
+                Toast.makeText(this@NfcCreateActivity, "Room created with ID: $roomId", Toast.LENGTH_LONG).show()
+
+
+
+
+
+
+
+
+                // 7 - Ask to delete the key pair
+                debug(debugTextView, "Ask to delete the key pair")
+                setLedState(6, true, Color.YELLOW)
+
+                keyStore.deleteEntry(rsaKeyAlias) // Delete the key pair
+                debug(debugTextView, "RSA Key Pair Deleted")
+                setLedState(6, true)
+
+            }
         } else {
-            // gestisci il caso in cui siano null (es. mostra errore)
             Toast.makeText(this, "API Key or server missing", Toast.LENGTH_SHORT).show()
+            debug(debugTextView, "API Key or server missing")
+            abort(rsaKeyAlias)
         }
 
 
 
 
 
-        // 7 - Ask to delete the key pair
-        debug(debugTextView, "Ask to delete the key pair")
-        setLedState(6, true, Color.YELLOW)
 
-        keyStore.deleteEntry(rsaKeyAlias) // Delete the key pair
-        debug(debugTextView, "RSA Key Pair Deleted")
-        setLedState(6, true)
 
 
 
@@ -160,34 +185,61 @@ class NfcCreateActivity : AppCompatActivity() {
         keyPairGenerator.generateKeyPair()
     }
 
+    private suspend fun createRoom(apiKey: String, server: String, rsaKeyAlias: String): String? {
+        return try {
+            val retrofit = RetrofitProvider.provideRetrofit(server, apiKey)
+            val apiService = retrofit.create(ApiService::class.java)
 
-    private fun createRoom(apiKey: String, server: String) {
-        lifecycleScope.launch {
-            try {
-                val retrofit = RetrofitProvider.provideRetrofit(server, apiKey)
-                val apiService = retrofit.create(ApiService::class.java)
+            val response: Response<CreateRoomResponse> = apiService.createRoom()
 
-                val response = apiService.createRoom()
-
-                if (response.isSuccessful) {
-                    val roomId = response.body()?.data?.roomId
-                    Toast.makeText(this@NfcCreateActivity, "Room creata: $roomId", Toast.LENGTH_LONG).show()
-
-                    debug(findViewById(R.id.debug), "Room creata: $roomId")
-                    // Puoi anche navigare a un'altra activity qui
-                } else {
-                    Toast.makeText(this@NfcCreateActivity, "Errore: ${response.code()}", Toast.LENGTH_SHORT).show()
-
-                    debug(findViewById(R.id.debug), "Errore: ${response.code()}")
-                }
-            } catch (e: Exception) {
-                Toast.makeText(this@NfcCreateActivity, "Errore: ${e.message}", Toast.LENGTH_SHORT).show()
-
-                debug(findViewById(R.id.debug), "Errore: ${e.message}")
+            if (response.isSuccessful) {
+                response.body()?.data?.roomId
+            } else {
+                // Response code is not 200
+                abort(rsaKeyAlias, "Error creating room: ${response.code()}")
+                null // Returns null in case of error
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            abort(rsaKeyAlias, "Error creating room: ${e.message}")
+            null // Returns null in case of error
         }
     }
 
 
+    fun showPersistentMessage(context: Context, message: String, title: String = "Error") {
+        AlertDialog.Builder(context)
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("OK :(") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    fun abort(rsaKeyAlias: String, message: String = "Something went wrong, no more information given", context: Context = this) {
+        val debugTextView: TextView = findViewById(R.id.debug)
+
+        debug(debugTextView, "Ask to delete the key pair")
+        setLedState(6, true, Color.YELLOW)
+
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) } // Load the key store
+
+        keyStore.deleteEntry(rsaKeyAlias) // Delete the key pair
+        debug(debugTextView, "RSA Key Pair Deleted")
+        setLedState(6, true)
+
+        // set all led to red
+        setLedState(0, true, Color.RED)
+        setLedState(1, true, Color.RED)
+        setLedState(2, true, Color.RED)
+        setLedState(3, true, Color.RED)
+        setLedState(4, true, Color.RED)
+        setLedState(5, true, Color.RED)
+        setLedState(6, true, Color.RED)
+
+        showPersistentMessage(context, message)
+    }
 
 }
