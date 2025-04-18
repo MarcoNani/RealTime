@@ -73,6 +73,7 @@ class WelcomeActivity : AppCompatActivity() {
                     apiResponse?.let { apiResponseData ->
                         val apiKey = apiResponseData.data.apiKey
                         saveApiKey(apiKey)
+                        saveServer(server)
                         navigateToChatListActivity()
                     }
                 } else {
@@ -92,6 +93,15 @@ class WelcomeActivity : AppCompatActivity() {
             putString("API_KEY", apiKey)
             apply()
             Toast.makeText(this@WelcomeActivity, "API key salvata con successo", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun saveServer(server: String) {
+        val sharedPref = getSharedPreferences("RealTimePrefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("SERVER_URL", server)
+            apply()
+            Toast.makeText(this@WelcomeActivity, "Server salvato con successo", Toast.LENGTH_SHORT).show()
         }
     }
 

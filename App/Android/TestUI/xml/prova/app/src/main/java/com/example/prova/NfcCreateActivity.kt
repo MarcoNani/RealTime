@@ -1,5 +1,6 @@
 package com.example.prova
 
+import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -8,9 +9,17 @@ import androidx.appcompat.app.AppCompatActivity
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.widget.TextView
+import android.widget.Toast
+import com.example.prova.api.ApiService
+import com.example.prova.api.RetrofitProvider
+import com.example.prova.model.CreateRoomResponse
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.spec.RSAKeyGenParameterSpec
+
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 import java.util.UUID
 
@@ -57,6 +66,20 @@ class NfcCreateActivity : AppCompatActivity() {
         // 2 - API call to create a room
         debug(debugTextView, "API call to create a room")
         setLedState(1, true, Color.YELLOW)
+
+        val sharedPref = getSharedPreferences("RealTimePrefs", Context.MODE_PRIVATE)
+        val apiKey  = sharedPref.getString("API_KEY", null)
+        debug(debugTextView, "API Key: $apiKey")
+        val server = sharedPref.getString("SERVER_URL", null)
+        debug(debugTextView, "Server: $server")
+
+        if (apiKey != null && server != null) {
+            createRoom(apiKey, server)
+        } else {
+            // gestisci il caso in cui siano null (es. mostra errore)
+            Toast.makeText(this, "API Key or server missing", Toast.LENGTH_SHORT).show()
+        }
+
 
 
 
@@ -131,5 +154,33 @@ class NfcCreateActivity : AppCompatActivity() {
         keyPairGenerator.initialize(keyGenParams)
         keyPairGenerator.generateKeyPair()
     }
+
+
+    private fun createRoom(apiKey: String, server: String) {
+        val retrofit = RetrofitProvider.provideRetrofit(server, apiKey)
+        val apiService = retrofit.create(ApiService::class.java)
+
+        val call = apiService.createRoom()
+
+        call.enqueue(object : Callback<CreateRoomResponse> {
+            override fun onResponse(
+                call: Call<CreateRoomResponse>,
+                response: Response<CreateRoomResponse>
+            ) {
+                if (response.isSuccessful) {
+                    val roomId = response.body()?.data?.roomId
+                    Toast.makeText(this@NfcCreateActivity, "Room creata: $roomId", Toast.LENGTH_LONG).show()
+                    // Puoi salvare il roomId o andare in una nuova activity
+                } else {
+                    Toast.makeText(this@NfcCreateActivity, "Errore: ${response.code()}", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<CreateRoomResponse>, t: Throwable) {
+                Toast.makeText(this@NfcCreateActivity, "Errore: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
 
 }
