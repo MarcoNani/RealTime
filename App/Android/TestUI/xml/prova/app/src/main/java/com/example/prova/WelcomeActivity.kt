@@ -34,8 +34,8 @@ class WelcomeActivity : AppCompatActivity() {
         Toast.makeText(this, "API key: $apiKey", Toast.LENGTH_SHORT).show()
 
         if (apiKey != null) {
-            // Se l'API key esiste già, vai direttamente alla MainActivity
-            navigateToMainActivity()
+            // Se l'API key esiste già, vai direttamente alla lista delle chat
+            navigateToChatListActivity()
             return
         }
 
@@ -85,7 +85,11 @@ class WelcomeActivity : AppCompatActivity() {
                         saveApiKey(apiKey)
 
                         // Vai alla MainActivity
-                        navigateToMainActivity()
+                        // navigateToMainActivity()
+
+                        // Vai alla ChatListActivity
+                        navigateToChatListActivity()
+
                     }
                 } else {
                     Toast.makeText(this@WelcomeActivity,
@@ -112,6 +116,12 @@ class WelcomeActivity : AppCompatActivity() {
 
     private fun navigateToMainActivity() {
         val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish() // Chiudi questa activity per evitare che l'utente possa tornare indietro
+    }
+
+    private fun navigateToChatListActivity() {
+        val intent = Intent(this, ChatListActivity::class.java)
         startActivity(intent)
         finish() // Chiudi questa activity per evitare che l'utente possa tornare indietro
     }
