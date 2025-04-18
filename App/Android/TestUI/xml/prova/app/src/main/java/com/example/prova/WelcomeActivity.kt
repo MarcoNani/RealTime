@@ -37,9 +37,7 @@ class WelcomeActivity : AppCompatActivity() {
             // Se l'API key esiste già, vai direttamente alla MainActivity
             navigateToMainActivity()
             return
-        }
-
-        // Inizializza le views
+        }// Inizializza le views
         usernameEditText = findViewById(R.id.usernameInput)
         submitButton = findViewById(R.id.startButton)
         serverEditText = findViewById(R.id.serverInput)

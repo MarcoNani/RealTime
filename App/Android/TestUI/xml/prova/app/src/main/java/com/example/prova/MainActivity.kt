@@ -32,6 +32,8 @@ class MainActivity : AppCompatActivity() {
     private var localMessageId: String = ""
     private var keepTheChatDown: Boolean = false
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE) // Needed to make the window not going under the keyboard
@@ -49,8 +51,6 @@ class MainActivity : AppCompatActivity() {
         messageAdapter = MessageAdapter(messages)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = messageAdapter
-
-
 
         // Listener for the send button
         btnSend.setOnClickListener { sendMessage(messageContent.text.toString()) }
