@@ -45,6 +45,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!-- Overlay semi-trasparente che copre l'intero layout quando il menu FAB è aperto -->
+        <View
+            android:id="@+id/overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/black"
+            android:alpha="0.6"
+            android:visibility="gone"/>
+
         <!-- FAB secondario 1 con emoji A -->
         <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
             android:id="@+id/fab_A"

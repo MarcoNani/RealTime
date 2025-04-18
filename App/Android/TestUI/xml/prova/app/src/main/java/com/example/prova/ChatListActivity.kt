@@ -29,14 +29,17 @@ class ChatListActivity : AppCompatActivity() {
         val mainFab = findViewById<FloatingActionButton>(R.id.floatingActionButton)
         val fabA = findViewById<ExtendedFloatingActionButton>(R.id.fab_A)
         val fabB = findViewById<ExtendedFloatingActionButton>(R.id.fab_B)
+        val overlay = findViewById<View>(R.id.overlay)
 
         mainFab.setOnClickListener {
             if (isFabMenuOpen) {
                 closeFabMenu(fabA, fabB)
                 rotateFab(mainFab, false)
+                overlay.visibility = View.GONE
             } else {
                 openFabMenu(fabA, fabB)
                 rotateFab(mainFab, true)
+                overlay.visibility = View.VISIBLE
             }
             isFabMenuOpen = !isFabMenuOpen
         }
