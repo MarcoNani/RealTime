@@ -2,6 +2,7 @@ package com.example.prova.api
 
 import com.example.prova.model.*
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Headers
 import retrofit2.http.POST
@@ -12,5 +13,5 @@ interface ApiService {
 
     @Headers("Content-Type: application/json")
     @POST("/api/v1/rooms")
-    fun createRoom(): Call<CreateRoomResponse>
+    suspend fun createRoom(): Response<CreateRoomResponse>
 }

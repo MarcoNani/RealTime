@@ -10,9 +10,11 @@ import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.widget.TextView
 import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import com.example.prova.api.ApiService
 import com.example.prova.api.RetrofitProvider
 import com.example.prova.model.CreateRoomResponse
+import kotlinx.coroutines.launch
 import java.security.KeyPairGenerator
 import java.security.KeyStore
 import java.security.spec.RSAKeyGenParameterSpec
@@ -75,6 +77,9 @@ class NfcCreateActivity : AppCompatActivity() {
 
         if (apiKey != null && server != null) {
             createRoom(apiKey, server)
+
+            debug(debugTextView, "Room created")
+            setLedState(1, true)
         } else {
             // gestisci il caso in cui siano null (es. mostra errore)
             Toast.makeText(this, "API Key or server missing", Toast.LENGTH_SHORT).show()
@@ -157,30 +162,32 @@ class NfcCreateActivity : AppCompatActivity() {
 
 
     private fun createRoom(apiKey: String, server: String) {
-        val retrofit = RetrofitProvider.provideRetrofit(server, apiKey)
-        val apiService = retrofit.create(ApiService::class.java)
+        lifecycleScope.launch {
+            try {
+                val retrofit = RetrofitProvider.provideRetrofit(server, apiKey)
+                val apiService = retrofit.create(ApiService::class.java)
 
-        val call = apiService.createRoom()
+                val response = apiService.createRoom()
 
-        call.enqueue(object : Callback<CreateRoomResponse> {
-            override fun onResponse(
-                call: Call<CreateRoomResponse>,
-                response: Response<CreateRoomResponse>
-            ) {
                 if (response.isSuccessful) {
                     val roomId = response.body()?.data?.roomId
                     Toast.makeText(this@NfcCreateActivity, "Room creata: $roomId", Toast.LENGTH_LONG).show()
-                    // Puoi salvare il roomId o andare in una nuova activity
+
+                    debug(findViewById(R.id.debug), "Room creata: $roomId")
+                    // Puoi anche navigare a un'altra activity qui
                 } else {
                     Toast.makeText(this@NfcCreateActivity, "Errore: ${response.code()}", Toast.LENGTH_SHORT).show()
-                }
-            }
 
-            override fun onFailure(call: Call<CreateRoomResponse>, t: Throwable) {
-                Toast.makeText(this@NfcCreateActivity, "Errore: ${t.message}", Toast.LENGTH_SHORT).show()
+                    debug(findViewById(R.id.debug), "Errore: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@NfcCreateActivity, "Errore: ${e.message}", Toast.LENGTH_SHORT).show()
+
+                debug(findViewById(R.id.debug), "Errore: ${e.message}")
             }
-        })
+        }
     }
+
 
 
 }
