@@ -32,6 +32,10 @@
         <activity
             android:name=".ChatListActivity"
             android:exported="false" />
+
+        <activity android:name=".NfcCreateActivity" />
+        <activity android:name=".NfcJoinActivity" />
+
     </application>
 
 </manifest>

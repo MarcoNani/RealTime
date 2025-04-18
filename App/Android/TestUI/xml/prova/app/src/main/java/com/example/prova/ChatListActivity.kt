@@ -45,16 +45,18 @@ class ChatListActivity : AppCompatActivity() {
         }
 
         fabA.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, NfcCreateActivity::class.java))
             closeFabMenu(fabA, fabB)
             rotateFab(mainFab, false)
+            overlay.visibility = View.GONE
             isFabMenuOpen = false
         }
 
         fabB.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
+            startActivity(Intent(this, NfcJoinActivity::class.java))
             closeFabMenu(fabA, fabB)
             rotateFab(mainFab, false)
+            overlay.visibility = View.GONE
             isFabMenuOpen = false
         }
     }
