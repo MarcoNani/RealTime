@@ -6,15 +6,19 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import android.app.AlertDialog
+import android.graphics.Bitmap
 
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import com.example.prova.api.ApiService
 import com.example.prova.api.RetrofitProvider
 import com.example.prova.model.CreateRoomResponse
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.security.KeyPairGenerator
@@ -43,6 +47,8 @@ class NfcCreateActivity : AppCompatActivity() {
         )
 
         val debugTextView: TextView = findViewById(R.id.debug)
+
+        val qrImageView: ImageView = findViewById(R.id.qrImageView)
 
         debug(debugTextView, "Start")
 
@@ -93,6 +99,19 @@ class NfcCreateActivity : AppCompatActivity() {
 
                 // Puoi continuare a usare roomId per altre operazioni
                 Toast.makeText(this@NfcCreateActivity, "Room created with ID: $roomId", Toast.LENGTH_LONG).show()
+
+
+                // 3 - QR code generation
+                debug(debugTextView, "QR code generation")
+                setLedState(2, true, Color.YELLOW)
+
+                val qrCodeContent = "$roomId|$publicKey"
+                val bmpQRCode = generateQRCode(qrCodeContent)
+                qrImageView.setImageBitmap(bmpQRCode)
+
+                debug(debugTextView, "QR code generated")
+                setLedState(2, true)
+
 
 
 
@@ -240,6 +259,21 @@ class NfcCreateActivity : AppCompatActivity() {
         setLedState(6, true, Color.RED)
 
         showPersistentMessage(context, message)
+    }
+
+
+    fun generateQRCode(qrCodeContent: String): Bitmap {
+        val writer = QRCodeWriter()
+        val bitMatrix = writer.encode(qrCodeContent, BarcodeFormat.QR_CODE, 512, 512)
+        val bmp = Bitmap.createBitmap(512, 512, Bitmap.Config.RGB_565)
+
+        for (x in 0 until 512) {
+            for (y in 0 until 512) {
+                bmp.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
+            }
+        }
+
+        return bmp
     }
 
 }
