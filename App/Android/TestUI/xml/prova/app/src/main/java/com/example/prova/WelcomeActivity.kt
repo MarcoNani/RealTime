@@ -37,7 +37,8 @@ class WelcomeActivity : AppCompatActivity() {
         if (apiKey != null) {
             navigateToChatListActivity()
             return
-        }// Inizializza le views
+        }
+
         usernameEditText = findViewById(R.id.usernameInput)
         submitButton = findViewById(R.id.startButton)
         serverEditText = findViewById(R.id.serverInput)
