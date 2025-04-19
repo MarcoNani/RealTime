@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "prova"
 include(":app")
- 
+include(":encoder")
