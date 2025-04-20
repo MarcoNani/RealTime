@@ -1,5 +1,7 @@
 package com.example.prova
 
+import com.example.prova.KeyStoreUtils
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -61,16 +63,14 @@ class NfcJoinActivity : AppCompatActivity() {
         }
 
 
-        // 1 - ask to generate AES key
-        // TODO: implement this
 
 
 
 
-        // 2 - Scan QR code: Recive Encrypted AES & request ID
+        // 1 - Scan QR code: Recive Encrypted AES & request ID
 
-        // Put led 2 to yellow
-        setLedState(1, true, Color.YELLOW)
+        // Put led 1 to yellow
+        setLedState(0, true, Color.YELLOW)
 
         debug(debugTextView, "Starting QR scanner")
 
@@ -188,20 +188,54 @@ class NfcJoinActivity : AppCompatActivity() {
     }
 
     private fun processAuthenticationData(qrValue: String) {
-        // This is a placeholder for your next function
-        // Implement your specific logic here
-
-        // Split the QR value to extract the UUID and public key
+        // Split the QR value to extract the roomId and public key
         val parts = qrValue.split("|")
-        val uuid = parts[0]
+        val roomId = parts[0]
         val publicKeyString = parts[1]
 
-        debug(debugTextView, "UUID: $uuid")
+        debug(debugTextView, "roomId: $roomId")
+        debug(debugTextView, "publicKeyString: $publicKeyString")
         debug(debugTextView, "Starting next phase of authentication...")
 
+        // Turn on the 1 led
+        setLedState(0, true)
 
-        // Turn on the 2 led
-        setLedState(1, true)
+
+        // 2 - Ask the keystore to generate AES key associated with roomId
+        setLedState(1, true, Color.YELLOW)
+
+        val keyGenerated = KeyStoreUtils.generateAndStoreAESKey(roomId)
+
+        if (keyGenerated) {
+            debug(debugTextView, "✅ AES key generated successfully")
+
+            // Check if key exists
+            val exists = KeyStoreUtils.keyExists(roomId)
+            debug(debugTextView, "Key verification: $exists")
+            setLedState(1, true)
+
+            // Continue with the rest of your authentication process
+            debug(debugTextView, "Starting next phase of authentication...")
+
+
+
+            // 3 - Encrypt the AES key with the public key recieved
+
+
+
+
+
+        } else {
+            debug(debugTextView, "❌ Failed to generate AES key")
+
+            setLedState(1, true, Color.RED)
+            // Handle error scenario
+        }
+
+
+
+
+
 
         // You can implement your next steps here
         // For example, you might want to:
