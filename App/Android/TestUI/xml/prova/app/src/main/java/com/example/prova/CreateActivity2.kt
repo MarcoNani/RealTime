@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -28,6 +29,7 @@ class CreateActivity2 : AppCompatActivity() {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var previewView: PreviewView
     private lateinit var debugTextView: TextView
+    private var isQrProcessed = false
 
     companion object {
         private const val TAG = "QRScanner"
@@ -53,17 +55,23 @@ class CreateActivity2 : AppCompatActivity() {
             findViewById(R.id.led7),
         )
 
-        debug(debugTextView, "Starting QR scanner")
-
         // Set all leds to off initially
         for (i in leds.indices) {
             setLedState(i, false)
         }
 
-        // Turn on first 3 leds
-        for (i in 0 until 3) {
-            setLedState(i, true)
-        }
+        // Turn on 1,2,3 leds
+        setLedState(0, true)
+        setLedState(1, true)
+        setLedState(2, true)
+
+
+        // 4 - Scan QR code: Recive Encrypted AES & request ID
+
+        // Put let 4 to yellow
+        setLedState(3, true, Color.YELLOW)
+
+        debug(debugTextView, "Starting QR scanner")
 
         // Initialize camera executor
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -98,7 +106,7 @@ class CreateActivity2 : AppCompatActivity() {
                 .build()
                 .also {
                     it.setAnalyzer(cameraExecutor, QRCodeAnalyzer { qrCodes ->
-                        if (qrCodes.isNotEmpty()) {
+                        if (qrCodes.isNotEmpty() && !isQrProcessed) {
                             qrCodes.forEach { barcode ->
                                 barcode.rawValue?.let { value ->
                                     // QR code detected, update UI
@@ -134,39 +142,72 @@ class CreateActivity2 : AppCompatActivity() {
     }
 
     private fun handleQRCode(qrValue: String) {
-        // Illuminate different LEDs based on the QR code content
-        // This is just an example pattern - modify according to your needs
-        debug(debugTextView, "QR detected: $qrValue")
+        debug(debugTextView, "QR detected: ${qrValue.take(30)}...") // Only show beginning for long strings
 
-        // Reset all LEDs
-        for (i in leds.indices) {
-            setLedState(i, false)
-        }
+        if (isValidAuthQr(qrValue)) {
+            // We found the specific QR format we're looking for
+            debug(debugTextView, "✅ Valid authentication QR detected")
 
-        // Simple example: light up LEDs based on the string length
-        val length = qrValue.length.coerceAtMost(leds.size)
-        for (i in 0 until length) {
-            setLedState(i, true)
-        }
+            // Mark as processed to stop further scanning
+            isQrProcessed = true
 
-        // You can implement more sophisticated patterns based on QR content
-        // For example, different colors for different types of QR codes
-        if (qrValue.startsWith("http")) {
-            // URL - green
-            for (i in 0 until length) {
-                setLedState(i, true, Color.GREEN)
-            }
-        } else if (qrValue.matches(Regex("\\d+"))) {
-            // Numeric - blue
-            for (i in 0 until length) {
-                setLedState(i, true, Color.BLUE)
-            }
+            Toast.makeText(this@CreateActivity2, "✅ Valid authentication QR detected", Toast.LENGTH_LONG).show()
+
+
+
+            // Start next operations
+            handleAuthenticationSuccess(qrValue)
         } else {
-            // Other - yellow
-            for (i in 0 until length) {
-                setLedState(i, true, Color.YELLOW)
-            }
+            // Not the QR we're looking for, continue scanning
+            debug(debugTextView, "❌ Invalid QR format, continue scanning")
+
+            Toast.makeText(this@CreateActivity2, "❌ Invalid QR format, continue scanning", Toast.LENGTH_LONG).show()
         }
+    }
+
+    private fun isValidAuthQr(qrValue: String): Boolean {
+        // Check if QR content matches the expected format
+        // Looking for: UUID|OpenSSLRSAPublicKey{...}
+        return qrValue.contains("|OpenSSLRSAPublicKey") &&
+                qrValue.split("|").size == 2 &&
+                qrValue.split("|")[0].matches(Regex("[a-f0-9]{32}"))
+    }
+
+    private fun handleAuthenticationSuccess(qrValue: String) {
+        // Stop the camera
+        val cameraProvider = ProcessCameraProvider.getInstance(this).get()
+        cameraProvider.unbindAll()
+
+        debug(debugTextView, "Authentication successful")
+        debug(debugTextView, "Processing authentication data...")
+
+        // Here you would call your next function to handle the next steps
+        // For example:
+        processAuthenticationData(qrValue)
+    }
+
+    private fun processAuthenticationData(qrValue: String) {
+        // This is a placeholder for your next function
+        // Implement your specific logic here
+
+        // Split the QR value to extract the UUID and public key
+        val parts = qrValue.split("|")
+        val uuid = parts[0]
+        val publicKeyString = parts[1]
+
+        debug(debugTextView, "UUID: $uuid")
+        debug(debugTextView, "Starting next phase of authentication...")
+
+
+        // Turn on the 4 led
+        setLedState(3, true)
+
+        // You can implement your next steps here
+        // For example, you might want to:
+        // 1. Store the public key
+        // 2. Navigate to another activity
+        // 3. Start communication with a server
+        // 4. etc.
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -226,7 +267,7 @@ class CreateActivity2 : AppCompatActivity() {
         // Imposta il testo aggiornato nel TextView
         debugTextView.text = updatedText
 
-        // Optional: scroll to the bottom to always show newest messages
+        // Scroll to the bottom to always show newest messages
         val scrollAmount = debugTextView.layout?.getLineTop(debugTextView.lineCount) ?: 0
         debugTextView.scrollTo(0, scrollAmount)
     }
