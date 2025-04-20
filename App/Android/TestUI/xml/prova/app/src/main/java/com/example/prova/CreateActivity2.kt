@@ -272,35 +272,3 @@ class CreateActivity2 : AppCompatActivity() {
         debugTextView.scrollTo(0, scrollAmount)
     }
 }
-
-// QR Code Analyzer class
-private class QRCodeAnalyzer(private val onQRCodesDetected: (qrCodes: List<Barcode>) -> Unit) :
-    ImageAnalysis.Analyzer {
-
-    private val scanner = BarcodeScanning.getClient()
-
-    @androidx.camera.core.ExperimentalGetImage
-    override fun analyze(imageProxy: ImageProxy) {
-        val mediaImage = imageProxy.image
-        if (mediaImage != null) {
-            val image = InputImage.fromMediaImage(
-                mediaImage,
-                imageProxy.imageInfo.rotationDegrees
-            )
-
-            // Process image for QR codes
-            scanner.process(image)
-                .addOnSuccessListener { barcodes ->
-                    if (barcodes.isNotEmpty()) {
-                        onQRCodesDetected(barcodes)
-                    }
-                }
-                .addOnCompleteListener {
-                    // Important: close the image proxy to release resources
-                    imageProxy.close()
-                }
-        } else {
-            imageProxy.close()
-        }
-    }
-}

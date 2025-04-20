@@ -46,6 +46,11 @@ class NfcCreateActivity : AppCompatActivity() {
             findViewById(R.id.led7),
         )
 
+        // Set all leds to off initially
+        for (i in leds.indices) {
+            setLedState(i, false)
+        }
+
         val debugTextView: TextView = findViewById(R.id.debug)
 
         val qrImageView: ImageView = findViewById(R.id.qrImageView)
