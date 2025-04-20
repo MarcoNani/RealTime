@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.prova"
         minSdk = 24
         targetSdk = 35
-        versionCode = 5
-        versionName = "0.1.6" // release.funzioni.roba a caso
+        versionCode = 7
+        versionName = "0.1.7" // release.funzioni.roba a caso
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -36,6 +36,11 @@ android {
 }
 
 dependencies {
+    implementation(libs.camera.core)
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.view)
+    implementation(libs.mlkit.barcode.scanning)
 
     implementation(libs.zxing)
 

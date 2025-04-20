@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+
 
     <application
         android:allowBackup="true"
@@ -36,7 +39,7 @@
         <activity android:name=".NfcCreateActivity" />
         <activity android:name=".NfcJoinActivity" />
 
-        <activity android:name=".CreateActivity2" />" />
+        <activity android:name=".CreateActivity2" />
 
     </application>
 
