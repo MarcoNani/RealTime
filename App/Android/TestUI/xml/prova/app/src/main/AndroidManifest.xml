@@ -36,6 +36,8 @@
         <activity android:name=".NfcCreateActivity" />
         <activity android:name=".NfcJoinActivity" />
 
+        <activity android:name=".CreateActivity2" />" />
+
     </application>
 
 </manifest>

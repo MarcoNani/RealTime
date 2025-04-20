@@ -50,6 +50,8 @@ class NfcCreateActivity : AppCompatActivity() {
 
         val qrImageView: ImageView = findViewById(R.id.qrImageView)
 
+        val nextButton: View = findViewById(R.id.next)
+
         debug(debugTextView, "Start")
 
 
@@ -112,6 +114,8 @@ class NfcCreateActivity : AppCompatActivity() {
                 debug(debugTextView, "QR code generated")
                 setLedState(2, true)
 
+                nextButton.visibility = View.VISIBLE
+
 
 
 
@@ -135,6 +139,13 @@ class NfcCreateActivity : AppCompatActivity() {
             abort(rsaKeyAlias)
         }
 
+
+        nextButton.setOnClickListener {
+            // Launch the scanner activity
+            val intent = android.content.Intent(this, CreateActivity2::class.java)
+            startActivity(intent)
+            finish()
+        }
 
 
 
