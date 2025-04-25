@@ -2,8 +2,11 @@ package com.example.prova
 
 import com.example.prova.KeyStoreUtils
 
+import android.content.Context
 import android.Manifest
+import android.app.AlertDialog
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -22,8 +25,19 @@ import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
+import java.security.KeyFactory
+import java.security.spec.X509EncodedKeySpec
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import android.util.Base64
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.QRCodeWriter
+import java.math.BigInteger
+import java.security.spec.RSAPublicKeySpec
+import java.util.regex.Pattern
 
 class NfcJoinActivity : AppCompatActivity() {
 
@@ -67,7 +81,7 @@ class NfcJoinActivity : AppCompatActivity() {
 
 
 
-        // 1 - Scan QR code: Recive Encrypted AES & request ID
+        // [STAGE] 1 - Scan QR code: Recive Encrypted AES & request ID
 
         // Put led 1 to yellow
         setLedState(0, true, Color.YELLOW)
@@ -166,12 +180,48 @@ class NfcJoinActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Verifica che il contenuto del QR code sia nel formato valido atteso.
+     * Formato previsto: UUID|<Base64EncodedRSAPublicKey>
+     * Esempio: 25bed286ab7a490e884bf5e8de526922|MIICIjANBgkqhkiG9w0BAQEF...
+     *
+     * @param qrValue Il valore del QR code da verificare
+     * @return true se il formato è valido, false altrimenti
+     */
     private fun isValidAuthQr(qrValue: String): Boolean {
-        // Check if QR content matches the expected format
-        // Looking for: UUID|OpenSSLRSAPublicKey{...}
-        return qrValue.contains("|OpenSSLRSAPublicKey") &&
-                qrValue.split("|").size == 2 &&
-                qrValue.split("|")[0].matches(Regex("[a-f0-9]{32}"))
+        // Verifica che il QR contenga un separatore e sia diviso in due parti
+        val parts = qrValue.split("|")
+        if (parts.size != 2) {
+            return false
+        }
+
+        // Verifica che il roomId sia un UUID valido (32 caratteri esadecimali)
+        val roomId = parts[0]
+        if (!roomId.matches(Regex("[a-f0-9]{32}"))) {
+            return false
+        }
+
+        // Verifica che la seconda parte sia una chiave pubblica RSA codificata in Base64
+        val publicKey = parts[1]
+
+        // Le chiavi pubbliche RSA in formato X.509 codificate in Base64 generalmente
+        // iniziano con "MI" (MII, MIC, ecc.)
+        if (!publicKey.startsWith("MI")) {
+            return false
+        }
+
+        // Verifica che la stringa Base64 contenga solo caratteri validi
+        if (!publicKey.matches(Regex("^[A-Za-z0-9+/=]+$"))) {
+            return false
+        }
+
+        // Ulteriore controllo opzionale: verifica che la lunghezza della chiave sia ragionevole
+        // Una chiave RSA (codificata in Base64) è generalmente lunga almeno 200 caratteri
+        if (publicKey.length < 200) {
+            return false
+        }
+
+        return true
     }
 
     private fun handleAuthenticationSuccess(qrValue: String) {
@@ -191,58 +241,53 @@ class NfcJoinActivity : AppCompatActivity() {
         // Split the QR value to extract the roomId and public key
         val parts = qrValue.split("|")
         val roomId = parts[0]
-        val publicKeyString = parts[1]
+        val base64PublicKey = parts[1]
 
         debug(debugTextView, "roomId: $roomId")
-        debug(debugTextView, "publicKeyString: $publicKeyString")
+        debug(debugTextView, "publicKeyString: $base64PublicKey")
         debug(debugTextView, "Starting next phase of authentication...")
 
         // Turn on the 1 led
         setLedState(0, true)
 
 
-        // 2 - Ask the keystore to generate AES key associated with roomId
+        // [STAGE] 2 - Generate a AES Key, store it in the Keystore and encrypt with the public key
         setLedState(1, true, Color.YELLOW)
 
-        val keyGenerated = KeyStoreUtils.generateAndStoreAESKey(roomId)
-
-        if (keyGenerated) {
-            debug(debugTextView, "✅ AES key generated successfully")
-
-            // Check if key exists
-            val exists = KeyStoreUtils.keyExists(roomId)
-            debug(debugTextView, "Key verification: $exists")
-            setLedState(1, true)
-
-            // Continue with the rest of your authentication process
-            debug(debugTextView, "Starting next phase of authentication...")
-
-
-
-            // 3 - Encrypt the AES key with the public key recieved
-
-
-
-
-
-        } else {
-            debug(debugTextView, "❌ Failed to generate AES key")
-
-            setLedState(1, true, Color.RED)
-            // Handle error scenario
+        val keyPair = KeyStoreUtils.processReceivedPublicKey(base64PublicKey)
+        if (keyPair == null) {
+            Toast.makeText(this@NfcJoinActivity, "Impossibile processare la chiave pubblica", Toast.LENGTH_LONG).show()
+            return
         }
 
+        val (symmetricKey, encryptedKeyBase64) = keyPair
+
+        // Store the symmetric key in the keystore
+        KeyStoreUtils.importAESKeyToKeystore(symmetricKey, roomId)
+
+        setLedState(1, true)
+
+        // TODO: remove TEST
+        val encryptedMessage = KeyStoreUtils.encryptWithAES("Hello World", roomId)
+        Toast.makeText(this, "Encrypted message: $encryptedMessage", Toast.LENGTH_LONG).show()
+        val decryptedMessage = KeyStoreUtils.decryptWithAES(encryptedMessage.toString(), roomId)
+        Toast.makeText(this, "Decrypted message: $decryptedMessage", Toast.LENGTH_LONG).show()
+
+
+        // [STAGE] 3 - Make a join request to the server API
+
+
+
+
+        val requestId = roomId
+
+        // [STAGE] 4 - Generate QR code with encrypted AES key and requestId
+        val sendQRCodeContent = "$requestId|$encryptedKeyBase64"
 
 
 
 
 
-        // You can implement your next steps here
-        // For example, you might want to:
-        // 1. Store the public key
-        // 2. Navigate to another activity
-        // 3. Start communication with a server
-        // 4. etc.
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {

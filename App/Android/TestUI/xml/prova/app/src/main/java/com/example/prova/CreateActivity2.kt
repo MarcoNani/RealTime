@@ -1,5 +1,7 @@
 package com.example.prova
 
+import com.example.prova.KeyStoreUtils
+
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -22,6 +24,12 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import javax.crypto.SecretKey
+import javax.crypto.spec.SecretKeySpec
+import android.security.keystore.KeyProperties
+import android.util.Base64
+import java.security.KeyStore
+import javax.crypto.Cipher
 
 class CreateActivity2 : AppCompatActivity() {
 
@@ -64,6 +72,9 @@ class CreateActivity2 : AppCompatActivity() {
         setLedState(0, true)
         setLedState(1, true)
         setLedState(2, true)
+
+
+        //processAuthenticationData("3ad97f5876be42de97659ef1ba0ea896|YuQju9tW+KeQuOHCwgYbnJ5wSUACRGeMQCX4F9Wpl5FVZRDzqS9RRUqwYtKpZTYvO9HQgGiVaViDhzIwbezQb0zG6FdlXGV1TK4wZjwomfyJXqrYHvH6Wx/ZUVjomJoI+KIFL8swYU3mzTZhUvsjQDsqnCN9j2OCzjEY0o54CxBPyQBUtfl70gjsfJ8orvCmrFAxBwzuDJfaW4NgCo2WGMTSfCy4/83+mncH6C2ISX/BKFh+oHhX/jPFlR1RPDQ6MNo7Iia48QlkzCBEEeMnK7A/UHoxQu66FNjfRfIO93V4NkmYykRZfEFddAkSOy0DqhGsgaMBK0aC/mUxVMDv1Oa8hyPwpmZozp6vUBAdFpzXBIJDe12ikBFWbJUzLALDzgEWQkUI8o0EbPBfEUZoW+h1tk4+Zfl0S3Hs/lfgnduyk7hPAnv8alg0wdCQFjqxJbQOaIPcHd2B+jQAzsxArzYcx2/2Dd3UU3gbqvqJXcT3oYIsTM6qOkjPPcZuXKJbvvX2PaGul0K95ri9KbLCPzrbs8lT/FsG2FzNViy+5o8RiyXeU+h2VYYS+7T+n8LluPa+aIKz9+lxy7m7Tnn/7+eHBaD042B8bJLZcvfMzW5b6p+2vncOmKLNrfO3vuO/GY9qBucoBfNN/4FKw1KAfJT4T1LImO+gYBnh+dzbStc=")
 
 
         // 4 - Scan QR code: Recive Encrypted AES & request ID
@@ -168,9 +179,7 @@ class CreateActivity2 : AppCompatActivity() {
     private fun isValidAuthQr(qrValue: String): Boolean {
         // Check if QR content matches the expected format
         // Looking for: UUID|OpenSSLRSAPublicKey{...}
-        return qrValue.contains("|OpenSSLRSAPublicKey") &&
-                qrValue.split("|").size == 2 &&
-                qrValue.split("|")[0].matches(Regex("[a-f0-9]{32}"))
+        return true
     }
 
     private fun handleAuthenticationSuccess(qrValue: String) {
@@ -192,11 +201,69 @@ class CreateActivity2 : AppCompatActivity() {
 
         // Split the QR value to extract the UUID and public key
         val parts = qrValue.split("|")
-        val uuid = parts[0]
-        val publicKeyString = parts[1]
+        val requestId = parts[0]
+        val encryptedAESKeyBase64 = parts[1]
 
-        debug(debugTextView, "UUID: $uuid")
-        debug(debugTextView, "Starting next phase of authentication...")
+
+
+
+
+        debug(debugTextView, "requestId: $requestId")
+
+
+        // Decifra la chiave AES utilizzando la chiave privata
+
+        // Ottengo il rsaKeyAlias dalla Intent
+        val intent = intent
+        val rsaKeyAlias: String = intent.getStringExtra("rsaKeyAlias").toString()
+        val roomId: String = intent.getStringExtra("roomId").toString()
+
+
+        // Decifra la chiave AES usando la chiave RSA privata
+        val aesKey: SecretKey? = decryptAESKeyWithRSAPrivateKey(encryptedAESKeyBase64, rsaKeyAlias)
+
+        // 5 - Store the decrypted AES key in the Keystore
+        debug(debugTextView, "Ask to store the decrypted AES key in the Keystore")
+        setLedState(5, true, Color.YELLOW)
+
+        // Verifica che la chiave AES sia stata correttamente decifrata prima di importarla
+        if (aesKey != null) {
+            KeyStoreUtils.importAESKeyToKeystore(aesKey, roomId)
+        } else {
+            debug(debugTextView, "Failed to decrypt AES key")
+            setLedState(5, true, Color.RED)
+        }
+
+
+        // Try to encrypt a message with the stored AES key
+        debug(debugTextView, "Ask to try to encrypt a message with the stored AES key")
+        setLedState(5, true)
+
+        val encryptedMessage = KeyStoreUtils.encryptWithAES("Hello World", roomId)
+        Toast.makeText(this, "Encrypted message: $encryptedMessage", Toast.LENGTH_LONG).show()
+
+
+
+
+
+
+
+
+
+
+        // 7 - Ask to delete the key pair
+        debug(debugTextView, "Ask to delete the key pair")
+        setLedState(6, true, Color.YELLOW)
+
+        val deletionStatus = KeyStoreUtils.deleteKey(rsaKeyAlias) // Delete the key pair
+        if (deletionStatus) {
+            debug(debugTextView, "RSA Key Pair Deleted")
+            setLedState(6, true)
+        } else {
+            debug(debugTextView, "Error deleting RSA Key Pair")
+            setLedState(6, true, Color.RED)
+        }
+
 
 
         // Turn on the 4 led
@@ -271,4 +338,42 @@ class CreateActivity2 : AppCompatActivity() {
         val scrollAmount = debugTextView.layout?.getLineTop(debugTextView.lineCount) ?: 0
         debugTextView.scrollTo(0, scrollAmount)
     }
+
+
+    /**
+     * Decifra una chiave AES utilizzando la chiave privata RSA memorizzata nel keystore.
+     *
+     * @param encryptedAesKeyBase64 La chiave AES cifrata come stringa Base64.
+     * @param rsaKeyAlias L'alias della chiave RSA nel keystore Android.
+     * @return La chiave AES decifrata, o null in caso di errore.
+     */
+    fun decryptAESKeyWithRSAPrivateKey(encryptedAesKeyBase64: String?, rsaKeyAlias: String): SecretKey? {
+        return try {
+            if (encryptedAesKeyBase64 == null) return null
+
+            // Decodifica la chiave cifrata da Base64
+            val encryptedAesKeyBytes = Base64.decode(encryptedAesKeyBase64, Base64.NO_WRAP)
+
+            // Ottieni la chiave privata RSA dal keystore
+            val keyStore = KeyStore.getInstance("AndroidKeyStore")
+            keyStore.load(null)
+
+            val privateKeyEntry = keyStore.getEntry(rsaKeyAlias, null) as? KeyStore.PrivateKeyEntry
+                ?: throw Exception("Chiave privata RSA non trovata per l'alias $rsaKeyAlias")
+
+            val privateKey = privateKeyEntry.privateKey
+
+            // Decifra la chiave AES con la chiave RSA privata
+            val cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
+            cipher.init(Cipher.DECRYPT_MODE, privateKey)
+            val decryptedKeyBytes = cipher.doFinal(encryptedAesKeyBytes)
+
+            // Ricostruisci la chiave AES dai byte decifrati
+            SecretKeySpec(decryptedKeyBytes, KeyProperties.KEY_ALGORITHM_AES)
+        } catch (e: Exception) {
+            Log.e("KeyUtils", "Errore durante la decifratura della chiave AES: ${e.message}", e)
+            null
+        }
+    }
+
 }

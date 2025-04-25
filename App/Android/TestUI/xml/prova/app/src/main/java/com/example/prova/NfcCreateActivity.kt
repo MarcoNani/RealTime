@@ -1,11 +1,14 @@
 package com.example.prova
 
+import com.example.prova.KeyStoreUtils
+
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Bitmap
 
 import android.security.keystore.KeyGenParameterSpec
@@ -60,16 +63,16 @@ class NfcCreateActivity : AppCompatActivity() {
         debug(debugTextView, "Start")
 
 
-        // 1 - Ask to the Keystore to generate RSA key pair
+        // [STAGE] 1 - Ask to the Keystore to generate RSA key pair
         debug(debugTextView, "Ask to the Keystore to generate RSA key pair")
         setLedState(0, true, Color.YELLOW)
 
         val rsaKeyAlias = UUID.randomUUID().toString() // Generate an alias for this session
         debug(debugTextView, "RSA Key Alias: $rsaKeyAlias")
 
-        generateRSAKeyPair(rsaKeyAlias) // Generate the key pair
-        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) } // Load the key store
-        val publicKey = keyStore.getCertificate(rsaKeyAlias).publicKey // Get the public key
+        KeyStoreUtils.generateRSAKeyPair(rsaKeyAlias) // Generate the key pair
+        val publicKey = KeyStoreUtils.getEncodedRSAPublicKey(rsaKeyAlias) // Get the public key encoded in base64
+
 
         debug(debugTextView, "RSA Key Pair Generated")
         debug(debugTextView, "Public Key: $publicKey")
@@ -77,7 +80,7 @@ class NfcCreateActivity : AppCompatActivity() {
         setLedState(0, true)
 
 
-        // 2 - API call to create a room
+        // [STAGE] 2 - API call to create a room
         debug(debugTextView, "API call to create a room")
         setLedState(1, true, Color.YELLOW)
 
@@ -108,7 +111,7 @@ class NfcCreateActivity : AppCompatActivity() {
                 Toast.makeText(this@NfcCreateActivity, "Room created with ID: $roomId", Toast.LENGTH_LONG).show()
 
 
-                // 3 - QR code generation
+                // [STAGE] 3 - QR code generation
                 debug(debugTextView, "QR code generation")
                 setLedState(2, true, Color.YELLOW)
 
@@ -118,6 +121,20 @@ class NfcCreateActivity : AppCompatActivity() {
 
                 debug(debugTextView, "QR code generated")
                 setLedState(2, true)
+
+                nextButton.setOnClickListener {
+                    // Launch the scanner activity
+                    try {
+                        val intent = Intent(this@NfcCreateActivity, CreateActivity2::class.java)
+                        intent.putExtra("rsaKeyAlias", rsaKeyAlias)
+                        intent.putExtra("roomId", roomId)
+                        startActivity(intent)
+                        finish()
+                    } catch (e: Exception) {
+                        debug(debugTextView, "Error launching activity: ${e.message}")
+                        Toast.makeText(this@NfcCreateActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
 
                 nextButton.visibility = View.VISIBLE
 
@@ -129,13 +146,8 @@ class NfcCreateActivity : AppCompatActivity() {
 
 
 
-                // 7 - Ask to delete the key pair
-                debug(debugTextView, "Ask to delete the key pair")
-                setLedState(6, true, Color.YELLOW)
 
-                keyStore.deleteEntry(rsaKeyAlias) // Delete the key pair
-                debug(debugTextView, "RSA Key Pair Deleted")
-                setLedState(6, true)
+
 
             }
         } else {
@@ -145,12 +157,7 @@ class NfcCreateActivity : AppCompatActivity() {
         }
 
 
-        nextButton.setOnClickListener {
-            // Launch the scanner activity
-            val intent = android.content.Intent(this, CreateActivity2::class.java)
-            startActivity(intent)
-            finish()
-        }
+
 
 
 
