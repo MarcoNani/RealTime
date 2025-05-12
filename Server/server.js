@@ -1,3 +1,6 @@
+// Override console.log to disable logging
+console.log = function() {};
+
 const { time } = require("console");
 const express = require("express");
 const http = require("http");
@@ -57,5 +60,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(3000, () => {
-    console.log("Server in ascolto su http://localhost:3000");
+    console.info("Server in ascolto su http://localhost:3000");
 });
