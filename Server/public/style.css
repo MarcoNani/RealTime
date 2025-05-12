@@ -154,8 +154,14 @@ h1 {
     align-items: center;
 }
 
+.message-input-container {
+    flex-grow: 1;
+    width: 100%;
+}
+
 #message {
     flex-grow: 1;
+    width: 100%; /* Assicurati che l'input occupi il 100% del suo contenitore */
     padding: 15px;
     border: 1px solid #ccc;
     border-radius: var(--border-radius);
@@ -272,9 +278,16 @@ h1 {
 
     .message-controls {
         flex-direction: column;
+        width: 100%; /* Assicura che il contenitore occupi tutta la larghezza disponibile */
+    }
+    
+    .message-input-container {
+        width: 100%;
     }
 
     #message {
+        width: 100%;
+        box-sizing: border-box;
         padding: 12px;
     }
 
@@ -338,6 +351,16 @@ h1 {
     .message-controls {
         margin-top: auto;
         margin-bottom: 15px; /* Spazio aggiuntivo sotto i controlli */
+        width: 100%;
+    }
+    
+    .message-input-container {
+        width: 100%;
+    }
+    
+    #message {
+        width: 100%;
+        box-sizing: border-box;
     }
 }
 
