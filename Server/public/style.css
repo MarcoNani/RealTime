@@ -64,6 +64,15 @@ h1 {
     font-size: 0.9rem;
 }
 
+.info {
+    background-color: rgba(79, 195, 247, 0.2);
+    border-left: 4px solid var(--accent-color);
+    padding: 10px 15px;
+    border-radius: var(--border-radius);
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
 .user-controls {
     display: flex;
     gap: 10px;
@@ -215,6 +224,10 @@ h1 {
     .warning {
         background-color: rgba(255, 235, 59, 0.1);
     }
+    
+    .info {
+        background-color: rgba(79, 195, 247, 0.1);
+    }
 }
 
 /* Responsive design */
@@ -251,6 +264,13 @@ h1 {
 
     #message {
         padding: 12px;
+    }
+
+    .subtitle,
+    .warning,
+    .info {
+        font-size: 0.85rem;
+        margin-bottom: 10px;
     }
 }
 
