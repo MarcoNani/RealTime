@@ -234,6 +234,14 @@ h1 {
 @media (max-width: 768px) {
     body {
         padding: 15px;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .container {
+        height: 100%;
+        max-height: 100vh;
+        overflow: hidden;
     }
 
     h1 {
@@ -249,7 +257,9 @@ h1 {
     }
 
     #chat {
-        height: calc(60vh - 100px);
+        height: auto;
+        flex: 1;
+        min-height: 0;
         padding: 15px;
     }
 
@@ -278,6 +288,18 @@ h1 {
 @media (max-width: 480px) {
     body {
         padding: 10px;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .container {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    header {
+        margin-bottom: 10px;
     }
 
     h1 {
@@ -286,19 +308,43 @@ h1 {
     }
 
     .subtitle,
-    .warning {
+    .warning,
+    .info {
         font-size: 0.85rem;
+        margin-bottom: 8px;
+    }
+    
+    .user-controls {
         margin-bottom: 10px;
     }
 
     #chat {
         padding: 10px;
-        height: calc(55vh - 80px);
+        flex: 1;
+        height: auto;
+        min-height: 0;
+        margin-bottom: 10px;
     }
 
     #chat p {
         padding: 8px 10px;
         margin-bottom: 8px;
         max-width: 95%;
+    }
+    
+    .message-controls {
+        margin-top: auto;
+    }
+}
+
+/* Ensure proper viewport behavior on iOS */
+@media screen and (max-height: 600px) {
+    #chat {
+        flex: 1;
+        min-height: 0;
+    }
+    
+    .container {
+        height: 100vh;
     }
 }
