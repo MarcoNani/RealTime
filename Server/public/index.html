@@ -5,18 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Realtime</title>
     <script src="/socket.io/socket.io.js"></script>
-    <script defer src="helpers.js"></script> <!-- Link to helpers.js -->
+    <script defer src="helpers.js"></script>
     <script defer src="script.js"></script>
     <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
 </head>
 <body>
-    <h1>RealTime</h1>
-    <p>Non il canale televisivo! La chat dove tutto è in RealTime!</p>
-    <p>Non mandate roba che avete paura possa essere intercettata, RealTime non è cifrata!</p>
-    <input type="text" id="username" placeholder="Inserisci il tuo nome">
-    <button id="setUsername">Salva</button>
-    <div id="chat"></div>
-    <input type="text" id="message" placeholder="Scrivi un messaggio...">
-    <input type="checkbox" id="autoScrollToggle"> Mantieni la chat in fondo
+    <div class="container">
+        <header>
+            <h1>RealTime</h1>
+            <p class="subtitle">Non il canale televisivo! La chat dove tutto è in RealTime!</p>
+            <p class="warning">Non mandate roba che avete paura possa essere intercettata, RealTime non è cifrata!</p>
+        </header>
+        
+        <div class="user-controls">
+            <input type="text" id="username" placeholder="Inserisci il tuo nome">
+            <button id="setUsername">Salva</button>
+        </div>
+        
+        <div id="chat"></div>
+        
+        <div class="message-controls">
+            <input type="text" id="message" placeholder="Scrivi un messaggio...">
+            <div class="auto-scroll-control">
+                <input type="checkbox" id="autoScrollToggle" checked>
+                <label for="autoScrollToggle">Mantieni la chat in fondo</label>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
