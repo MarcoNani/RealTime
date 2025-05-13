@@ -6,6 +6,7 @@
     <meta name="color-scheme" content="light dark">
     <title>Chat Realtime</title>
     <script src="/socket.io/socket.io.js"></script>
+    <script defer src="i18n.js"></script>
     <script defer src="helpers.js"></script>
     <script defer src="script.js"></script>
     <link rel="stylesheet" href="style.css">
@@ -33,25 +34,25 @@
     <div class="container">
         <header>
             <h1>RealTime</h1>
-            <p class="subtitle">Non il canale televisivo! La chat dove tutto è in RealTime!</p>
-            <p class="warning">Questa demo non è cifrata! Chiunque si collega a questa pagina può leggere e scrivere!</p>
-            <p class="info">Premi invio per confermare il messaggio corrente. Inizia a digitare e continua a scrivere per modificare.</p>
+            <p class="subtitle" data-i18n="subtitle">Non il canale televisivo! La chat dove tutto è in RealTime!</p>
+            <p class="warning" data-i18n="warning">Questa demo non è cifrata! Chiunque si collega a questa pagina può leggere e scrivere!</p>
+            <p class="info" data-i18n="info">Premi invio per confermare il messaggio corrente. Inizia a digitare e continua a scrivere per modificare.</p>
         </header>
         
         <div class="user-controls">
-            <input type="text" id="username" placeholder="Inserisci il tuo nome">
-            <button id="setUsername">Salva</button>
+            <input type="text" id="username" placeholder="Inserisci il tuo nome" data-i18n-placeholder="username_placeholder">
+            <button id="setUsername" data-i18n="save_button">Salva</button>
         </div>
         
         <div id="chat"></div>
         
         <div class="message-controls">
             <div class="message-input-container">
-                <input type="text" id="message" placeholder="Scrivi un messaggio...">
+                <input type="text" id="message" placeholder="Scrivi un messaggio..." data-i18n-placeholder="message_placeholder">
             </div>
             <div class="auto-scroll-control">
                 <input type="checkbox" id="autoScrollToggle" checked>
-                <label for="autoScrollToggle">Mantieni la chat in fondo</label>
+                <label for="autoScrollToggle" data-i18n="auto_scroll">Mantieni la chat in fondo</label>
             </div>
         </div>
     </div>

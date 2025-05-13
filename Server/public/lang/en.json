@@ -1,0 +1,9 @@
+{
+    "subtitle": "Not the TV channel! The chat where everything is in RealTime!",
+    "warning": "This demo is not encrypted! Anyone who connects to this page can read and write!",
+    "info": "Press enter to confirm the current message. Start typing and continue writing to edit.",
+    "username_placeholder": "Enter your name",
+    "message_placeholder": "Type a message...",
+    "save_button": "Save",
+    "auto_scroll": "Keep chat at bottom"
+}
