@@ -3,12 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
     <title>Chat Realtime</title>
     <script src="/socket.io/socket.io.js"></script>
     <script defer src="helpers.js"></script>
     <script defer src="script.js"></script>
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+    <script>
+        // Script per rilevare e applicare le preferenze di tema
+        function applyThemePreference() {
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        }
+        
+        // Applica il tema iniziale
+        applyThemePreference();
+        
+        // Monitora i cambiamenti delle preferenze di sistema
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyThemePreference);
+        }
+    </script>
 </head>
 <body>
     <div class="container">
