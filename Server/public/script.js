@@ -93,3 +93,26 @@ input.addEventListener("keydown", (event) => {
         input.value = ""; // ripulisci il campo di input
     }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Hide warning and info messages after user interaction
+    const warningElement = document.querySelector('.warning');
+    const infoElement = document.querySelector('.info');
+    
+    // Function to hide the initial messages
+    function hideInitialMessages() {
+        if (warningElement) warningElement.classList.add('hide-initial-message');
+        if (infoElement) infoElement.classList.add('hide-initial-message');
+        
+        // Remove this event listener after first interaction
+        document.removeEventListener('click', hideInitialMessages);
+        document.removeEventListener('keydown', hideInitialMessages);
+    }
+    
+    // Add event listeners to hide messages on first interaction
+    document.addEventListener('click', hideInitialMessages);
+    document.addEventListener('keydown', hideInitialMessages);
+    
+    // Hide messages after a timeout (optional, 30 seconds)
+    setTimeout(hideInitialMessages, 30000);
+});

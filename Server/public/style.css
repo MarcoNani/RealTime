@@ -453,7 +453,6 @@ input, button, select, textarea {
 
 /* Soluzione alternativa con viewport units sicure */
 .container {
-    /* ...existing code... */
     padding-bottom: env(safe-area-inset-bottom, 60px); /* Usa le safe-area se disponibili */
 }
 
@@ -462,4 +461,9 @@ input, button, select, textarea {
     body {
         padding-bottom: 80px; /* Spazio ancora maggiore per schermi piccoli */
     }
+}
+
+/* New class for hiding the initial messages */
+.hide-initial-message {
+    display: none;
 }
