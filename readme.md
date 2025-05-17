@@ -55,7 +55,7 @@ You can also check the client code yourself and therefore verify that the end-to
 
 ### Documentation
 The communication protocol via WebSocket and the APIs will be well documented so you can easily contribute to the project or write your own RealTime client.
-For more information about the docs go to the [Docs](/Docs/) directory in this repository
+For more information about the docs go to the [Docs](/Docs/) directory in this repository.
 
 ## Platforms and project status
 A working version of the web server ([RESTful API](https://api.chatinrealtime.com/api-docs) and WebSockets) is ready and online. (Despite this, further improvements are planned: internal stuff, especially for memory management).
