@@ -35,7 +35,7 @@ Un altro aspetto importante nelle chat moderne sono le immagini (intese come fot
 Anche in RealTime sarà quindi possibile condividere foto/video, non solo saremo in grado di inviare foto/video già scattate ma saremo anche in grado di scattare foto/video direttamente dall'app. Queste ultime verranno condivise in tempo reale nel senso che da quando si apre la fotocamera l'interlocutore vedrà il nostro **flusso video che si fermerà nel momento in cui noi premeremo il tasto di scatto** per rimanere così fisso e impresso nella chat il fotogramma che abbiamo scattato.
 
 ### 4. Contatto con il *contatto*
-Per creare una nuova chat su RealTime con un proprio amico sarà sufficente, e necessario, fare **toccare il proprio telefono con il telefono dell'amico,** in pochi istanti e in modo automatico verrà creata la chatroom e avverrà lo scambio sicuro della chiave di cifratura che verrà memorizzata in modo sicuro all'interno del chip dedicato. Da questo momento in poi **sarà possibile chattare anche a migliaia di chilometri di distanza come se ci si trovasse ancora faccia a faccia come nel momento del *contatto***.
+Per creare una nuova chat su RealTime con un proprio amico sarà sufficente, e necessario, **trovarsi fisicamente vicini**, tramite la scansione reciproca di QR Code in pochi istanti e in modo automatico verrà creata la chatroom e avverrà lo scambio sicuro della chiave di cifratura che verrà memorizzata in modo sicuro all'interno del chip dedicato. Da questo momento in poi **sarà possibile chattare anche a migliaia di chilometri di distanza come se ci si trovasse ancora faccia a faccia come nel momento del *contatto***.
 Niente username da condividere, niente numeri di telefono.
 E chissà, magari un giorno qualcuno farà un viaggio per incontrarsi di persona con il proprio amico conosciuto online per poterci chattare su RealTime.
 
@@ -61,7 +61,6 @@ Stiamo sviluppando un app Android nativa per utilizzare RealTime.
 
 
 ## Demo
-Se siete curiosi di provare un assaggio di RealTime vi rimandiamo alla demo disponibile collegandosi a https://realtime-demo.baunon.com/
-Uso un hosting gratuito. Ci vuole un pò perché la pagina si carichi all'inizio aspettate fino ad un minuto.
+Se volete saperne di più su RealTime vi invito a visitare il sito ufficiale raggiungibile collegandosi a [chatinrealtime.com](https://chatinrealtime.com).
 
-Ovviamente il risultato finale sarà molto migliore di questo. Ma se volete farvi un idea così potete.
+Se siete curiosi di provare un assaggio di RealTime vi rimando alla demo disponibile collegandosi a [demo.chatinrealtime.com](https://www.chatinrealtime.com/wait.html).
