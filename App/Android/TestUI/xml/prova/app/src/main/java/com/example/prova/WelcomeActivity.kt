@@ -10,10 +10,13 @@ import androidx.appcompat.app.AppCompatActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.POST
+
+import com.example.prova.api.ApiService
+import com.example.prova.api.RetrofitProvider
+import com.example.prova.model.ApiResponse
+import com.example.prova.model.ApiData
+import com.example.prova.model.UserRequest
+
 
 class WelcomeActivity : AppCompatActivity() {
 
@@ -25,53 +28,41 @@ class WelcomeActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_welcome)
 
-        // Controlla se l'utente è già presente un api key
-        // TODO: Save the api key in the keystore
         val sharedPref = getSharedPreferences("RealTimePrefs", Context.MODE_PRIVATE)
         val apiKey = sharedPref.getString("API_KEY", null)
 
-        // toast api key da toglire prima di mandare in prod
+        // toast api key da togliere prima della produzione
         Toast.makeText(this, "API key: $apiKey", Toast.LENGTH_SHORT).show()
 
         if (apiKey != null) {
-            // Se l'API key esiste già, vai direttamente alla MainActivity
-            navigateToMainActivity()
+            navigateToChatListActivity()
             return
         }
 
-        // Inizializza le views
         usernameEditText = findViewById(R.id.usernameInput)
         submitButton = findViewById(R.id.startButton)
         serverEditText = findViewById(R.id.serverInput)
 
         submitButton.setOnClickListener {
-            // When the button is clicked, get the username and the server from the EditText
             val username = usernameEditText.text.toString().trim()
             val server = serverEditText.text.toString().trim()
 
             if (username.isEmpty()) {
                 Toast.makeText(this, "Inserisci un username", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener // Esci dal metodo setOnClickListener
+                return@setOnClickListener
             }
 
             if (server.isEmpty()) {
                 Toast.makeText(this, "Inserisci un server", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener // Esci dal metodo setOnClickListener
+                return@setOnClickListener
             }
 
-            // Invia l'username all'API
             registerUser(username, server)
         }
     }
 
     private fun registerUser(username: String, server: String) {
-
-        // Creazione dell'istanza Retrofit
-        val retrofit = Retrofit.Builder()
-            .baseUrl(server)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-
+        val retrofit = RetrofitProvider.provideRetrofit(server)
         val apiService = retrofit.create(ApiService::class.java)
         val request = UserRequest(username)
 
@@ -80,22 +71,18 @@ class WelcomeActivity : AppCompatActivity() {
                 if (response.isSuccessful) {
                     val apiResponse = response.body()
                     apiResponse?.let { apiResponseData ->
-                        // Salva l'API key nelle SharedPreferences (it.data.apiKey è la chiave restituita dall'API)
                         val apiKey = apiResponseData.data.apiKey
                         saveApiKey(apiKey)
-
-                        // Vai alla MainActivity
-                        navigateToMainActivity()
+                        saveServer(server)
+                        navigateToChatListActivity()
                     }
                 } else {
-                    Toast.makeText(this@WelcomeActivity,
-                        "Errore: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@WelcomeActivity, "Errore: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<ApiResponse>, t: Throwable) {
-                Toast.makeText(this@WelcomeActivity,
-                    "Errore di connessione: ${t.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@WelcomeActivity, "Errore di connessione: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
     }
@@ -105,36 +92,22 @@ class WelcomeActivity : AppCompatActivity() {
         with(sharedPref.edit()) {
             putString("API_KEY", apiKey)
             apply()
-            Toast.makeText(this@WelcomeActivity,
-                "API key salvata con successo", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@WelcomeActivity, "API key salvata con successo", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun navigateToMainActivity() {
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
-        finish() // Chiudi questa activity per evitare che l'utente possa tornare indietro
+    private fun saveServer(server: String) {
+        val sharedPref = getSharedPreferences("RealTimePrefs", Context.MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            putString("SERVER_URL", server)
+            apply()
+            Toast.makeText(this@WelcomeActivity, "Server salvato con successo", Toast.LENGTH_SHORT).show()
+        }
     }
-}
 
-// Data class per la richiesta
-data class UserRequest(val username: String)
-
-
-// Data class per la risposta
-data class ApiResponse(
-    val message: String,
-    val data: ApiData
-)
-
-data class ApiData(
-    val apiKey: String,
-    val username: String
-)
-
-
-// Interfaccia Retrofit per le chiamate API
-interface ApiService {
-    @POST("/api/v1/users/api-key/") // Sostituisci con l'endpoint corretto
-    fun registerUser(@Body request: UserRequest): Call<ApiResponse>
+    private fun navigateToChatListActivity() {
+        val intent = Intent(this, ChatListActivity::class.java)
+        startActivity(intent)
+        finish()
+    }
 }

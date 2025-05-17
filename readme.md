@@ -1,67 +1,68 @@
 # RealTime
-*Non il canale televisivo*
+*Not the TV channel*
 
-## Caso d'uso di esempio
-Tutti noi abbiamo quell'amico o quell'amica con il quale passiamo le serate in chat. Tutti noi sappiamo quello che si prova a fissare la scritta "sta scrivendo" sotto al nome dell'interlocutore.
-Una volta che la scritta scompare e compare sul nostro display il messaggio noi lo leggiamo e poi inziamo a rispondere.
-Non avete mai pensato "chissà cosa starà scrivendo" oppure "che spreco di tempo, se ci vedessimo di persona oppure se stassimo parlando al telefono sarebbe tutto più veloce"?
-L'obbiettivo di **RealTime** è proprio questo: permettere di vedere ciò che l'interlocutore stà scrivendo man mano che lo scrive. Si risparmia così moltissimo tempo!
-Teoricamente si può **quasi raddoppiare la velocità di comunicazione**!
+## Example use case
+We all have that one friend with whom we spend the evenings chatting. We all know what it feels like to stare at the words "is typing" under the name of the interlocutor.
+Once the writing disappears and the message appears on our display, we read it and then start to reply.
+Have you ever thought, "I wonder what he's writing" or "what a waste of time, if we met in person or if we were talking on the phone everything would be faster"?
+The goal of **RealTime** is precisely this: to allow you to see what the interlocutor is writing as he writes it. This saves a lot of time!
+Theoretically, you can **almost double the speed of communication**!
 
-RealTime vuole però andare oltre a questo e farci sentire davvero come se fossimo di fronte al nostro interlocutore. Grazie al suo design studiato attorno all'umano, le sue animazioni naturali e alla sua "interfaccia organica".
+RealTime wants to go beyond this and make us feel as if we were really in front of our interlocutor. Thanks to its human-centered design, its natural animations and its "organic interface".
 
-RealTime non ha come obbiettivo quello di rimpiazzare le applicazioni di messaggistica oggi esistenti e ampiamente diffuse ma ha come scopo quello di essere una "estensione" a queste ultime.
+RealTime does not aim to replace existing and widely used messaging applications today but rather aims to be an "extension" to them.
 
-Torniamo all'esempio inziale: dopo avere scritto qualche messaggio su WhatsApp con il nostro amico e aver constatato che è dispobile per chattare entriamo su **RealTime** dove continueremo la chat ma adesso sentendoci ancora più vicini a lui.
+Let's go back to the initial example: after having written a few messages on WhatsApp with our friend and having noted that he is available to chat, we enter **RealTime** where we will continue the chat but now feeling even closer to him.
 
-Una volta terminata potremo, in modo semplice, generare un file di export della conversazione che abbiamo avuto da inoltrare sulla applicazione di messaggistica principale per poter rileggere e ricercare, anche a distanza di tempo, quello che ci siamo detti senza dover cercare in più app.
+Once finished, we can, in a simple way, generate an export file of the conversation we had to forward to the main messaging application to be able to reread and search, even after a long time, what we said to each other without having to search in multiple apps.
 
 ## Features
-Siamo tutti famigliari con le applicazioni di messaggistica istantanea: il concetto di chat esiste oramai da molti anni ma noi vogliamo portare la messaggisatica istantanea al livello superiore!
-### 1. Scrittura di messaggi in tempo reale:
-Con RealTime è possibile vedere ciò che l'interlocutore sta scrivendo in tempo reale, lettera per lettera, in modo tale da avere una connessione ancora più vicina con lui, in modo tale da sentirsi ancora più vicini.
+We are all familiar with instant messaging applications: the concept of chat has existed for many years now but we want to take instant messaging to the next level!
+### 1. Writing messages in real time:
+With RealTime you can see what the other person is writing in real time, letter by letter, so that you have an even closer connection with them, so that you feel even closer.
 
-### 2. Messaggi vocali in tempo reale:
-I messaggi vocali sono molto belli: ci permettono non solo di trasmettere all'altro quello che vogliamo dirgli con le parole ma anche di fargli capire meglio le **emozioni** che stiamo provando, grazie al tono della voce, e inoltre ci permettono di fare sentire all'altra persona dei **suoni** (che altrimenti dovremmo descrivere a parole).
-I messaggi vocali hanno però due grandi difetti: **il primo difetto** è che, dall'inizio alla fine, dello scambio delle informazioni contenute in un messaggio vocale di 1 minuto ci si impiegano due minuti:
-il primo minuto lo si impiega per registrare il messaggio
-il secondo per sentire il messaggio.
-Con RealTime il messaggio viene trasmesso in diretta. Anche in questo caso si riesce quasi a raddoppiare le informazioni trasmesse nello stesso tempo!
-**Il secondo difetto** è dato dalla difficoltà che si ha nel ritrovare il messaggio desiderato e in generale a riascoltare i messaggi vocali.
-In RealTime sarà possibile visualizzare la **trascrizione automatica dei messaggi vocali** ma anche **assegnare un "titolo"** a questi ultimi in modo da poter, a colpo d'occhio, capire di cosa si aveva parlato in quel messaggio.
+### 2. Voice messages in real time:
+Voice messages are very nice: they allow us not only to convey to the other person what we want to say with words but also to make them better understand the **emotions** that we are feeling, thanks to the tone of voice, and they also allow us to make the other person hear **sounds** (which otherwise we would have to describe with words).
+However, voice messages have two major flaws: **the first flaw** is that, from start to finish, the exchange of information contained in a 1-minute voice message takes two minutes:
+the first minute is used to record the message,
+the second to listen to the message.
+With RealTime the message is transmitted live. Even in this case, you can almost double the information transmitted in the same time!
+**The second flaw** is the difficulty in finding the desired message and in general in listening to voice messages again.
+In RealTime it will be possible to view the **automatic transcription of voice messages** but also **assign a "title"** to the latter so that you can, at a glance, understand what was discussed in that message.
 
-### 3. Immagini in tempo reale:
-Un altro aspetto importante nelle chat moderne sono le immagini (intese come foto e video).
-Anche in RealTime sarà quindi possibile condividere foto/video, non solo saremo in grado di inviare foto/video già scattate ma saremo anche in grado di scattare foto/video direttamente dall'app. Queste ultime verranno condivise in tempo reale nel senso che da quando si apre la fotocamera l'interlocutore vedrà il nostro **flusso video che si fermerà nel momento in cui noi premeremo il tasto di scatto** per rimanere così fisso e impresso nella chat il fotogramma che abbiamo scattato.
+### 3. Real-time images:
+Another important aspect in modern chats are images (intended as photos and videos).
+Even in RealTime it will therefore be possible to share photos/videos, not only will we be able to send photos/videos already taken but we will also be able to take photos/videos directly from the app. The latter will be shared in real time in the sense that from the moment the camera is opened the interlocutor will see our **video flow which will stop when we press the shutter button** to thus remain fixed and imprinted in the chat the frame we took.
 
-### 4. Contatto con il *contatto*
-Per creare una nuova chat su RealTime con un proprio amico sarà sufficente, e necessario, fare **toccare il proprio telefono con il telefono dell'amico,** in pochi istanti e in modo automatico verrà creata la chatroom e avverrà lo scambio sicuro della chiave di cifratura che verrà memorizzata in modo sicuro all'interno del chip dedicato. Da questo momento in poi **sarà possibile chattare anche a migliaia di chilometri di distanza come se ci si trovasse ancora faccia a faccia come nel momento del *contatto***.
-Niente username da condividere, niente numeri di telefono.
-E chissà, magari un giorno qualcuno farà un viaggio per incontrarsi di persona con il proprio amico conosciuto online per poterci chattare su RealTime.
+### 4. Contact with the *contact*
+To create a new chat on RealTime with a friend, it will be sufficient, and necessary, to **be physically close**, by scanning a QR Code together in a few moments and automatically the chatroom will be created and the encryption key will be securely exchanged, which will be stored securely inside the dedicated chip. From this moment on, **it will be possible to chat even if you are thousands of kilometers away as if you were still face to face as at the moment of *contact***.
+No username to share, no phone numbers.
+And who knows, maybe one day someone will travel to meet in person with their friend they met online to be able to chat on RealTime.
 
-### 5. Cifratura:
-Un altro importantissimo aspetto, quando si parla di messaggi, è la cifratura. RealTime utilizzerà tecniche avanzate di cifratura per permetterci di esprimerci in libertà e in sicurezza, tutto questo senza però generare difficoltà all'utente infatti lo scambio di chiavi avviene in modo automatico al momento del *contatto*. Più sicuro di così.
-Il server di RealTime memorizzerà i dati necessari per lo scambio di messaggi solo per poco tempo e in ogni caso **il payload dei messaggi non sarà visibile in chiaro nemmeno a noi di RealTime**.
+### 5. Encryption:
+Another very important aspect, when it comes to messages, is encryption. RealTime will use advanced encryption techniques to allow us to express ourselves freely and in security, all this without however creating difficulties for the user in fact the key exchange occurs automatically at the moment of *contact*. What is more secure secure than that?
+The RealTime server will store the data necessary for the exchange of messages only for a short time and in any case **the payload of the messages will not be readable even to us at RealTime**.
 
-### 6. Portabilità:
-I messaggi che vengono scambiati su RealTime sono di proprietà delle persone che se li scambiano. Vogliamo quindi permettervi di gestirli in modo più semplice possibile:
-- realizzare dei **bei file di export** per visualizzare in modo carino i vostri messaggi al di fuori di RealTime.
-- realizzare dei **file di export JSON** per permettervi di effettuare le elaborazioni che volete sui vostri messaggi, di importarli in altri sistemi o di visualizzarli come più preferite.
+### 6. Portability:
+The messages that are exchanged on RealTime are the property of the people who exchange them. We therefore want to allow you to manage them in the simplest way possible:
+- create **nice export files** to display your messages in a nice way outside of RealTime.
+- create **JSON export files** to allow you to perform the processing you want on your messages, to import them into other systems or to display them as you prefer.
 
-## Documentazione e altre cose da nerd
-Noi di RealTime amiamo il software libero e per questo motivo vogliamo rendere il protocollo di comunicazione di RealTime, il sorgente del server web e del client per Android libero, leggibile e modificabile da chiunque:
-sarà possibile utilizzare il server ufficiale di RealTime oppure hostarsi il proprio server in modo da non dover dipendere, e fidarsi, di nessuno.
-Inoltre potete verificare voi stessi il codice del client e quindi verificare che la cifratura end-to-end sia davverò quella che noi vi diciamo sia.
+## Documentation and other nerdy stuff
+We at RealTime love free software and for this reason we want to make the RealTime communication protocol, the web server and the Android client free, readable and modifiable by anyone:
+you will be able to use the official RealTime server or host your own server so you don't have to depend on, and trust, anyone.
+You can also check the client code yourself and therefore verify that the end-to-end encryption is really what we say it is.
 
-### Documentazione
-Il protocollo di comunicazione tramite WebSocket e le API saranno ben documentati in modo da poter facilmente contribuire al progetto oppure di scrivere il proprio personale client per RealTime.
+### Documentation
+The communication protocol via WebSocket and the APIs will be well documented so you can easily contribute to the project or write your own RealTime client.
+For more information about the docs go to the [Docs](/Docs/) directory in this repository
 
-## Piattaforme
-Stiamo sviluppando un app Android nativa per utilizzare RealTime.
+## Platforms and project status
+A working version of the web server ([RESTful API](https://api.chatinrealtime.com/api-docs) and WebSockets) is ready and online. (Despite this, further improvements are planned: internal stuff, especially for memory management).
 
+We are developing a native Android app to use RealTime.
 
 ## Demo
-Se siete curiosi di provare un assaggio di RealTime vi rimandiamo alla demo disponibile collegandosi a https://realtime-demo.baunon.com/
-Uso un hosting gratuito. Ci vuole un pò perché la pagina si carichi all'inizio aspettate fino ad un minuto.
+If you want to know more about RealTime I invite you to visit the official website reachable by connecting to [chatinrealtime.com](https://chatinrealtime.com).
 
-Ovviamente il risultato finale sarà molto migliore di questo. Ma se volete farvi un idea così potete.
+If you are curious to try a taste of RealTime I refer you to the demo available by connecting to [demo.chatinrealtime.com](https://www.chatinrealtime.com/wait.html).
