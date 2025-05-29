@@ -37,9 +37,12 @@ import android.widget.ImageView
 import androidx.lifecycle.lifecycleScope
 import com.example.prova.api.ApiService
 import com.example.prova.api.RetrofitProvider
+import com.example.prova.model.ErrorResponse
+import com.google.gson.Gson
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.coroutines.launch
+import retrofit2.Response
 import java.math.BigInteger
 import java.security.KeyStore
 import java.security.spec.RSAPublicKeySpec
@@ -380,6 +383,20 @@ class NfcJoinActivity : AppCompatActivity() {
         showPersistentMessage(context, message)
     }
 
+    private fun parseError(response: Response<*>): String {
+        return try {
+            val errorBody = response.errorBody()?.string()
+            if (errorBody != null) {
+                val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
+                errorResponse.message
+            } else {
+                "Unknown error"
+            }
+        } catch (e: Exception) {
+            "Unknown error"
+        }
+    }
+
     private suspend fun sendJoinRequest(apiKey: String, server: String, roomId: String): String? {
         return try {
             val retrofit = RetrofitProvider.provideRetrofit(server, apiKey)
@@ -390,15 +407,17 @@ class NfcJoinActivity : AppCompatActivity() {
             if (response.isSuccessful) {
                 response.body()?.data?.requestId
             } else {
-                abort(roomId,"Error during join request: ${response.code()}")
+                val errorMessage = parseError(response)
+                abort(roomId, "Error during join request: $errorMessage (HTTP ${response.code()})")
                 null
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            abort(roomId,"Error during join request: ${e.message}")
+            abort(roomId, "Error during join request: ${e.message}")
             null
         }
     }
+
 
     fun generateQRCode(qrCodeContent: String): Bitmap {
         val writer = QRCodeWriter()
