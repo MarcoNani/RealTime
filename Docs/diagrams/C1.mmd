@@ -6,20 +6,25 @@ Title: Key exchange and chatroom creation C1
     participant B as Device B
     participant KeystoreB as Keystore (B)
 
-    Note over A, B: 👉👈 Phase 1 – First tap
 
     A->>KeystoreA: Ask to generate RSA key pair
     KeystoreA-->>KeystoreA: Generate and store RSA key pair
     KeystoreA-->>A: PublicKey (A)
 
-    B->>KeystoreB: Ask to generate AES key
-    KeystoreB->>KeystoreB: Generate and store AES key
+    
 
     Note over A, Server: 📡 API call - Create the room
     A->>Server: POST /api/v1/rooms
     Server-->>A: roomId
 
-    A->>B: Send PublicKey (A) & roomId via NFC
+    A->>A: 🖼️ Show QRCode: "$roomId|$publicKey" (PublicKey encoded in Base64 with X.509 format)
+    A->>B: Send PublicKey (A) & roomId via QRCode
+
+    B->>B: Generate AES key (with CPU)
+    B->>B: encrypt AES key with PublicKey (A) (with CPU)
+
+    B->>KeystoreB: Ask to store AES key
+    KeystoreB->>KeystoreB: Store AES key
 
     Note over B, Server: 📡 API call - Request to join the room
 
@@ -27,18 +32,16 @@ Title: Key exchange and chatroom creation C1
     Server-->>B: requestId
 
 
-    B->>KeystoreB: Load PublicKey (A)
-    B->>KeystoreB: Ask to encrypt AES with PublicKey (A)
-    KeystoreB-->>B: Encrypted AES
 
+    B->>B: 🖼️ Show QRCode: "$requestId|$encryptedKeyBase64"
 
-
-    Note over A, B: 👉👈 Phase 2 – Second tap
-
-    B->>A: Send Encrypted AES & requestId via NFC
+    B->>A: Send Encrypted AES & requestId via QRCode
 
     A->>KeystoreA: Ask to decrypt Encrypted AES with PrivateKey (A)
-    KeystoreA-->>KeystoreA: Store AES Key
+    KeystoreA->>A: Decrypted AES Key
+
+    A->>KeystoreA: Ask to store decrypted AES Key
+    KeystoreA-->>KeystoreA: Store decrypted AES Key
 
     Note over KeystoreA, KeystoreB: 🔐 Both devices now share the same AES key
 
@@ -55,9 +58,6 @@ Title: Key exchange and chatroom creation C1
 
     B->>Server: GET /api/v1/rooms/{roomId}
     Server-->>B: 200
-
-    B->>KeystoreB: Ask to delete PublicKey (A)
-    KeystoreB-->>KeystoreB: Delete PublicKey (A)
 
     B->>B: Open chat activity (roomId)
 
