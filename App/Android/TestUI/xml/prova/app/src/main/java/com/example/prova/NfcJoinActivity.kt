@@ -33,9 +33,14 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import android.util.Base64
+import androidx.lifecycle.lifecycleScope
+import com.example.prova.api.ApiService
+import com.example.prova.api.RetrofitProvider
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
+import kotlinx.coroutines.launch
 import java.math.BigInteger
+import java.security.KeyStore
 import java.security.spec.RSAPublicKeySpec
 import java.util.regex.Pattern
 
@@ -275,34 +280,49 @@ class NfcJoinActivity : AppCompatActivity() {
 
 
         // [STAGE] 3 - Make a join request to the server API
+        setLedState(2, true, Color.YELLOW)
+
+        val sharedPref = getSharedPreferences("RealTimePrefs", Context.MODE_PRIVATE)
+        val apiKey  = sharedPref.getString("API_KEY", null).toString()
+        debug(debugTextView, "API Key: $apiKey")
+        val server = sharedPref.getString("SERVER_URL", null).toString()
+        debug(debugTextView, "Server: $server")
+
+        // Call the API to join the room
+        lifecycleScope.launch {
+            val requestId = sendJoinRequest(apiKey, server, roomId)
+
+            if (requestId != null) {
+                Log.d("JoinRequest", "Richiesta inviata con ID: $requestId")
+
+                // [STAGE] 4 - Generate QR code with encrypted AES key and requestId
+                val sendQRCodeContent = "$requestId|$encryptedKeyBase64"
+
+
+                // [STAGE] 5 - Check if i am in the room (GET /api/v1/rooms/[roomId]) untill 200
+
+                // Open chat activity
+
+
+            } else {
+                Log.e("JoinRequest", "Errore durante la richiesta di join")
+            }
+        }
 
 
 
 
-        val requestId = roomId
-
-        // [STAGE] 4 - Generate QR code with encrypted AES key and requestId
-        val sendQRCodeContent = "$requestId|$encryptedKeyBase64"
 
 
 
 
-        // [STAGE] 5 - Check if i am in the room (GET /api/v1/rooms/[roomId]) untill 200
-
-
-
-        // Open chat activity
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult( requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
             if (allPermissionsGranted()) {
@@ -313,6 +333,59 @@ class NfcJoinActivity : AppCompatActivity() {
             }
         }
     }
+
+
+    fun showPersistentMessage(context: Context, message: String, title: String = "Error") {
+        AlertDialog.Builder(context)
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("OK :(") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    fun abort(roomId: String, message: String = "Something went wrong, no more information given", context: Context = this) {
+        val debugTextView: TextView = findViewById(R.id.debug)
+
+        debug(debugTextView, "Ask to delete the AES key")
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) } // Load the key store
+        keyStore.deleteEntry(roomId) // Delete the AES key
+        debug(debugTextView, "AES Key Deleted")
+
+        // set all led to red
+        setLedState(0, true, Color.RED)
+        setLedState(1, true, Color.RED)
+        setLedState(2, true, Color.RED)
+        setLedState(3, true, Color.RED)
+        setLedState(4, true, Color.RED)
+        setLedState(5, true, Color.RED)
+        setLedState(6, true, Color.RED)
+
+        showPersistentMessage(context, message)
+    }
+
+    private suspend fun sendJoinRequest(apiKey: String, server: String, roomId: String): String? {
+        return try {
+            val retrofit = RetrofitProvider.provideRetrofit(server, apiKey)
+            val apiService = retrofit.create(ApiService::class.java)
+
+            val response = apiService.sendJoinRequest(roomId)
+
+            if (response.isSuccessful) {
+                response.body()?.data?.requestId
+            } else {
+                abort(roomId,"Error during join request: ${response.code()}")
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            abort(roomId,"Error during join request: ${e.message}")
+            null
+        }
+    }
+
 
     override fun onDestroy() {
         super.onDestroy()
