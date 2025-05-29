@@ -33,6 +33,7 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import android.util.Base64
+import android.widget.ImageView
 import androidx.lifecycle.lifecycleScope
 import com.example.prova.api.ApiService
 import com.example.prova.api.RetrofitProvider
@@ -50,6 +51,7 @@ class NfcJoinActivity : AppCompatActivity() {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var previewView: PreviewView
     private lateinit var debugTextView: TextView
+    private lateinit var qrImageView: ImageView
     private var isQrProcessed = false
 
     companion object {
@@ -80,6 +82,9 @@ class NfcJoinActivity : AppCompatActivity() {
         for (i in leds.indices) {
             setLedState(i, false)
         }
+
+        qrImageView = findViewById(R.id.qrImageView)
+
 
 
 
@@ -295,8 +300,17 @@ class NfcJoinActivity : AppCompatActivity() {
             if (requestId != null) {
                 Log.d("JoinRequest", "Richiesta inviata con ID: $requestId")
 
+                setLedState(2, true)
+
                 // [STAGE] 4 - Generate QR code with encrypted AES key and requestId
+                setLedState(3, true, Color.YELLOW)
+
                 val sendQRCodeContent = "$requestId|$encryptedKeyBase64"
+                val bmpQRCode = generateQRCode(sendQRCodeContent)
+                qrImageView.setImageBitmap(bmpQRCode)
+
+                setLedState(3, true)
+
 
 
                 // [STAGE] 5 - Check if i am in the room (GET /api/v1/rooms/[roomId]) untill 200
@@ -386,6 +400,19 @@ class NfcJoinActivity : AppCompatActivity() {
         }
     }
 
+    fun generateQRCode(qrCodeContent: String): Bitmap {
+        val writer = QRCodeWriter()
+        val bitMatrix = writer.encode(qrCodeContent, BarcodeFormat.QR_CODE, 512, 512)
+        val bmp = Bitmap.createBitmap(512, 512, Bitmap.Config.RGB_565)
+
+        for (x in 0 until 512) {
+            for (y in 0 until 512) {
+                bmp.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
+            }
+        }
+
+        return bmp
+    }
 
     override fun onDestroy() {
         super.onDestroy()
