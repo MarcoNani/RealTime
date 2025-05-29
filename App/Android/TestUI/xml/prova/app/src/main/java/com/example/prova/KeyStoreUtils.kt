@@ -262,8 +262,8 @@ object KeyStoreUtils {
     }
 
     /**
-     * Complete workflow to process a received public key, generate a symmetric key,
-     * and encrypt it for secure transmission
+     * Complete workflow to process a received public key encoded in Base64 with X.509 format, generate an AES symmetric key,
+     * encrypt AES key with RSA public key for secure transmission
      *
      * @param base64PublicKey The Base64 encoded RSA public key received via QR code
      * @return A pair containing the generated symmetric key and its encrypted form, or null if error

@@ -81,7 +81,7 @@ class NfcJoinActivity : AppCompatActivity() {
 
 
 
-        // [STAGE] 1 - Scan QR code: Recive Encrypted AES & request ID
+        // [STAGE] 1 - Scan QR code: Recive public RSA key & RoomId
 
         // Put led 1 to yellow
         setLedState(0, true, Color.YELLOW)
@@ -251,7 +251,7 @@ class NfcJoinActivity : AppCompatActivity() {
         setLedState(0, true)
 
 
-        // [STAGE] 2 - Generate a AES Key, store it in the Keystore and encrypt with the public key
+        // [STAGE] 2 - Generate a AES Key and store it in the Keystore, encrypt AES key with the public key recived
         setLedState(1, true, Color.YELLOW)
 
         val keyPair = KeyStoreUtils.processReceivedPublicKey(base64PublicKey)
@@ -287,7 +287,11 @@ class NfcJoinActivity : AppCompatActivity() {
 
 
 
+        // [STAGE] 5 - Check if i am in the room (GET /api/v1/rooms/[roomId]) untill 200
 
+
+
+        // Open chat activity
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
