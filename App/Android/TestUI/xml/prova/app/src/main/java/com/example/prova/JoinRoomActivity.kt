@@ -65,8 +65,6 @@ class JoinRoomActivity : AppCompatActivity() {
             findViewById(R.id.led3),
             findViewById(R.id.led4),
             findViewById(R.id.led5),
-            findViewById(R.id.led6),
-            findViewById(R.id.led7),
         )
 
         // Set all leds to off initially
@@ -392,13 +390,9 @@ class JoinRoomActivity : AppCompatActivity() {
         debug(debugTextView, "AES Key Deleted")
 
         // set all led to red
-        setLedState(0, true, Color.RED)
-        setLedState(1, true, Color.RED)
-        setLedState(2, true, Color.RED)
-        setLedState(3, true, Color.RED)
-        setLedState(4, true, Color.RED)
-        setLedState(5, true, Color.RED)
-        setLedState(6, true, Color.RED)
+        for (i in leds.indices) {
+            setLedState(i, true, Color.RED)
+        }
 
         showPersistentMessage(context, message)
     }

@@ -57,20 +57,6 @@
                 android:layout_height="16dp"
                 android:layout_margin="8dp"
                 android:background="@drawable/led_circle" />
-
-            <View
-                android:id="@+id/led6"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/led_circle" />
-
-            <View
-                android:id="@+id/led7"
-                android:layout_width="16dp"
-                android:layout_height="16dp"
-                android:layout_margin="8dp"
-                android:background="@drawable/led_circle" />
         </LinearLayout>
     </LinearLayout>
 

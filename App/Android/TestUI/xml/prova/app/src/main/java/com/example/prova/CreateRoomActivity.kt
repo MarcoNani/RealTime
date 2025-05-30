@@ -44,6 +44,7 @@ class CreateRoomActivity : AppCompatActivity() {
             findViewById(R.id.led5),
             findViewById(R.id.led6),
             findViewById(R.id.led7),
+            findViewById(R.id.led8),
         )
 
         // Set all leds to off initially
@@ -270,13 +271,9 @@ class CreateRoomActivity : AppCompatActivity() {
         setLedState(6, true)
 
         // set all led to red
-        setLedState(0, true, Color.RED)
-        setLedState(1, true, Color.RED)
-        setLedState(2, true, Color.RED)
-        setLedState(3, true, Color.RED)
-        setLedState(4, true, Color.RED)
-        setLedState(5, true, Color.RED)
-        setLedState(6, true, Color.RED)
+        for (i in leds.indices) {
+            setLedState(i, true, Color.RED)
+        }
 
         showPersistentMessage(context, message)
     }
