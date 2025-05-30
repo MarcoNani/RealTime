@@ -1,7 +1,5 @@
 package com.example.prova
 
-import com.example.prova.KeyStoreUtils
-
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
@@ -15,21 +13,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import javax.crypto.SecretKey
-import javax.crypto.spec.SecretKeySpec
-import android.security.keystore.KeyProperties
-import android.util.Base64
 import androidx.lifecycle.lifecycleScope
 import com.example.prova.api.ApiService
 import com.example.prova.api.RetrofitProvider
@@ -39,9 +29,8 @@ import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import java.security.KeyStore
-import javax.crypto.Cipher
 
-class CreateActivity2 : AppCompatActivity() {
+class CreateRoomActivity2 : AppCompatActivity() {
 
     private lateinit var leds: List<View>
     private lateinit var cameraExecutor: ExecutorService
@@ -57,7 +46,7 @@ class CreateActivity2 : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_create_2)
+        setContentView(R.layout.activity_room_create_2)
 
         // Initialize views
         previewView = findViewById(R.id.previewView)
@@ -165,7 +154,7 @@ class CreateActivity2 : AppCompatActivity() {
             // Mark as processed to stop further scanning
             isQrProcessed = true
 
-            Toast.makeText(this@CreateActivity2, "✅ Valid authentication QR detected", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@CreateRoomActivity2, "✅ Valid authentication QR detected", Toast.LENGTH_LONG).show()
 
 
 
@@ -175,7 +164,7 @@ class CreateActivity2 : AppCompatActivity() {
             // Not the QR we're looking for, continue scanning
             debug(debugTextView, "❌ Invalid QR format, continue scanning")
 
-            Toast.makeText(this@CreateActivity2, "❌ Invalid QR format, continue scanning", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@CreateRoomActivity2, "❌ Invalid QR format, continue scanning", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -318,8 +307,8 @@ class CreateActivity2 : AppCompatActivity() {
                 debug(debugTextView, "Encrypted: $encrypted")
                 debug(debugTextView, "Decrypted: $decrypted")
 
-                Toast.makeText(this@CreateActivity2, "Encrypted: $encrypted", Toast.LENGTH_LONG).show()
-                Toast.makeText(this@CreateActivity2, "Decrypted: $decrypted", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@CreateRoomActivity2, "Encrypted: $encrypted", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@CreateRoomActivity2, "Decrypted: $decrypted", Toast.LENGTH_LONG).show()
 
 
                 // TODO: Open chat activity

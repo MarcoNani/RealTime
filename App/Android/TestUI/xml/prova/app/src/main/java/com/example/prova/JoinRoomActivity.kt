@@ -1,7 +1,5 @@
 package com.example.prova
 
-import com.example.prova.KeyStoreUtils
-
 import android.content.Context
 import android.Manifest
 import android.app.AlertDialog
@@ -16,23 +14,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.common.InputImage
-import java.security.KeyFactory
-import java.security.spec.X509EncodedKeySpec
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
-import android.util.Base64
 import android.widget.ImageView
 import androidx.lifecycle.lifecycleScope
 import com.example.prova.api.ApiService
@@ -45,12 +33,9 @@ import com.google.zxing.qrcode.QRCodeWriter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import retrofit2.Response
-import java.math.BigInteger
 import java.security.KeyStore
-import java.security.spec.RSAPublicKeySpec
-import java.util.regex.Pattern
 
-class NfcJoinActivity : AppCompatActivity() {
+class JoinRoomActivity : AppCompatActivity() {
 
     private lateinit var leds: List<View>
     private lateinit var cameraExecutor: ExecutorService
@@ -67,7 +52,7 @@ class NfcJoinActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_nfc_join)
+        setContentView(R.layout.activity_room_join)
 
         // Initialize views
         previewView = findViewById(R.id.previewView)
@@ -181,7 +166,7 @@ class NfcJoinActivity : AppCompatActivity() {
             // Mark as processed to stop further scanning
             isQrProcessed = true
 
-            Toast.makeText(this@NfcJoinActivity, "✅ Valid authentication QR detected", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@JoinRoomActivity, "✅ Valid authentication QR detected", Toast.LENGTH_LONG).show()
 
 
 
@@ -191,7 +176,7 @@ class NfcJoinActivity : AppCompatActivity() {
             // Not the QR we're looking for, continue scanning
             debug(debugTextView, "❌ Invalid QR format, continue scanning")
 
-            Toast.makeText(this@NfcJoinActivity, "❌ Invalid QR format, continue scanning", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@JoinRoomActivity, "❌ Invalid QR format, continue scanning", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -271,7 +256,7 @@ class NfcJoinActivity : AppCompatActivity() {
 
         val keyPair = KeyStoreUtils.processReceivedPublicKey(base64PublicKey)
         if (keyPair == null) {
-            Toast.makeText(this@NfcJoinActivity, "Impossibile processare la chiave pubblica", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@JoinRoomActivity, "Impossibile processare la chiave pubblica", Toast.LENGTH_LONG).show()
             return
         }
 
@@ -338,8 +323,8 @@ class NfcJoinActivity : AppCompatActivity() {
                     debug(debugTextView, "Encrypted: $encrypted")
                     debug(debugTextView, "Decrypted: $decrypted")
 
-                    Toast.makeText(this@NfcJoinActivity, "Encrypted: $encrypted", Toast.LENGTH_LONG).show()
-                    Toast.makeText(this@NfcJoinActivity, "Decrypted: $decrypted", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@JoinRoomActivity, "Encrypted: $encrypted", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@JoinRoomActivity, "Decrypted: $decrypted", Toast.LENGTH_LONG).show()
 
 
                     debug(debugTextView, "Starting chat activity...")

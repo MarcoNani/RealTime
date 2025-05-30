@@ -19,7 +19,7 @@ data class Message(
     val msgId: String
 )
 
-class MainActivity : AppCompatActivity() {
+class ChatActivity : AppCompatActivity() {
 
     private lateinit var btnSend: Button
     private lateinit var messageContent: EditText
@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE) // Needed to make the window not going under the keyboard
         
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_chat)
 
         // Link the view components (XML) to the variables
         btnSend = findViewById(R.id.btn_send)

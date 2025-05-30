@@ -1,7 +1,5 @@
 package com.example.prova
 
-import com.example.prova.KeyStoreUtils
-
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
@@ -22,7 +20,6 @@ import com.example.prova.api.RetrofitProvider
 import com.example.prova.model.CreateRoomResponse
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import java.security.KeyPairGenerator
 import java.security.KeyStore
@@ -31,13 +28,13 @@ import retrofit2.Response
 
 import java.util.UUID
 
-class NfcCreateActivity : AppCompatActivity() {
+class CreateRoomActivity : AppCompatActivity() {
 
     private lateinit var leds: List<View>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_nfc_create)
+        setContentView(R.layout.activity_room_create)
 
         leds = listOf(
             findViewById(R.id.led1),
@@ -108,7 +105,7 @@ class NfcCreateActivity : AppCompatActivity() {
                 setLedState(1, true)
 
                 // Puoi continuare a usare roomId per altre operazioni
-                Toast.makeText(this@NfcCreateActivity, "Room created with ID: $roomId", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@CreateRoomActivity, "Room created with ID: $roomId", Toast.LENGTH_LONG).show()
 
 
                 // [STAGE] 3 - QR code generation
@@ -125,14 +122,14 @@ class NfcCreateActivity : AppCompatActivity() {
                 nextButton.setOnClickListener {
                     // Launch the scanner activity
                     try {
-                        val intent = Intent(this@NfcCreateActivity, CreateActivity2::class.java)
+                        val intent = Intent(this@CreateRoomActivity, CreateRoomActivity2::class.java)
                         intent.putExtra("rsaKeyAlias", rsaKeyAlias)
                         intent.putExtra("roomId", roomId)
                         startActivity(intent)
                         finish()
                     } catch (e: Exception) {
                         debug(debugTextView, "Error launching activity: ${e.message}")
-                        Toast.makeText(this@NfcCreateActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@CreateRoomActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
                     }
                 }
 
