@@ -4,6 +4,7 @@ import com.example.prova.model.*
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -20,4 +21,9 @@ interface ApiService {
     suspend fun sendJoinRequest(
         @Path("roomId") roomId: String
     ): Response<JoinRequestResponse>
+
+    @GET("/api/v1/rooms/{roomId}")
+    suspend fun getRoomDetails(
+        @Path("roomId") roomId: String
+    ): Response<RoomDetailsResponse>
 }

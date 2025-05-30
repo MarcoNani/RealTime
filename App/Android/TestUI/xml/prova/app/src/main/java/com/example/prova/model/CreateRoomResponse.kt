@@ -2,9 +2,9 @@ package com.example.prova.model
 
 data class CreateRoomResponse(
     val message: String,
-    val data: RoomData
+    val data: RoomDataShort
 )
 
-data class RoomData(
+data class RoomDataShort(
     val roomId: String
 )

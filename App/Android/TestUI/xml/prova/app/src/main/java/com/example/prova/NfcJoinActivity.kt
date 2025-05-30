@@ -38,9 +38,11 @@ import androidx.lifecycle.lifecycleScope
 import com.example.prova.api.ApiService
 import com.example.prova.api.RetrofitProvider
 import com.example.prova.model.ErrorResponse
+import com.example.prova.model.RoomDetailsResponse
 import com.google.gson.Gson
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import retrofit2.Response
 import java.math.BigInteger
@@ -317,8 +319,23 @@ class NfcJoinActivity : AppCompatActivity() {
 
 
                 // [STAGE] 5 - Check if i am in the room (GET /api/v1/rooms/[roomId]) untill 200
+                setLedState(4, true, Color.YELLOW)
+                debug(debugTextView, "Waiting until I am in the room...")
 
-                // Open chat activity
+                pollRoomUntilAvailable(apiKey, server, roomId) { roomDetails ->
+                    setLedState(4, true)
+
+                    debug(debugTextView, "I am in the room!")
+                    debug(debugTextView, "Room details: $roomDetails")
+
+                    debug(debugTextView, "Starting chat activity...")
+                    // TODO: Open chat activity
+                }
+
+
+
+
+
 
 
             } else {
@@ -417,6 +434,42 @@ class NfcJoinActivity : AppCompatActivity() {
             null
         }
     }
+
+    private suspend fun pollRoomUntilAvailable(apiKey: String, server: String, roomId: String, timeoutMillis: Long = 30_000L, pollIntervalMillis: Long = 2_000L, onSuccess: (RoomDetailsResponse) -> Unit): Boolean {
+        val retrofit = RetrofitProvider.provideRetrofit(server, apiKey)
+        val apiService = retrofit.create(ApiService::class.java)
+
+        val startTime = System.currentTimeMillis()
+
+        while (System.currentTimeMillis() - startTime < timeoutMillis) {
+            try {
+                val response = apiService.getRoomDetails(roomId)
+
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    if (body != null) {
+                        onSuccess(body)
+                        return true
+                    } else {
+                        abort(roomId, "Empty response while polling room details")
+                        return false
+                    }
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                // Considera loggare, ma continua a tentare
+            }
+
+            delay(pollIntervalMillis)
+        }
+
+        abort(roomId, "Polling timed out after ${timeoutMillis}ms")
+        return false
+    }
+
+
+
 
 
     fun generateQRCode(qrCodeContent: String): Bitmap {
