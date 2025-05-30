@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.prova"
         minSdk = 31
         targetSdk = 35
-        versionCode = 16
-        versionName = "0.1.16" // release.funzioni.roba a caso
+        versionCode = 19
+        versionName = "0.1.19" // release.funzioni.roba a caso
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

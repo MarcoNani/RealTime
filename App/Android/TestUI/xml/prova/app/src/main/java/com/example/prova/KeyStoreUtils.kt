@@ -8,6 +8,7 @@ import android.util.Base64
 import android.util.Log
 import androidx.annotation.RequiresApi
 import java.io.IOException
+import java.security.InvalidKeyException
 import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
@@ -99,7 +100,7 @@ object KeyStoreUtils {
 
             val keyGenParams = KeyGenParameterSpec.Builder(
                 alias,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                KeyProperties.PURPOSE_DECRYPT or KeyProperties.PURPOSE_ENCRYPT
             ).apply {
                 setAlgorithmParameterSpec(RSAKeyGenParameterSpec(keySize, RSAKeyGenParameterSpec.F4))
                 setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
@@ -244,23 +245,26 @@ object KeyStoreUtils {
      */
     fun encryptSymmetricKeyWithRsa(symmetricKey: SecretKey, publicKey: PublicKey): String? {
         try {
-            // Inizializza il cifrario RSA in modalità di cifratura
-            val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
-            cipher.init(Cipher.ENCRYPT_MODE, publicKey)
+            val cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
 
-            // Ottiene la rappresentazione in byte della chiave simmetrica
+            val oaepParams = OAEPParameterSpec(
+                "SHA-256", "MGF1",
+                MGF1ParameterSpec.SHA1,  // Attenzione: SHA1 qui per compatibilità Android
+                PSource.PSpecified.DEFAULT
+            )
+
+            cipher.init(Cipher.ENCRYPT_MODE, publicKey, oaepParams)
+
             val keyBytes = symmetricKey.encoded
-
-            // Cifra la chiave simmetrica
             val encryptedKeyBytes = cipher.doFinal(keyBytes)
-
-            // Converti in Base64 per trasmissione
             return Base64.encodeToString(encryptedKeyBytes, Base64.NO_WRAP)
+
         } catch (e: Exception) {
-            Log.e(TAG, "Error encrypting symmetric key: ${e.message}", e)
+            Log.e(TAG, "Error encrypting symmetric key: ${e.javaClass.simpleName} - ${e.message}", e)
             return null
         }
     }
+
 
     /**
      * Complete workflow to process a received public key encoded in Base64 with X.509 format, generate an AES symmetric key,
@@ -289,44 +293,59 @@ object KeyStoreUtils {
     }
 
 
-
-    /**
-     * Decrypts a symmetric AES key that was encrypted using the corresponding RSA public key
-     *
-     * @param encryptedKeyBase64 The AES symmetric key encrypted with RSA and encoded in Base64
-     * @param rsaAlias The alias in the Android Keystore of the RSA key pair (used to retrieve the private key)
-     * @return The decrypted SecretKey or null if an error occurs
-     */
     fun decryptSymmetricKeyWithRsa(encryptedKeyBase64: String, rsaAlias: String): SecretKey? {
         try {
-            // Carica il KeyStore e recupera la chiave privata RSA
             val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply {
                 load(null)
             }
 
             val privateKey = keyStore.getKey(rsaAlias, null) as? PrivateKey
-                ?: run {
-                    Log.e(TAG, "Private key not found for alias: $rsaAlias")
-                    return null
-                }
+            if (privateKey == null) {
+                Log.e(TAG, "decryptSymmetricKeyWithRsa: Private key not found for alias '$rsaAlias'. Assicurati che la chiave RSA sia stata generata correttamente e che l'alias sia corretto.")
+                return null
+            }
 
-            // Decodifica la chiave cifrata da Base64
-            val encryptedKeyBytes = Base64.decode(encryptedKeyBase64, Base64.NO_WRAP)
+            val encryptedKeyBytes = try {
+                Base64.decode(encryptedKeyBase64, Base64.NO_WRAP)
+            } catch (e: IllegalArgumentException) {
+                Log.e(TAG, "decryptSymmetricKeyWithRsa: Base64 decoding failed. La stringa fornita non è valida.", e)
+                return null
+            }
 
-            // Inizializza il cifrario RSA per la decifrazione
-            val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
-            cipher.init(Cipher.DECRYPT_MODE, privateKey)
+            val cipher = try {
+                Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
+            } catch (e: Exception) {
+                Log.e(TAG, "decryptSymmetricKeyWithRsa: Impossibile ottenere l'istanza Cipher per RSA.", e)
+                return null
+            }
 
-            // Decifra la chiave AES
-            val decryptedKeyBytes = cipher.doFinal(encryptedKeyBytes)
+            val oaepParams = OAEPParameterSpec(
+                "SHA-256", "MGF1",
+                MGF1ParameterSpec.SHA1,
+                PSource.PSpecified.DEFAULT
+            )
 
-            // Ricrea l'oggetto SecretKey a partire dai byte decifrati
+            try {
+                cipher.init(Cipher.DECRYPT_MODE, privateKey, oaepParams)
+            } catch (e: InvalidKeyException) {
+                Log.e(TAG, "decryptSymmetricKeyWithRsa: Chiave RSA non valida per la decrittazione.", e)
+                return null
+            }
+
+            val decryptedKeyBytes = try {
+                cipher.doFinal(encryptedKeyBytes)
+            } catch (e: Exception) {
+                Log.e(TAG, "decryptSymmetricKeyWithRsa: Errore durante la decrittazione della chiave AES. Assicurati che la chiave RSA sia corretta e che il testo cifrato sia valido.", e)
+                return null
+            }
+
             return SecretKeySpec(decryptedKeyBytes, 0, decryptedKeyBytes.size, "AES")
         } catch (e: Exception) {
-            Log.e(TAG, "Error decrypting symmetric key: ${e.message}", e)
+            Log.e(TAG, "decryptSymmetricKeyWithRsa: Errore imprevisto durante il processo di decrittazione.", e)
             return null
         }
     }
+
 
 
 
@@ -400,32 +419,25 @@ object KeyStoreUtils {
      */
     fun encryptMessageWithAES(plaintext: String, alias: String): String? {
         try {
-            // Load the Keystore and retrieve the AES key
             val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
             val secretKey = keyStore.getKey(alias, null) as? SecretKey
                 ?: throw IllegalArgumentException("No AES key found with alias: $alias")
 
-            // Generate a secure 12-byte IV (GCM standard)
-            val iv = ByteArray(12).also { SecureRandom().nextBytes(it) }
-
-            // Initialize AES/GCM cipher
             val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-            val gcmSpec = GCMParameterSpec(128, iv) // 128-bit auth tag
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmSpec)
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey)
 
-            // Encrypt the plaintext
+            val iv = cipher.iv
+
             val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
 
-            // Combine IV + ciphertext for transport
             val combined = iv + ciphertext
-
-            // Return as Base64 encoded string
             return Base64.encodeToString(combined, Base64.NO_WRAP)
         } catch (e: Exception) {
             Log.e("KeyStore", "Encryption failed: ${e.message}", e)
             return null
         }
     }
+
 
     /**
      * Decrypts a Base64-encoded message using an AES key stored in Android Keystore.
