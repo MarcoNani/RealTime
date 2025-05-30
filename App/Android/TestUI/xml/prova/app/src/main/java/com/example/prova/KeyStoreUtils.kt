@@ -330,17 +330,6 @@ object KeyStoreUtils {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
     /**
      * Deletes a key with the given alias from the KeyStore
      *
@@ -398,6 +387,83 @@ object KeyStoreUtils {
             false
         }
     }
+
+
+    // TODO: note that there is a byte to specify the IV length
+
+    /**
+     * Encrypts a plaintext message using an AES key stored in Android Keystore.
+     *
+     * @param alias The alias of the AES key in the Keystore.
+     * @param plaintext The message to encrypt.
+     * @return Base64 encoded string containing IV + ciphertext + auth tag, or null on error.
+     */
+    fun encryptMessageWithAES(plaintext: String, alias: String): String? {
+        try {
+            // Load the Keystore and retrieve the AES key
+            val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+            val secretKey = keyStore.getKey(alias, null) as? SecretKey
+                ?: throw IllegalArgumentException("No AES key found with alias: $alias")
+
+            // Generate a secure 12-byte IV (GCM standard)
+            val iv = ByteArray(12).also { SecureRandom().nextBytes(it) }
+
+            // Initialize AES/GCM cipher
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            val gcmSpec = GCMParameterSpec(128, iv) // 128-bit auth tag
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmSpec)
+
+            // Encrypt the plaintext
+            val ciphertext = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
+
+            // Combine IV + ciphertext for transport
+            val combined = iv + ciphertext
+
+            // Return as Base64 encoded string
+            return Base64.encodeToString(combined, Base64.NO_WRAP)
+        } catch (e: Exception) {
+            Log.e("KeyStore", "Encryption failed: ${e.message}", e)
+            return null
+        }
+    }
+
+    /**
+     * Decrypts a Base64-encoded message using an AES key stored in Android Keystore.
+     *
+     * @param alias The alias of the AES key in the Keystore.
+     * @param encryptedData The Base64 encoded string containing IV + ciphertext + auth tag.
+     * @return The decrypted plaintext string, or null on error.
+     */
+    fun decryptMessageWithAES(encryptedData: String, alias: String): String? {
+        try {
+            // Load the Keystore and retrieve the AES key
+            val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+            val secretKey = keyStore.getKey(alias, null) as? SecretKey
+                ?: throw IllegalArgumentException("No AES key found with alias: $alias")
+
+            // Decode from Base64
+            val combined = Base64.decode(encryptedData, Base64.NO_WRAP)
+
+            // Extract IV (first 12 bytes) and ciphertext+tag
+            val iv = combined.copyOfRange(0, 12)
+            val ciphertext = combined.copyOfRange(12, combined.size)
+
+            // Initialize cipher for decryption
+            val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+            val gcmSpec = GCMParameterSpec(128, iv)
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, gcmSpec)
+
+            // Decrypt
+            val plaintextBytes = cipher.doFinal(ciphertext)
+            return String(plaintextBytes, Charsets.UTF_8)
+        } catch (e: Exception) {
+            Log.e("KeyStore", "Decryption failed: ${e.message}", e)
+            return null
+        }
+    }
+
+
+    // LEGACY FUNCTIONS TODO: remove
 
     /**
      * Encrypts a string using an AES key from the KeyStore.

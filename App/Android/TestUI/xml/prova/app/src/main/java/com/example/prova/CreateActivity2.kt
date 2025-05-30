@@ -3,6 +3,8 @@ package com.example.prova
 import com.example.prova.KeyStoreUtils
 
 import android.Manifest
+import android.app.AlertDialog
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
@@ -28,6 +30,14 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import androidx.lifecycle.lifecycleScope
+import com.example.prova.api.ApiService
+import com.example.prova.api.RetrofitProvider
+import com.example.prova.model.ErrorResponse
+import com.example.prova.model.VoteRequest
+import com.google.gson.Gson
+import kotlinx.coroutines.launch
+import retrofit2.Response
 import java.security.KeyStore
 import javax.crypto.Cipher
 
@@ -74,13 +84,6 @@ class CreateActivity2 : AppCompatActivity() {
         setLedState(2, true)
 
 
-        //processAuthenticationData("3ad97f5876be42de97659ef1ba0ea896|YuQju9tW+KeQuOHCwgYbnJ5wSUACRGeMQCX4F9Wpl5FVZRDzqS9RRUqwYtKpZTYvO9HQgGiVaViDhzIwbezQb0zG6FdlXGV1TK4wZjwomfyJXqrYHvH6Wx/ZUVjomJoI+KIFL8swYU3mzTZhUvsjQDsqnCN9j2OCzjEY0o54CxBPyQBUtfl70gjsfJ8orvCmrFAxBwzuDJfaW4NgCo2WGMTSfCy4/83+mncH6C2ISX/BKFh+oHhX/jPFlR1RPDQ6MNo7Iia48QlkzCBEEeMnK7A/UHoxQu66FNjfRfIO93V4NkmYykRZfEFddAkSOy0DqhGsgaMBK0aC/mUxVMDv1Oa8hyPwpmZozp6vUBAdFpzXBIJDe12ikBFWbJUzLALDzgEWQkUI8o0EbPBfEUZoW+h1tk4+Zfl0S3Hs/lfgnduyk7hPAnv8alg0wdCQFjqxJbQOaIPcHd2B+jQAzsxArzYcx2/2Dd3UU3gbqvqJXcT3oYIsTM6qOkjPPcZuXKJbvvX2PaGul0K95ri9KbLCPzrbs8lT/FsG2FzNViy+5o8RiyXeU+h2VYYS+7T+n8LluPa+aIKz9+lxy7m7Tnn/7+eHBaD042B8bJLZcvfMzW5b6p+2vncOmKLNrfO3vuO/GY9qBucoBfNN/4FKw1KAfJT4T1LImO+gYBnh+dzbStc=")
-
-
-        // 4 - Scan QR code: Recive Encrypted AES & request ID
-
-        // Put let 4 to yellow
-        setLedState(3, true, Color.YELLOW)
 
         debug(debugTextView, "Starting QR scanner")
 
@@ -218,24 +221,28 @@ class CreateActivity2 : AppCompatActivity() {
         cameraProvider.unbindAll()
 
         debug(debugTextView, "Authentication successful")
-        debug(debugTextView, "Processing authentication data...")
 
-        // Here you would call your next function to handle the next steps
-        // For example:
         processAuthenticationData(qrValue)
     }
 
     private fun processAuthenticationData(qrValue: String) {
         // [STAGE] 4  - Recive data from QR code
+        debug(debugTextView, "Processing authentication data...")
+        setLedState(3, true, Color.YELLOW)
 
         // Split the QR value to extract the UUID and public key
         val parts = qrValue.split("|")
         val requestId = parts[0]
         val encryptedAESKeyBase64 = parts[1]
 
+        debug(debugTextView, "requestId: $requestId")
+        debug(debugTextView, "encryptedAESKeyBase64: $encryptedAESKeyBase64")
+        debug(debugTextView, "Authentication data processed")
+        setLedState(3, true)
+
+
 
         // [STAGE] 5 - Decrypt AES key with the private key
-        debug(debugTextView, "requestId: $requestId")
         setLedState(4, true, Color.YELLOW)
 
         // Ottengo il rsaKeyAlias e il roomId dalla Intent
@@ -249,6 +256,7 @@ class CreateActivity2 : AppCompatActivity() {
 
         if (decryptedSymmetricKey == null) {
             debug(debugTextView, "Errore nella decifrazione della chiave AES.")
+            setLedState(4, true, Color.RED)
             return
             // TODO: replace this with ABORT function call
         }
@@ -287,7 +295,38 @@ class CreateActivity2 : AppCompatActivity() {
         debug(debugTextView, "Ask to approve the Join request")
         setLedState(7, true, Color.YELLOW)
 
-        
+        val sharedPref = getSharedPreferences("RealTimePrefs", Context.MODE_PRIVATE)
+        val apiKey  = sharedPref.getString("API_KEY", null).toString()
+        debug(debugTextView, "API Key: $apiKey")
+        val server = sharedPref.getString("SERVER_URL", null).toString()
+        debug(debugTextView, "Server: $server")
+
+        // Call the API to approve the join request
+        lifecycleScope.launch {
+            val success = voteOnJoinRequest(apiKey, server, roomId, requestId, true)
+            if (success) {
+                debug(debugTextView, "Join request approved")
+                setLedState(7, true)
+
+                // TODO: remove
+                // TEST CIFRATURA
+                val message = "The first message encrypted by the RealTime client"
+
+                val encrypted = KeyStoreUtils.encryptMessageWithAES(message, roomId)
+                val decrypted = encrypted?.let { KeyStoreUtils.decryptMessageWithAES(encrypted, roomId) }
+
+                debug(debugTextView, "Encrypted: $encrypted")
+                debug(debugTextView, "Decrypted: $decrypted")
+
+                Toast.makeText(this@CreateActivity2, "Encrypted: $encrypted", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@CreateActivity2, "Decrypted: $decrypted", Toast.LENGTH_LONG).show()
+
+
+                // TODO: Open chat activity
+            } else {
+                Log.e("JoinRequest", "Errore durante l'approvazione della richiesta di join")
+            }
+        }
 
 
 
@@ -317,6 +356,77 @@ class CreateActivity2 : AppCompatActivity() {
         super.onDestroy()
         cameraExecutor.shutdown()
     }
+
+
+    fun showPersistentMessage(context: Context, message: String, title: String = "Error") {
+        AlertDialog.Builder(context)
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("OK :(") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
+    }
+
+    fun abort(roomId: String, message: String = "Something went wrong, no more information given", context: Context = this) {
+        val debugTextView: TextView = findViewById(R.id.debug)
+
+        debug(debugTextView, "Ask to delete the AES key")
+        val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) } // Load the key store
+        keyStore.deleteEntry(roomId) // Delete the AES key
+        debug(debugTextView, "AES Key Deleted")
+
+        // set all led to red
+        setLedState(0, true, Color.RED)
+        setLedState(1, true, Color.RED)
+        setLedState(2, true, Color.RED)
+        setLedState(3, true, Color.RED)
+        setLedState(4, true, Color.RED)
+        setLedState(5, true, Color.RED)
+        setLedState(6, true, Color.RED)
+
+        showPersistentMessage(context, message)
+    }
+
+    private fun parseError(response: Response<*>): String {
+        return try {
+            val errorBody = response.errorBody()?.string()
+            if (errorBody != null) {
+                val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
+                errorResponse.message
+            } else {
+                "Unknown error"
+            }
+        } catch (e: Exception) {
+            "Unknown error"
+        }
+    }
+
+    private suspend fun voteOnJoinRequest(apiKey: String, server: String, roomId: String, requestId: String, approve: Boolean): Boolean {
+        return try {
+            val retrofit = RetrofitProvider.provideRetrofit(server, apiKey)
+            val apiService = retrofit.create(ApiService::class.java)
+
+            val voteRequest = VoteRequest(vote = approve)
+            val response = apiService.voteOnJoinRequest(roomId, requestId, voteRequest)
+
+            if (response.isSuccessful) {
+                println("Voto registrato: ${response.body()?.message}")
+                true
+            } else {
+                val errorMessage = parseError(response)
+                abort(roomId, "Errore durante il voto: $errorMessage (HTTP ${response.code()})")
+                false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            abort(roomId, "Eccezione durante il voto: ${e.message}")
+            false
+        }
+    }
+
+
 
     fun setLedState(index: Int, isOn: Boolean, onColor: Int = Color.GREEN) {
         if (index !in leds.indices) return

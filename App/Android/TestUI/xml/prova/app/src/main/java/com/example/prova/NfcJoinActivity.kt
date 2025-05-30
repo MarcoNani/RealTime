@@ -322,11 +322,25 @@ class NfcJoinActivity : AppCompatActivity() {
                 setLedState(4, true, Color.YELLOW)
                 debug(debugTextView, "Waiting until I am in the room...")
 
-                pollRoomUntilAvailable(apiKey, server, roomId) { roomDetails ->
+                pollRoomUntilAvailable(apiKey, server, roomId, timeoutMillis = 400_000L) { roomDetails ->
                     setLedState(4, true)
 
                     debug(debugTextView, "I am in the room!")
                     debug(debugTextView, "Room details: $roomDetails")
+
+                    // TODO: remove
+                    // TEST CIFRATURA
+                    val message = "The first message encrypted by the RealTime client"
+
+                    val encrypted = KeyStoreUtils.encryptMessageWithAES(message, roomId)
+                    val decrypted = encrypted?.let { KeyStoreUtils.decryptMessageWithAES(encrypted, roomId) }
+
+                    debug(debugTextView, "Encrypted: $encrypted")
+                    debug(debugTextView, "Decrypted: $decrypted")
+
+                    Toast.makeText(this@NfcJoinActivity, "Encrypted: $encrypted", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@NfcJoinActivity, "Decrypted: $decrypted", Toast.LENGTH_LONG).show()
+
 
                     debug(debugTextView, "Starting chat activity...")
                     // TODO: Open chat activity
