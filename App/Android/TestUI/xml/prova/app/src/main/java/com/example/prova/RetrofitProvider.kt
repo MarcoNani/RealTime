@@ -5,11 +5,15 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 object RetrofitProvider {
 
     fun provideRetrofit(baseUrl: String, apiKey: String? = null): Retrofit {
         val clientBuilder = OkHttpClient.Builder()
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
 
         // Se apiKey è presente, aggiungi un interceptor che usa X-API-Key
         apiKey?.let {
