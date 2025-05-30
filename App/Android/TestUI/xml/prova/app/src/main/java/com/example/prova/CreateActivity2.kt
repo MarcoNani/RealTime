@@ -176,9 +176,39 @@ class CreateActivity2 : AppCompatActivity() {
         }
     }
 
+    /**
+     * Verifica che il contenuto del QR code sia nel formato valido atteso.
+     * Formato previsto: requestId|<Base64EncodedEncryptedKey>
+     * Esempio: d6ed15fb67574c7d917028fd3fe65860|<EncryptedKeyBase64>
+     *
+     * @param qrValue Il valore del QR code da verificare
+     * @return true se il formato è valido, false altrimenti
+     */
     private fun isValidAuthQr(qrValue: String): Boolean {
-        // Check if QR content matches the expected format
-        // Looking for: UUID|OpenSSLRSAPublicKey{...}
+        // Verifica che il QR contenga esattamente un separatore
+        val parts = qrValue.split("|")
+        if (parts.size != 2) {
+            return false
+        }
+
+        val requestId = parts[0]
+        val encryptedKey = parts[1]
+
+        // Verifica che il requestId sia un UUID senza trattini (32 caratteri esadecimali)
+        if (!requestId.matches(Regex("^[a-f0-9]{32}$"))) {
+            return false
+        }
+
+        // Verifica che la chiave crittografata sia una stringa Base64 valida
+        if (!encryptedKey.matches(Regex("^[A-Za-z0-9+/=]+$"))) {
+            return false
+        }
+
+        // Verifica che la chiave abbia una lunghezza minima sensata (es. 200 caratteri)
+        if (encryptedKey.length < 200) {
+            return false
+        }
+
         return true
     }
 
@@ -196,8 +226,7 @@ class CreateActivity2 : AppCompatActivity() {
     }
 
     private fun processAuthenticationData(qrValue: String) {
-        // This is a placeholder for your next function
-        // Implement your specific logic here
+        // [STAGE] 4  - Recive data from QR code
 
         // Split the QR value to extract the UUID and public key
         val parts = qrValue.split("|")
@@ -205,53 +234,41 @@ class CreateActivity2 : AppCompatActivity() {
         val encryptedAESKeyBase64 = parts[1]
 
 
-
-
-
+        // [STAGE] 5 - Decrypt AES key with the private key
         debug(debugTextView, "requestId: $requestId")
+        setLedState(4, true, Color.YELLOW)
 
-
-        // Decifra la chiave AES utilizzando la chiave privata
-
-        // Ottengo il rsaKeyAlias dalla Intent
+        // Ottengo il rsaKeyAlias e il roomId dalla Intent
         val intent = intent
         val rsaKeyAlias: String = intent.getStringExtra("rsaKeyAlias").toString()
         val roomId: String = intent.getStringExtra("roomId").toString()
 
 
         // Decifra la chiave AES usando la chiave RSA privata
-        val aesKey: SecretKey? = decryptAESKeyWithRSAPrivateKey(encryptedAESKeyBase64, rsaKeyAlias)
+        val decryptedSymmetricKey = KeyStoreUtils.decryptSymmetricKeyWithRsa(encryptedAESKeyBase64, rsaKeyAlias)
 
-        // 5 - Store the decrypted AES key in the Keystore
+        if (decryptedSymmetricKey == null) {
+            debug(debugTextView, "Errore nella decifrazione della chiave AES.")
+            return
+            // TODO: replace this with ABORT function call
+        }
+
+        debug(debugTextView, "AES key decrypted successfully!")
+        setLedState(4, true)
+
+
+
+        // [STAGE] 6 - Store the decrypted AES key in the Keystore
         debug(debugTextView, "Ask to store the decrypted AES key in the Keystore")
         setLedState(5, true, Color.YELLOW)
 
-        // Verifica che la chiave AES sia stata correttamente decifrata prima di importarla
-        if (aesKey != null) {
-            KeyStoreUtils.importAESKeyToKeystore(aesKey, roomId)
-        } else {
-            debug(debugTextView, "Failed to decrypt AES key")
-            setLedState(5, true, Color.RED)
-        }
+        KeyStoreUtils.importAESKeyToKeystore(decryptedSymmetricKey, roomId)
 
-
-        // Try to encrypt a message with the stored AES key
-        debug(debugTextView, "Ask to try to encrypt a message with the stored AES key")
         setLedState(5, true)
 
-        val encryptedMessage = KeyStoreUtils.encryptWithAES("Hello World", roomId)
-        Toast.makeText(this, "Encrypted message: $encryptedMessage", Toast.LENGTH_LONG).show()
 
 
-
-
-
-
-
-
-
-
-        // 7 - Ask to delete the key pair
+        // [STAGE] 7 - Delete the key pair
         debug(debugTextView, "Ask to delete the key pair")
         setLedState(6, true, Color.YELLOW)
 
@@ -266,15 +283,14 @@ class CreateActivity2 : AppCompatActivity() {
 
 
 
-        // Turn on the 4 led
-        setLedState(3, true)
+        // [STAGE] 8 - Approve the Join request
+        debug(debugTextView, "Ask to approve the Join request")
+        setLedState(7, true, Color.YELLOW)
 
-        // You can implement your next steps here
-        // For example, you might want to:
-        // 1. Store the public key
-        // 2. Navigate to another activity
-        // 3. Start communication with a server
-        // 4. etc.
+        
+
+
+
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -339,41 +355,5 @@ class CreateActivity2 : AppCompatActivity() {
         debugTextView.scrollTo(0, scrollAmount)
     }
 
-
-    /**
-     * Decifra una chiave AES utilizzando la chiave privata RSA memorizzata nel keystore.
-     *
-     * @param encryptedAesKeyBase64 La chiave AES cifrata come stringa Base64.
-     * @param rsaKeyAlias L'alias della chiave RSA nel keystore Android.
-     * @return La chiave AES decifrata, o null in caso di errore.
-     */
-    fun decryptAESKeyWithRSAPrivateKey(encryptedAesKeyBase64: String?, rsaKeyAlias: String): SecretKey? {
-        return try {
-            if (encryptedAesKeyBase64 == null) return null
-
-            // Decodifica la chiave cifrata da Base64
-            val encryptedAesKeyBytes = Base64.decode(encryptedAesKeyBase64, Base64.NO_WRAP)
-
-            // Ottieni la chiave privata RSA dal keystore
-            val keyStore = KeyStore.getInstance("AndroidKeyStore")
-            keyStore.load(null)
-
-            val privateKeyEntry = keyStore.getEntry(rsaKeyAlias, null) as? KeyStore.PrivateKeyEntry
-                ?: throw Exception("Chiave privata RSA non trovata per l'alias $rsaKeyAlias")
-
-            val privateKey = privateKeyEntry.privateKey
-
-            // Decifra la chiave AES con la chiave RSA privata
-            val cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
-            cipher.init(Cipher.DECRYPT_MODE, privateKey)
-            val decryptedKeyBytes = cipher.doFinal(encryptedAesKeyBytes)
-
-            // Ricostruisci la chiave AES dai byte decifrati
-            SecretKeySpec(decryptedKeyBytes, KeyProperties.KEY_ALGORITHM_AES)
-        } catch (e: Exception) {
-            Log.e("KeyUtils", "Errore durante la decifratura della chiave AES: ${e.message}", e)
-            null
-        }
-    }
 
 }

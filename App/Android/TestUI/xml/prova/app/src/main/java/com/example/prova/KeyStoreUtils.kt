@@ -28,6 +28,7 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.OAEPParameterSpec
 import javax.crypto.spec.PSource
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * Utility class for KeyStore operations with both AES and RSA keys
@@ -287,6 +288,45 @@ object KeyStoreUtils {
         }
     }
 
+
+
+    /**
+     * Decrypts a symmetric AES key that was encrypted using the corresponding RSA public key
+     *
+     * @param encryptedKeyBase64 The AES symmetric key encrypted with RSA and encoded in Base64
+     * @param rsaAlias The alias in the Android Keystore of the RSA key pair (used to retrieve the private key)
+     * @return The decrypted SecretKey or null if an error occurs
+     */
+    fun decryptSymmetricKeyWithRsa(encryptedKeyBase64: String, rsaAlias: String): SecretKey? {
+        try {
+            // Carica il KeyStore e recupera la chiave privata RSA
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply {
+                load(null)
+            }
+
+            val privateKey = keyStore.getKey(rsaAlias, null) as? PrivateKey
+                ?: run {
+                    Log.e(TAG, "Private key not found for alias: $rsaAlias")
+                    return null
+                }
+
+            // Decodifica la chiave cifrata da Base64
+            val encryptedKeyBytes = Base64.decode(encryptedKeyBase64, Base64.NO_WRAP)
+
+            // Inizializza il cifrario RSA per la decifrazione
+            val cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding")
+            cipher.init(Cipher.DECRYPT_MODE, privateKey)
+
+            // Decifra la chiave AES
+            val decryptedKeyBytes = cipher.doFinal(encryptedKeyBytes)
+
+            // Ricrea l'oggetto SecretKey a partire dai byte decifrati
+            return SecretKeySpec(decryptedKeyBytes, 0, decryptedKeyBytes.size, "AES")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error decrypting symmetric key: ${e.message}", e)
+            return null
+        }
+    }
 
 
 
