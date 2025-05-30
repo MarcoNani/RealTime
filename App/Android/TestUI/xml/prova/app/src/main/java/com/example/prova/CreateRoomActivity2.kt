@@ -3,6 +3,7 @@ package com.example.prova
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
@@ -311,7 +312,10 @@ class CreateRoomActivity2 : AppCompatActivity() {
                 Toast.makeText(this@CreateRoomActivity2, "Decrypted: $decrypted", Toast.LENGTH_LONG).show()
 
 
-                // TODO: Open chat activity
+                // Open chat activity
+                val intentChatActivity = Intent(this@CreateRoomActivity2, ChatActivity::class.java)
+                intentChatActivity.putExtra("roomId", roomId)
+                startActivity(intentChatActivity)
             } else {
                 Log.e("JoinRequest", "Errore durante l'approvazione della richiesta di join")
             }
@@ -321,15 +325,13 @@ class CreateRoomActivity2 : AppCompatActivity() {
 
     }
 
+
+
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
             if (allPermissionsGranted()) {
@@ -453,6 +455,4 @@ class CreateRoomActivity2 : AppCompatActivity() {
         val scrollAmount = debugTextView.layout?.getLineTop(debugTextView.lineCount) ?: 0
         debugTextView.scrollTo(0, scrollAmount)
     }
-
-
 }

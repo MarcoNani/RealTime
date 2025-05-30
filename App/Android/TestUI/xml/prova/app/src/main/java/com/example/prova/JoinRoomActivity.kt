@@ -3,6 +3,7 @@ package com.example.prova
 import android.content.Context
 import android.Manifest
 import android.app.AlertDialog
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -328,7 +329,10 @@ class JoinRoomActivity : AppCompatActivity() {
 
 
                     debug(debugTextView, "Starting chat activity...")
-                    // TODO: Open chat activity
+                    // Open chat activity
+                    val intentChatActivity = Intent(this@JoinRoomActivity, ChatActivity::class.java)
+                    intentChatActivity.putExtra("roomId", roomId)
+                    startActivity(intentChatActivity)
                 }
 
 
