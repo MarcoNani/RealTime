@@ -42,6 +42,9 @@ Title: Key exchange and chatroom creation C1
 
     A->>KeystoreA: Ask to store decrypted AES Key
     KeystoreA-->>KeystoreA: Store decrypted AES Key
+    
+    A->>KeystoreA: Ask to delete RSA key pair
+    KeystoreA-->>KeystoreA: Delete RSA key pair
 
     Note over KeystoreA, KeystoreB: 🔐 Both devices now share the same AES key
 
@@ -49,8 +52,6 @@ Title: Key exchange and chatroom creation C1
     A->>Server: PATCH /api/v1/rooms/{roomId}/join-requests/{requestId}/votes    {"vote": true}
     Server-->>A: 200
 
-    A->>KeystoreA: Ask to delete RSA key pair
-    KeystoreA-->>KeystoreA: Delete RSA key pair
 
     A->>A: Open chat activity (roomId)
 
