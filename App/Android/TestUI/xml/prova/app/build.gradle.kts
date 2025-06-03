@@ -9,10 +9,10 @@ android {
 
     defaultConfig {
         applicationId = "com.example.prova"
-        minSdk = 24
+        minSdk = 31
         targetSdk = 35
-        versionCode = 5
-        versionName = "0.1.6" // release.funzioni.roba a caso
+        versionCode = 21
+        versionName = "0.1.21" // release.funzioni.roba a caso
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -36,6 +36,13 @@ android {
 }
 
 dependencies {
+    implementation(libs.camera.core)
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.view)
+    implementation(libs.mlkit.barcode.scanning)
+
+    implementation(libs.zxing)
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)

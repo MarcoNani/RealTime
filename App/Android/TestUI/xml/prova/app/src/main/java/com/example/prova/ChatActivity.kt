@@ -6,6 +6,7 @@ import android.text.TextWatcher
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -19,13 +20,14 @@ data class Message(
     val msgId: String
 )
 
-class MainActivity : AppCompatActivity() {
+class ChatActivity : AppCompatActivity() {
 
     private lateinit var btnSend: Button
     private lateinit var messageContent: EditText
     private lateinit var recyclerView: RecyclerView
     private lateinit var messageAdapter: MessageAdapter
     private lateinit var button: ImageButton
+    private lateinit var roomIdTextView: TextView
     private val messages = mutableListOf<Message>()
 
     // SET GLOBAL VARIABLES
@@ -33,10 +35,12 @@ class MainActivity : AppCompatActivity() {
     private var keepTheChatDown: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val roomId = intent.getStringExtra("roomId")
+
         super.onCreate(savedInstanceState)
         window.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE) // Needed to make the window not going under the keyboard
         
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_chat)
 
         // Link the view components (XML) to the variables
         btnSend = findViewById(R.id.btn_send)
@@ -44,6 +48,8 @@ class MainActivity : AppCompatActivity() {
         recyclerView = findViewById(R.id.recycler_view)
         button = findViewById(R.id.btn_A)
 
+        roomIdTextView = findViewById(R.id.roomId)
+        roomIdTextView.text = roomId
 
         // Config recyclerView
         messageAdapter = MessageAdapter(messages)
