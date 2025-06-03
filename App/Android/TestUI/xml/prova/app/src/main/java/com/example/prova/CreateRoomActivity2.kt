@@ -243,7 +243,7 @@ class CreateRoomActivity2 : AppCompatActivity() {
 
 
         // Decifra la chiave AES usando la chiave RSA privata
-        val decryptedSymmetricKey = KeyStoreUtils.decryptSymmetricKeyWithRsa(encryptedAESKeyBase64, rsaKeyAlias)
+        val decryptedSymmetricKey = KeyUtils.decryptSymmetricKeyWithRsa(encryptedAESKeyBase64, rsaKeyAlias)
 
         if (decryptedSymmetricKey == null) {
             debug(debugTextView, "Errore nella decifrazione della chiave AES.")
@@ -261,7 +261,7 @@ class CreateRoomActivity2 : AppCompatActivity() {
         debug(debugTextView, "Ask to store the decrypted AES key in the Keystore")
         setLedState(5, true, Color.YELLOW)
 
-        KeyStoreUtils.importAESKeyToKeystore(decryptedSymmetricKey, roomId)
+        KeyUtils.importAESKeyToKeystore(decryptedSymmetricKey, roomId)
 
         setLedState(5, true)
 
@@ -271,7 +271,7 @@ class CreateRoomActivity2 : AppCompatActivity() {
         debug(debugTextView, "Ask to delete the key pair")
         setLedState(6, true, Color.YELLOW)
 
-        val deletionStatus = KeyStoreUtils.deleteKey(rsaKeyAlias) // Delete the key pair
+        val deletionStatus = KeyUtils.deleteKey(rsaKeyAlias) // Delete the key pair
         if (deletionStatus) {
             debug(debugTextView, "RSA Key Pair Deleted")
             setLedState(6, true)
@@ -303,8 +303,8 @@ class CreateRoomActivity2 : AppCompatActivity() {
                 // TEST CIFRATURA
                 val message = "The first message encrypted by the RealTime client"
 
-                val encrypted = KeyStoreUtils.encryptMessageWithAES(message, roomId)
-                val decrypted = encrypted?.let { KeyStoreUtils.decryptMessageWithAES(encrypted, roomId) }
+                val encrypted = KeyUtils.encryptMessageWithAES(message, roomId)
+                val decrypted = encrypted?.let { KeyUtils.decryptMessageWithAES(encrypted, roomId) }
 
                 debug(debugTextView, "Encrypted: $encrypted")
                 debug(debugTextView, "Decrypted: $decrypted")

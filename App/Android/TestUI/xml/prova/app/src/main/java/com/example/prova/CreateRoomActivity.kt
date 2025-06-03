@@ -68,8 +68,8 @@ class CreateRoomActivity : AppCompatActivity() {
         val rsaKeyAlias = UUID.randomUUID().toString() // Generate an alias for this session
         debug(debugTextView, "RSA Key Alias: $rsaKeyAlias")
 
-        KeyStoreUtils.generateRSAKeyPair(rsaKeyAlias) // Generate the key pair
-        val publicKey = KeyStoreUtils.getEncodedRSAPublicKey(rsaKeyAlias) // Get the public key encoded in base64 with X.509 format
+        KeyUtils.generateRSAKeyPair(rsaKeyAlias) // Generate the key pair
+        val publicKey = KeyUtils.getEncodedRSAPublicKey(rsaKeyAlias) // Get the public key encoded in base64 with X.509 format
 
 
         debug(debugTextView, "RSA Key Pair Generated")

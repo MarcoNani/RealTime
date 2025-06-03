@@ -253,7 +253,7 @@ class JoinRoomActivity : AppCompatActivity() {
         // [STAGE] 2 - Generate a AES Key and store it in the Keystore, encrypt AES key with the public key recived
         setLedState(1, true, Color.YELLOW)
 
-        val keyPair = KeyStoreUtils.processReceivedPublicKey(base64PublicKey)
+        val keyPair = KeyUtils.processReceivedPublicKey(base64PublicKey)
         if (keyPair == null) {
             Toast.makeText(this@JoinRoomActivity, "Impossibile processare la chiave pubblica", Toast.LENGTH_LONG).show()
             return
@@ -262,14 +262,14 @@ class JoinRoomActivity : AppCompatActivity() {
         val (symmetricKey, encryptedKeyBase64) = keyPair
 
         // Store the symmetric key in the keystore
-        KeyStoreUtils.importAESKeyToKeystore(symmetricKey, roomId)
+        KeyUtils.importAESKeyToKeystore(symmetricKey, roomId)
 
         setLedState(1, true)
 
         // TODO: remove TEST
-        val encryptedMessage = KeyStoreUtils.encryptWithAES("Hello World", roomId)
+        val encryptedMessage = KeyUtils.encryptWithAES("Hello World", roomId)
         Toast.makeText(this, "Encrypted message: $encryptedMessage", Toast.LENGTH_LONG).show()
-        val decryptedMessage = KeyStoreUtils.decryptWithAES(encryptedMessage.toString(), roomId)
+        val decryptedMessage = KeyUtils.decryptWithAES(encryptedMessage.toString(), roomId)
         Toast.makeText(this, "Decrypted message: $decryptedMessage", Toast.LENGTH_LONG).show()
 
 
@@ -316,8 +316,8 @@ class JoinRoomActivity : AppCompatActivity() {
                     // TEST CIFRATURA
                     val message = "The first message encrypted by the RealTime client"
 
-                    val encrypted = KeyStoreUtils.encryptMessageWithAES(message, roomId)
-                    val decrypted = encrypted?.let { KeyStoreUtils.decryptMessageWithAES(encrypted, roomId) }
+                    val encrypted = KeyUtils.encryptMessageWithAES(message, roomId)
+                    val decrypted = encrypted?.let { KeyUtils.decryptMessageWithAES(encrypted, roomId) }
 
                     debug(debugTextView, "Encrypted: $encrypted")
                     debug(debugTextView, "Decrypted: $decrypted")

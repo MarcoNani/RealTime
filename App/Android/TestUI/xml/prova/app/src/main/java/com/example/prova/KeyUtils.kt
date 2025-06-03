@@ -1,31 +1,24 @@
 package com.example.prova
 
-import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.security.keystore.KeyProtection
 import android.util.Base64
 import android.util.Log
-import androidx.annotation.RequiresApi
-import java.io.IOException
 import java.security.InvalidKeyException
 import java.security.KeyFactory
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.KeyStore
-import java.security.KeyStoreException
-import java.security.NoSuchAlgorithmException
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.security.SecureRandom
-import java.security.cert.CertificateException
 import java.security.spec.MGF1ParameterSpec
 import java.security.spec.RSAKeyGenParameterSpec
 import java.security.spec.X509EncodedKeySpec
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
-import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.OAEPParameterSpec
 import javax.crypto.spec.PSource
@@ -34,7 +27,7 @@ import javax.crypto.spec.SecretKeySpec
 /**
  * Utility class for KeyStore operations with both AES and RSA keys
  */
-object KeyStoreUtils {
+object KeyUtils {
     private const val TAG = "KeyStoreUtils"
     private const val ANDROID_KEYSTORE = "AndroidKeyStore"
 
