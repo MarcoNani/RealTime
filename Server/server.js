@@ -1,6 +1,7 @@
 import express from "express";
 import http from "http";
 import { Server } from "socket.io";
+import cors from "cors"; // Import cors
 import { connect, close, usersCollection, roomsCollection, joinRequestsCollection } from "./src/db.js";
 import { config } from "dotenv";
 // Swagger
@@ -11,7 +12,10 @@ import * as helpers from "./src/utils/helpers.js";
 // Sockets
 import { socketHandler } from "./src/sockets/socketHandler.js";
 
-
+// Enable CORS for all domains
+const corsOptions = {
+  origin: "*", // Allow all origins
+};
 
 
 
@@ -70,6 +74,7 @@ const swaggerSpec = swaggerJSDoc(swaggerOptions);
 config(); //per utilizzo .env
 
 const app = express();
+app.use(cors(corsOptions)); // Apply CORS middleware
 app.use(express.json()); // per parse JSON bodies
 
 app.use(express.static("public")); // per frontend statico
