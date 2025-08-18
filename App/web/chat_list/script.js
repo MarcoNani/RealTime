@@ -78,11 +78,12 @@ async function createRoom() {
         const data = await response.json();
         const roomId = data.data.roomId;
 
-        // Mostra alert con Room ID
-        alert(`Stanza creata con successo!\nRoom ID: ${roomId}`);
-
         // Copia il roomId negli appunti
         await navigator.clipboard.writeText(roomId);
+
+        // Mostra alert con Room ID
+        alert(`Stanza creata con successo e Room ID copiato negli appunti!\nRoom ID: ${roomId}`);
+
 
         // Aggiorna la lista delle stanze
         fetchRooms();
@@ -95,3 +96,51 @@ async function createRoom() {
 
 // Collegamento al pulsante
 document.getElementById("createRoomButton").addEventListener("click", createRoom);
+
+async function requestJoinRoom() {
+    const serverUrl = localStorage.getItem("serverUrl");
+    const apiKey = localStorage.getItem("apiKey");
+    const roomId = document.getElementById("roomIdInput").value;
+
+    if (!serverUrl || !apiKey) {
+        alert("Server o API key non trovati in localStorage.");
+        return;
+    }
+
+    if (!roomId) {
+        alert("Inserisci un ID stanza valido.");
+        return;
+    }
+
+    const joinButton = document.getElementById("joinRoomButton");
+    joinButton.disabled = true;
+    joinButton.innerText = "Invio richiesta...";
+
+    try {
+        const response = await fetch(`${serverUrl}/api/v1/rooms/${roomId}/join-requests`, {
+            method: "POST",
+            headers: {
+                "X-API-Key": apiKey,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            const errorMessage = errorData.message || "Errore sconosciuto";
+            throw new Error(`Errore API: ${response.status} - ${errorMessage}`);
+        }
+
+        alert("Richiesta di join inviata con successo!");
+        joinButton.innerText = "Richiesta inviata!";
+    } catch (error) {
+        console.error(error);
+        alert(`${error.message}`);
+        joinButton.innerText = "Chiedi di entrare in una stanza";
+    } finally {
+        joinButton.disabled = false;
+    }
+}
+
+// Collegamento al pulsante
+document.getElementById("joinRoomButton").addEventListener("click", requestJoinRoom);
