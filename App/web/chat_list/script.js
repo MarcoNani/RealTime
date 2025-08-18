@@ -28,6 +28,72 @@ async function fetchRooms() {
     }
 }
 
+async function fetchJoinRequests(roomId) {
+    const serverUrl = localStorage.getItem("serverUrl");
+    const apiKey = localStorage.getItem("apiKey");
+
+    if (!serverUrl || !apiKey) {
+        alert("Server o API key non trovati in localStorage.");
+        return [];
+    }
+
+    try {
+        const response = await fetch(`${serverUrl}/api/v1/rooms/${roomId}/join-requests`, {
+            method: "GET",
+            headers: {
+                "X-API-Key": apiKey,
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            const errorMessage = errorData.message || "Errore sconosciuto";
+            throw new Error(`Errore API: ${response.status} - ${errorMessage}`);
+        }
+
+        const data = await response.json();
+        return data.data.joinRequests.filter(request => request.approveStatus === "pending");
+    } catch (error) {
+        console.error(error);
+        alert(`Errore durante il recupero delle richieste di join: ${error.message}`);
+        return [];
+    }
+}
+
+async function voteOnJoinRequest(roomId, requestId, vote) {
+    const serverUrl = localStorage.getItem("serverUrl");
+    const apiKey = localStorage.getItem("apiKey");
+
+    if (!serverUrl || !apiKey) {
+        alert("Server o API key non trovati in localStorage.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${serverUrl}/api/v1/rooms/${roomId}/join-requests/${requestId}/votes`, {
+            method: "PATCH",
+            headers: {
+                "X-API-Key": apiKey,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ vote })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            const errorMessage = errorData.message || "Errore sconosciuto";
+            throw new Error(`Errore API: ${response.status} - ${errorMessage}`);
+        }
+
+        alert("Voto inviato con successo!");
+        fetchRooms(); // Aggiorna la lista delle stanze
+    } catch (error) {
+        console.error(error);
+        alert(`Errore durante l'invio del voto: ${error.message}`);
+    }
+}
+
 function renderRooms(rooms) {
     const container = document.getElementById("roomsContainer");
     container.innerHTML = "";
@@ -39,11 +105,31 @@ function renderRooms(rooms) {
 
     const ul = document.createElement("ul");
 
-    rooms.forEach(room => {
+    rooms.forEach(async room => {
         const li = document.createElement("li");
         li.innerHTML = `<strong>Room ID:</strong> ${room.roomId}<br>
                         <strong>Members:</strong> ${room.members.map(m => m.username || m.publicId || 'Unknown').join(", ")}<br>
                         <a href="../chat/?roomId=${room.roomId}">Apri Chat</a>`;
+
+        const joinRequests = await fetchJoinRequests(room.roomId);
+
+        if (joinRequests.length > 0) {
+            const requestsDiv = document.createElement("div");
+            requestsDiv.innerHTML = "<strong>Richieste di join in pending:</strong>";
+            const requestsList = document.createElement("ul");
+
+            joinRequests.forEach(request => {
+                const requestItem = document.createElement("li");
+                requestItem.innerHTML = `${request.requestorUsername || request.requestorPublicId || "Unknown"} 
+                                         <button onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', true)">Approva</button>
+                                         <button onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', false)">Rifiuta</button>`;
+                requestsList.appendChild(requestItem);
+            });
+
+            requestsDiv.appendChild(requestsList);
+            li.appendChild(requestsDiv);
+        }
+
         ul.appendChild(li);
     });
 
