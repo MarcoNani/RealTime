@@ -80,13 +80,14 @@ async function voteOnJoinRequest(roomId, requestId, vote) {
             body: JSON.stringify({ vote })
         });
 
+        const responseData = await response.json();
+
         if (!response.ok) {
-            const errorData = await response.json();
-            const errorMessage = errorData.message || "Errore sconosciuto";
+            const errorMessage = responseData.message || "Errore sconosciuto";
             throw new Error(`Errore API: ${response.status} - ${errorMessage}`);
         }
 
-        alert(vote ? "Il tuo voto per approvare il nuovo membro è stato inviato con successo!" : "Il tuo voto per rifiutare il nuovo membro è stato inviato con successo!");
+        alert(responseData.message || (vote ? "Il tuo voto per approvare il nuovo membro è stato inviato con successo!" : "Il tuo voto per rifiutare il nuovo membro è stato inviato con successo!"));
         fetchRooms(); // Aggiorna la lista delle stanze
     } catch (error) {
         console.error(error);
