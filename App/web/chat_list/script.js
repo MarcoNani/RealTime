@@ -86,7 +86,7 @@ async function voteOnJoinRequest(roomId, requestId, vote) {
             throw new Error(`Errore API: ${response.status} - ${errorMessage}`);
         }
 
-        alert("Voto inviato con successo!");
+        alert(vote ? "Il tuo voto per approvare il nuovo membro è stato inviato con successo!" : "Il tuo voto per rifiutare il nuovo membro è stato inviato con successo!");
         fetchRooms(); // Aggiorna la lista delle stanze
     } catch (error) {
         console.error(error);
@@ -121,8 +121,8 @@ function renderRooms(rooms) {
             joinRequests.forEach(request => {
                 const requestItem = document.createElement("li");
                 requestItem.innerHTML = `${request.requestorUsername || request.requestorPublicId || "Unknown"} 
-                                         <button onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', true)">Approva</button>
-                                         <button onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', false)">Rifiuta</button>`;
+                                         <button style="color: green;" onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', true)">Approva</button>
+                                         <button style="color: red;" onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', false)">Rifiuta</button>`;
                 requestsList.appendChild(requestItem);
             });
 
