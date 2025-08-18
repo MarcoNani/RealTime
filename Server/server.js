@@ -80,7 +80,15 @@ app.use(express.json()); // per parse JSON bodies
 app.use(express.static("public")); // per frontend statico
 
 const server = http.createServer(app);
-const io = new Server(server, { path: "/socket.io" }); // crea server socket.io con path /socket.io
+const io = new Server(server, { 
+  path: "/socket.io",
+
+  // things for the CORS
+  cors: { 
+    origin: "*", 
+    methods: ["GET", "POST"] 
+  }
+}); // crea server socket.io con path /socket.io
 
 const port_server = process.env.PORTA || 3000;
 
