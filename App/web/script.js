@@ -1,4 +1,5 @@
 document.getElementById("start").addEventListener("click", async function (e) {
+    console.log("Triggering API Key Generation");
     e.preventDefault(); // evita il refresh della pagina
 
     const username = document.getElementById("username").value.trim();
@@ -39,7 +40,7 @@ document.getElementById("start").addEventListener("click", async function (e) {
         localStorage.setItem("publicId", result.data.publicId);
 
         // Redirect to the main page
-        window.location.href = "../chat_list";
+        window.location.href = "./chat_list";
 
     } catch (err) {
         if (err.name === "AbortError") {
