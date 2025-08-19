@@ -16,8 +16,8 @@ function initChat() {
 
     roomInfoDiv.textContent = `Sei nella stanza: ${roomId}`;
 
-    const input = document.getElementById("message");
-    const chat = document.getElementById("chat");
+    const input = document.getElementById("message"); // Input field for messages
+    const chat = document.getElementById("chat"); // Chat display area
 
     const apiKey = localStorage.getItem("apiKey");
     const serverUrl = localStorage.getItem("serverUrl");
@@ -25,12 +25,13 @@ function initChat() {
     const socketConnection = new SocketConnection(serverUrl, apiKey);
     socketConnection.connect();
 
-    // Add typing event listener
+    // Typing event listener
     input.addEventListener("input", () => {
         const payload = input.value;
         socketConnection.typing(roomId, payload);
     });
 
+    // Enter key event listener
     input.addEventListener("keydown", (event) => {
         if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault(); // Prevent default newline behavior
@@ -76,13 +77,13 @@ class SocketConnection {
             console.log("Disconnected from server");
         });
 
-/*         
-        this.socket.on("messageId", (payload) => {
-            // When a new message ID is received
-            console.info("Received message ID:", payload); // Show the message ID
-            this.currentMessageID = payload.messageId; // Set the current message ID
-        });
- */
+        /*         
+                this.socket.on("messageId", (payload) => {
+                    // When a new message ID is received
+                    console.info("Received message ID:", payload); // Show the message ID
+                    this.currentMessageID = payload.messageId; // Set the current message ID
+                });
+         */
 
         this.socket.on("ack", (payload) => {
             // When we receive an ack for writing a message
@@ -174,9 +175,9 @@ class SocketConnection {
 
         console.log("Sending finish message with local message id:", message_obj);
         this.socket.emit("finish", message_obj);
-    }
 
-    // TODO: add logic to manage the conclusion of a message in the local db
+        // TODO: add logic to manage the conclusion of a message in the local db
+    }
 }
 
 // Start the chat
