@@ -4,6 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const apiKey = localStorage.getItem("apiKey");
 
     if (!username || !serverUrl || !apiKey) {
-        window.location.href = "../onboarding";
+        window.location.href = "../";
     }
 });
