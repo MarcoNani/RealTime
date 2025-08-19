@@ -1,5 +1,6 @@
 // Helper function to sanitize HTML
 function sanitizeHTML(str) {
+  // TODO: add support to <br> tags
     var temp = document.createElement('div');
     temp.textContent = str;
     return temp.innerHTML;

@@ -94,20 +94,64 @@ class SocketConnection {
 
         this.socket.on("typing", (payload) => {
             // When we receive a typing version of a message
-            console.warn("Ricevuto un typing:", payload); // Mostra l'id del messaggio
+            console.warn("Ricevuto un typing:", payload);
 
-            // TODO: check in what room is this message, if it is in the current one show to the user
-            // TODO: store the message in the local message db
-            // TODO: decrypt the message payload for proper viewing
+            // Check if the message belongs to the current room
+            if (payload.roomId === getRoomIdFromURL()) {
+                const chat = document.getElementById("chat");
+                const existingMessage = document.getElementById(`message-${payload.messageId}`);
+
+                if (existingMessage) {
+                    // Update the existing message
+                    existingMessage.innerHTML = generateTextMessage({
+                        name: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
+                        time: new Date().toLocaleTimeString(),
+                        payload: payload.payload
+                    });
+                } else {
+                    // Create a new message element
+                    const messageElement = document.createElement("div");
+                    messageElement.id = `message-${payload.messageId}`;
+                    messageElement.innerHTML = generateTextMessage({
+                        name: payload.publicId,
+                        time: new Date().toLocaleTimeString(),
+                        payload: payload.payload
+                    });
+                    chat.appendChild(messageElement);
+                }
+                scrollToBottom();
+            }
         });
 
         this.socket.on("finish", (payload) => {
             // When we receive a final version of a message
-            console.warn("Ricevuta una versione finale:", payload); // Mostra l'id del messaggio
+            console.warn("Ricevuta una versione finale:", payload);
 
-            // TODO: check in what room is this message, if it is in the current one show to the user
-            // TODO: store the message in the local message db
-            // TODO: decrypt the message payload for proper viewing
+            // Check if the message belongs to the current room
+            if (payload.roomId === getRoomIdFromURL()) {
+                const chat = document.getElementById("chat");
+                const existingMessage = document.getElementById(`message-${payload.messageId}`);
+
+                if (existingMessage) {
+                    // Update the existing message
+                    existingMessage.innerHTML = generateTextMessage({
+                        name: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
+                        time: new Date().toLocaleTimeString(),
+                        payload: payload.payload
+                    });
+                } else {
+                    // Create a new message element
+                    const messageElement = document.createElement("div");
+                    messageElement.id = `message-${payload.messageId}`;
+                    messageElement.innerHTML = generateTextMessage({
+                        name: payload.publicId,
+                        time: new Date().toLocaleTimeString(),
+                        payload: payload.payload
+                    });
+                    chat.appendChild(messageElement);
+                }
+                scrollToBottom();
+            }
         });
     }
 
@@ -176,7 +220,37 @@ class SocketConnection {
         console.log("Sending finish message with local message id:", message_obj);
         this.socket.emit("finish", message_obj);
 
+        this.currentMessageID = undefined; // Reset the current message ID after sending
+
         // TODO: add logic to manage the conclusion of a message in the local db
+    }
+
+    displayMessage(payload) {
+        // Check if the message belongs to the current room
+        if (payload.roomId === getRoomIdFromURL()) {
+            const chat = document.getElementById("chat");
+            const existingMessage = document.getElementById(`message-${payload.messageId}`);
+
+            if (existingMessage) {
+                // Update the existing message
+                existingMessage.innerHTML = generateTextMessage({
+                    name: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
+                    time: new Date().toLocaleTimeString(),
+                    payload: payload.payload
+                });
+            } else {
+                // Create a new message element
+                const messageElement = document.createElement("div");
+                messageElement.id = `message-${payload.messageId}`;
+                messageElement.innerHTML = generateTextMessage({
+                    name: payload.publicId,
+                    time: new Date().toLocaleTimeString(),
+                    payload: payload.payload
+                });
+                chat.appendChild(messageElement);
+            }
+            scrollToBottom();
+        }
     }
 }
 
