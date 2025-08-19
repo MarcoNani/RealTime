@@ -1,45 +1,45 @@
 // Helper function to sanitize HTML
 function sanitizeHTML(str) {
   // TODO: add support to <br> tags
-    var temp = document.createElement('div');
-    temp.textContent = str;
-    return temp.innerHTML;
+  var temp = document.createElement('div');
+  temp.textContent = str;
+  return temp.innerHTML;
 }
 
 // Dictionary of colors
 const COLORS = [
-    '#FF5733', // Red
-    '#33FF57', // Green
-    '#3357FF', // Blue
-    '#F333FF', // Pink
-    '#33FFF3', // Cyan
-    '#FF33A1', // Magenta
-    '#A1FF33', // Lime
-    '#FFA133', // Orange
-    '#A133FF', // Purple
-    '#33FFA1'  // Mint
+  '#FF5733', // Red
+  '#33FF57', // Green
+  '#3357FF', // Blue
+  '#F333FF', // Pink
+  '#33FFF3', // Cyan
+  '#FF33A1', // Magenta
+  '#A1FF33', // Lime
+  '#FFA133', // Orange
+  '#A133FF', // Purple
+  '#33FFA1'  // Mint
 ];
 
 // Helper function to obtain a color from a username
 function getUsernameColor(username) {
-    // sum the ASCII values of each character in the username
-    var hash = 0;
-    for (var i = 0; i < username.length; i++) {
-        hash += username.charCodeAt(i);
-    }
+  // sum the ASCII values of each character in the username
+  var hash = 0;
+  for (var i = 0; i < username.length; i++) {
+    hash += username.charCodeAt(i);
+  }
 
-    // create the color
-    var index = hash % COLORS.length;
-    return COLORS[index];
+  // create the color
+  var index = hash % COLORS.length;
+  return COLORS[index];
 }
 
 // Generate message text to show
-function generateTextMessage(message_obj) {
-    messageHTMLelement = "";
-    messageHTMLelement = `<strong style="color: ${getUsernameColor(message_obj.name)};">${sanitizeHTML(message_obj.name)}`; // metto l'user
-    messageHTMLelement += ` @${message_obj.time}:</strong>` // metto il time
-    messageHTMLelement += ` ${sanitizeHTML(message_obj.payload)}`; // metto il testo del messaggio
-    return messageHTMLelement;        
+function generateTextMessage(name, time, payload) {
+  messageHTMLelement = "";
+  messageHTMLelement = `<strong style="color: ${getUsernameColor(name)};">${sanitizeHTML(name)}`; // metto l'user
+  messageHTMLelement += ` @${time}:</strong>` // metto il time
+  messageHTMLelement += ` ${sanitizeHTML(payload)}`; // metto il testo del messaggio
+  return messageHTMLelement;
 }
 
 // Generate a v4 UUID
@@ -55,4 +55,45 @@ function scrollToBottom() {
     console.debug("Scrolling to bottom");
     chat.scrollTop = chat.scrollHeight;
   }
+}
+
+/**
+ * @typedef {Object} Message
+ * @property {string} payload   - The message content
+ * @property {Date}   timestamp - When the message was created
+ * @property {string} username  - The user who sent the message
+ * @property {string} publicId  - The public identifier
+ * @property {string} messageId - The message identifier
+ */
+
+/**
+ * Renders a message in the chat div
+ * @param {Message} message_obj - The message object
+ */
+function renderMessage(message_obj) {
+
+  // Generate the message html element
+  const messageHTML = generateTextMessage(
+    message_obj.username,
+    message_obj.timestamp,
+    message_obj.payload
+  );
+
+
+  // Obtain the chat div
+  const chatDiv = document.getElementById("chat");
+
+  // Check if the message is already rendered, if yes update it, if no append it
+  const existingMessage = chatDiv.querySelector(`[data-message-id="${message_obj.messageId}"]`);
+  if (existingMessage) {
+    existingMessage.innerHTML = messageHTML;
+  } else {
+    const newMessage = document.createElement("div");
+    newMessage.setAttribute("data-message-id", message_obj.messageId);
+    newMessage.innerHTML = messageHTML;
+    chatDiv.appendChild(newMessage);
+  }
+
+  // Scroll to the bottom of the chat
+  scrollToBottom();
 }

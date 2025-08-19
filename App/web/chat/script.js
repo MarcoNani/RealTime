@@ -51,6 +51,8 @@ class SocketConnection {
         this.socket = null;
         this.authStatus = false;
         this.currentMessageID = undefined;
+        this.username = undefined; // Placeholder for username
+        this.publicId = undefined; // Placeholder for public ID
     }
 
     connect() {
@@ -66,6 +68,9 @@ class SocketConnection {
             console.info("Authentication successful, received:", message);
             // TODO: check if username and publicId match with those stored in the localStorage, if not warn the user about it and request if he wants to update them
             this.authStatus = true;
+
+            this.username = message.username;
+            this.publicId = message.publicId;
         });
 
         this.socket.on("authFailed", (error) => {
@@ -96,62 +101,34 @@ class SocketConnection {
             // When we receive a typing version of a message
             console.warn("Ricevuto un typing:", payload);
 
-            // Check if the message belongs to the current room
-            if (payload.roomId === getRoomIdFromURL()) {
-                const chat = document.getElementById("chat");
-                const existingMessage = document.getElementById(`message-${payload.messageId}`);
+            // Create message object
+            const message = {
+                payload: payload.payload,
+                timestamp: payload.timestamp,
+                username: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
+                publicId: payload.publicId,
+                messageId: payload.messageId
+            };
 
-                if (existingMessage) {
-                    // Update the existing message
-                    existingMessage.innerHTML = generateTextMessage({
-                        name: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
-                        time: new Date().toLocaleTimeString(),
-                        payload: payload.payload
-                    });
-                } else {
-                    // Create a new message element
-                    const messageElement = document.createElement("div");
-                    messageElement.id = `message-${payload.messageId}`;
-                    messageElement.innerHTML = generateTextMessage({
-                        name: payload.publicId,
-                        time: new Date().toLocaleTimeString(),
-                        payload: payload.payload
-                    });
-                    chat.appendChild(messageElement);
-                }
-                scrollToBottom();
-            }
+            // Render message
+            renderMessage(message);
         });
 
         this.socket.on("finish", (payload) => {
             // When we receive a final version of a message
             console.warn("Ricevuta una versione finale:", payload);
 
-            // Check if the message belongs to the current room
-            if (payload.roomId === getRoomIdFromURL()) {
-                const chat = document.getElementById("chat");
-                const existingMessage = document.getElementById(`message-${payload.messageId}`);
+            // Create message object
+            const message = {
+                payload: payload.payload,
+                timestamp: payload.timestamp,
+                username: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
+                publicId: payload.publicId,
+                messageId: payload.messageId
+            };
 
-                if (existingMessage) {
-                    // Update the existing message
-                    existingMessage.innerHTML = generateTextMessage({
-                        name: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
-                        time: new Date().toLocaleTimeString(),
-                        payload: payload.payload
-                    });
-                } else {
-                    // Create a new message element
-                    const messageElement = document.createElement("div");
-                    messageElement.id = `message-${payload.messageId}`;
-                    messageElement.innerHTML = generateTextMessage({
-                        name: payload.publicId,
-                        time: new Date().toLocaleTimeString(),
-                        payload: payload.payload
-                    });
-                    chat.appendChild(messageElement);
-                }
-                scrollToBottom();
-            }
+            // Render message
+            renderMessage(message);
         });
     }
 
@@ -203,6 +180,19 @@ class SocketConnection {
             // Send the message to the server
             console.log("Sending typing message with local message id:", message_obj);
             this.socket.emit("typing", message_obj);
+
+            // Create message object
+            const message = {
+                payload: payload,
+                timestamp: Date.now(),
+                username: this.username,
+                publicId: this.publicId,
+                messageId: this.currentMessageID
+            };
+
+            // Render message
+            renderMessage(message);
+
         } catch (error) {
             console.error("Error while sending typing message:", error);
         }
@@ -219,6 +209,18 @@ class SocketConnection {
 
         console.log("Sending finish message with local message id:", message_obj);
         this.socket.emit("finish", message_obj);
+
+        // Create message object
+        const message = {
+            payload: payload,
+            timestamp: Date.now(),
+            username: this.username,
+            publicId: this.publicId,
+            messageId: this.currentMessageID
+        };
+
+        // Render message
+        renderMessage(message);
 
         this.currentMessageID = undefined; // Reset the current message ID after sending
 
