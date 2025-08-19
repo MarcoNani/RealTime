@@ -30,6 +30,17 @@ function initChat() {
         const payload = input.value;
         socketConnection.typing(roomId, payload);
     });
+
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault(); // Prevent default newline behavior
+            const payload = input.value.trim();
+            if (payload) {
+                socketConnection.finishTyping(roomId, payload);
+                input.value = ""; // Clear the input field after sending
+            }
+        }
+    });
 }
 
 class SocketConnection {
@@ -151,6 +162,21 @@ class SocketConnection {
             console.error("Error while sending typing message:", error);
         }
     }
+
+    finishTyping(room, payload) {
+        // Finish typing the message and send the final payload to the server
+        const message_obj = {
+            sendId: uuidv4(),
+            messageId: this.currentMessageID,
+            roomId: room,
+            payload: payload,
+        };
+
+        console.log("Sending finish message with local message id:", message_obj);
+        this.socket.emit("finish", message_obj);
+    }
+
+    // TODO: add logic to manage the conclusion of a message in the local db
 }
 
 // Start the chat
