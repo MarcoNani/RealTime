@@ -40,7 +40,7 @@ document.getElementById("start").addEventListener("click", async function (e) {
         localStorage.setItem("publicId", result.data.publicId);
 
         // Redirect to the main page
-        window.location.href = "./chat_list";
+        window.location.href = "./chat_list/";
 
     } catch (err) {
         if (err.name === "AbortError") {
