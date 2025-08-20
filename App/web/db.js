@@ -17,6 +17,12 @@ window.DB = (function() {
           const usersStore = db.createObjectStore("Users", { keyPath: "publicId" });
           usersStore.createIndex("publicId_idx", "publicId", { unique: true });
         }
+
+        if (!db.objectStoreNames.contains("Messages")) {
+          const messagesStore = db.createObjectStore("Messages", { keyPath: "messageId" });
+          messagesStore.createIndex("roomId_idx", "roomId", { unique: false });
+          messagesStore.createIndex("timestamp_idx", "timestamp", { unique: false });
+        }
       };
 
       request.onsuccess = function (event) {
@@ -109,9 +115,46 @@ window.DB = (function() {
     });
   }
 
+  function saveMessage(db, message) {
+    // If we have stored a final version of a message with the same ID, the partial version should not be stored
+    return new Promise((resolve, reject) => {
+      const tx = getTransaction(db, ["Messages"]);
+      const messagesStore = tx.objectStore("Messages");
+
+      const request = messagesStore.get(message.messageId);
+
+      request.onsuccess = () => {
+        const existingMessage = request.result;
+
+        // Check if the existing message is final and should not be overwritten
+        if (existingMessage && !existingMessage.typing) {
+          resolve(); // Do not store the partial message
+        } else {
+          const newMessage = {
+            messageId: message.messageId,
+            roomId: message.roomId,
+            payload: message.payload,
+            timestamp: message.timestamp,
+            publicId: message.publicId,
+            type: message.type,
+            typing: message.typing
+          };
+
+          const putRequest = messagesStore.put(newMessage);
+
+          putRequest.onsuccess = () => resolve();
+          putRequest.onerror = () => reject(putRequest.error);
+        }
+      };
+
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   return {
     initDB,
     saveRoomsFromServer,
-    getAllRooms
+    getAllRooms,
+    saveMessage
   };
 })();
