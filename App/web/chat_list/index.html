@@ -9,19 +9,23 @@
 </head>
 
 <body>
-    <h1>Le tue stanze</h1>
+    <h1>Rooms where you are in</h1>
 
     <div>
-        <button id="createRoomButton">Crea una stanza</button>
+        <button id="createRoomButton">Create a room</button>
     </div>
     </br>
     <div>
-        <input type="text" id="roomIdInput" placeholder="ID stanza" size="10">
-        <button id="joinRoomButton">Chiedi di entrare in una stanza</button>
+        <input type="text" id="roomIdInput" placeholder="Room ID" size="10">
+        <button id="joinRoomButton">Request to join a room</button>
+    </div>
+    </br>
+    <div>
+        <button id="refreshRoomsButton">Refresh Room List</button>
     </div>
 
     <div id="roomsContainer">
-        Caricamento...
+        Loading, this may take up to 1 minute, please wait...
     </div>
 
     <script src="./chat_list.js"></script>

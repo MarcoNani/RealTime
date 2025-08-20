@@ -110,6 +110,9 @@ class SocketConnection {
                 messageId: payload.messageId
             };
 
+            // TODO: check if the message is for the current room or for another room: if current room render, if not only store it
+            // TODO: store message in indexDB
+
             // Render message
             renderMessage(message);
         });
@@ -126,6 +129,9 @@ class SocketConnection {
                 publicId: payload.publicId,
                 messageId: payload.messageId
             };
+
+            // TODO: check if the message is for the current room or for another room: if current room render, if not only store it
+            // TODO: store message in indexDB
 
             // Render message
             renderMessage(message);
