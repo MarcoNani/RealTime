@@ -22,7 +22,7 @@ function initChat() {
     const apiKey = localStorage.getItem("apiKey");
     const serverUrl = localStorage.getItem("serverUrl");
 
-    const socketConnection = new SocketConnection(serverUrl, apiKey);
+    const socketConnection = new SocketConnection(serverUrl, roomId, apiKey);
     socketConnection.connect();
 
     // Typing event listener
@@ -45,8 +45,9 @@ function initChat() {
 }
 
 class SocketConnection {
-    constructor(serverUrl, apiKey) {
+    constructor(serverUrl, currentRoomId, apiKey) {
         this.serverUrl = serverUrl;
+        this.currentRoomId = currentRoomId;
         this.apiKey = apiKey;
         this.socket = null;
         this.authStatus = false;
@@ -66,7 +67,7 @@ class SocketConnection {
 
         this.socket.on("authSuccess", (message) => {
             console.info("Authentication successful, received:", message);
-            // TODO: check if username and publicId match with those stored in the localStorage, if not warn the user about it and request if he wants to update them
+            // TODO: check if username and publicId match with those stored in the db, if not warn the user about it and request if he wants to update them
             this.authStatus = true;
 
             this.username = message.username;
@@ -111,10 +112,17 @@ class SocketConnection {
             };
 
             // TODO: check if the message is for the current room or for another room: if current room render, if not only store it
-            // TODO: store message in indexDB
+            if (payload.roomId === this.currentRoomId) {
+                // Render message
+                console.log("Rendering message:", message);
+                renderMessage(message);
+            } else {
+                // Store message in indexDB
+                // TODO: i can implement a QUEUE system but now i don't want to do it
+                //console.log("Storing message in indexDB:", message);
+                // TODO: write code to store messages in the db
 
-            // Render message
-            renderMessage(message);
+            }
         });
 
         this.socket.on("finish", (payload) => {
