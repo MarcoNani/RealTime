@@ -22,6 +22,19 @@ async function fetchRooms() {
 
         const data = await response.json();
         renderRooms(data.data.rooms);
+        console.log(data.data);
+
+        // Save rooms to IndexedDB
+        const db = await DB.initDB();
+        await DB.saveRoomsFromServer(db, data.data.rooms);
+
+        // TODO: remove this
+        // log saved rooms for debug purposes
+        DB.getAllRooms(db).then(rooms => {
+            console.log("Rooms saved in IndexedDB:", rooms);
+        });
+
+
     } catch (error) {
         document.getElementById("roomsContainer").innerText = `Error: ${error.message}`;
         console.error(error);

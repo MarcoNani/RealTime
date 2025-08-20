@@ -1,0 +1,117 @@
+window.DB = (function() {
+
+  function initDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("ChatDB", 1);
+
+      request.onupgradeneeded = function (event) {
+        const db = event.target.result;
+
+        if (!db.objectStoreNames.contains("Rooms")) {
+          const roomsStore = db.createObjectStore("Rooms", { keyPath: "roomId" });
+          roomsStore.createIndex("roomId_idx", "roomId", { unique: true });
+          roomsStore.createIndex("latestMessageTimestamp_idx", "latestMessageTimestamp", { unique: false });
+        }
+
+        if (!db.objectStoreNames.contains("Users")) {
+          const usersStore = db.createObjectStore("Users", { keyPath: "publicId" });
+          usersStore.createIndex("publicId_idx", "publicId", { unique: true });
+        }
+      };
+
+      request.onsuccess = function (event) {
+        const db = event.target.result;
+        console.log("Database initialized:", db.name);
+        resolve(db);
+      };
+
+      request.onerror = function (event) {
+        console.error("Database error:", event.target.error);
+        reject(event.target.error);
+      };
+    });
+  }
+
+  function getTransaction(db, stores, mode = "readwrite") {
+    return db.transaction(stores, mode);
+  }
+
+  function saveUser(usersStore, member) {
+    const user = { publicId: member.publicId, username: member.username };
+    usersStore.put(user);
+  }
+
+  function haveMembersChanged(existingMembers, newMembers) {
+    if (existingMembers.size !== newMembers.size) return true;
+    for (let m of newMembers) {
+      if (!existingMembers.has(m)) return true;
+    }
+    return false;
+  }
+
+  async function saveOrUpdateRoom(roomsStore, roomId, members) {
+    const request = roomsStore.get(roomId);
+
+    return new Promise((resolve, reject) => {
+      request.onsuccess = function (event) {
+        const existingRoom = event.target.result;
+
+        if (!existingRoom) {
+          // Room doesn't exist, create a new one
+          const newRoom = {
+            roomId,
+            members: members.map(m => m.publicId),
+            latestMessageTimestamp: Date.now()
+          };
+          roomsStore.put(newRoom);
+        } else {
+          // Room exists, update it if members have changed
+          const existingMembers = new Set(existingRoom.members);
+          const newMembers = new Set(members.map(m => m.publicId));
+
+          if (haveMembersChanged(existingMembers, newMembers)) {
+            existingRoom.members = Array.from(newMembers);
+            roomsStore.put(existingRoom);
+          }
+        }
+
+        resolve();
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async function saveRoomsFromServer(db, roomsFromServer) {
+    // Save rooms and users from server to IndexedDB (update if already exist)
+    const tx = getTransaction(db, ["Rooms", "Users"]);
+    const roomsStore = tx.objectStore("Rooms");
+    const usersStore = tx.objectStore("Users");
+
+    for (const serverRoom of roomsFromServer) {
+      const { roomId, members } = serverRoom;
+
+      for (const member of members) saveUser(usersStore, member);
+
+      await saveOrUpdateRoom(roomsStore, roomId, members);
+    }
+
+    return tx.complete;
+  }
+
+  function getAllRooms(db) {
+    return new Promise((resolve, reject) => {
+      const tx = getTransaction(db, ["Rooms"], "readonly");
+      const store = tx.objectStore("Rooms");
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  return {
+    initDB,
+    saveRoomsFromServer,
+    getAllRooms
+  };
+})();

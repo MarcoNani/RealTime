@@ -41,7 +41,6 @@ document.getElementById("start").addEventListener("click", async function (e) {
 
         // Save user information in localStorage
         localStorage.setItem("serverUrl", server);
-        localStorage.setItem("username", result.data.username);
         localStorage.setItem("apiKey", result.data.apiKey);
         localStorage.setItem("publicId", result.data.publicId);
 
@@ -63,11 +62,10 @@ document.getElementById("start").addEventListener("click", async function (e) {
 
 // Check if data is already present in localStorage
 const storedServerUrl = localStorage.getItem("serverUrl");
-const storedUsername = localStorage.getItem("username");
 const storedApiKey = localStorage.getItem("apiKey");
 const storedPublicId = localStorage.getItem("publicId");
 
-if (storedServerUrl && storedUsername && storedApiKey && storedPublicId) {
+if (storedServerUrl && storedApiKey && storedPublicId) {
     // Redirect directly to the chat list
     window.location.href = "./chat_list/";
 }
