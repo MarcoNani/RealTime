@@ -25,6 +25,20 @@ async function initChat() {
     const socketConnection = new SocketConnection(serverUrl, roomId, apiKey);
     await socketConnection.connect();
 
+    // Load messages for the current room
+    try {
+        const db = socketConnection.db; // Use the initialized database instance
+        const messages = await DB.getMessagesForRoom(db, roomId, {
+            order: "asc", // Load messages in ascending order
+            // limit: 50 // Load the last 50 messages
+        });
+
+        // Render each message in the chat
+        messages.forEach(renderMessage);
+    } catch (error) {
+        console.error("Failed to load messages for room:", error);
+    }
+
     // Typing event listener
     input.addEventListener("input", () => {
         const payload = input.value;
@@ -55,6 +69,7 @@ class SocketConnection {
         this.username = undefined; // Placeholder for username
         this.publicId = undefined; // Placeholder for public ID
         this.db = null; // Placeholder for the database instance
+        this.userDictionary = {}; // Dictionary to store publicId -> username mappings
     }
 
     async connect() {
@@ -118,7 +133,7 @@ class SocketConnection {
             const message = {
                 payload: payload.payload,
                 timestamp: payload.timestamp,
-                username: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
+                username: this.userDictionary[payload.publicId] || payload.publicId, // Replace publicId with username
                 publicId: payload.publicId,
                 messageId: payload.messageId,
                 typing: true // Indicate that this is a typing message
@@ -150,7 +165,7 @@ class SocketConnection {
             const message = {
                 payload: payload.payload,
                 timestamp: payload.timestamp,
-                username: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
+                username: this.userDictionary[payload.publicId] || payload.publicId, // Replace publicId with username
                 publicId: payload.publicId,
                 messageId: payload.messageId,
                 typing: false // Indicate that the user is no longer typing this msg
@@ -172,6 +187,18 @@ class SocketConnection {
             console.log("Storing message in indexDB:", message);
             DB.saveMessage(this.db, message); // Pass the initialized db instance
         });
+
+        try {
+            // Load the user dictionary for the current room from the database
+            const users = await DB.getUsersForRoom(this.db, this.currentRoomId);
+            this.userDictionary = users.reduce((dict, user) => {
+                dict[user.publicId] = user.username;
+                return dict;
+            }, {});
+            console.log("Loaded user dictionary for room:", this.userDictionary);
+        } catch (error) {
+            console.error("Failed to load user dictionary for room:", error);
+        }
     }
 
     requestMessageId(room) {

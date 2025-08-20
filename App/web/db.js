@@ -151,10 +151,108 @@ window.DB = (function() {
     });
   }
 
+  function getMessagesForRoom(db, roomId, { startTimestamp, endTimestamp, limit, order = "asc" } = {}) {
+    return new Promise((resolve, reject) => {
+      const tx = getTransaction(db, ["Messages", "Users"], "readonly");
+      const messagesStore = tx.objectStore("Messages");
+      const usersStore = tx.objectStore("Users");
+      const index = messagesStore.index("roomId_idx");
+      const range = IDBKeyRange.only(roomId);
+      const messages = [];
+
+      const request = index.openCursor(range, order === "asc" ? "next" : "prev");
+
+      request.onsuccess = async (event) => {
+        const cursor = event.target.result;
+
+        if (!cursor || (limit && messages.length >= limit)) {
+          resolve(messages);
+          return;
+        }
+
+        const message = cursor.value;
+
+        if (
+          (!startTimestamp || message.timestamp >= startTimestamp) &&
+          (!endTimestamp || message.timestamp <= endTimestamp)
+        ) {
+          // Retrieve the username for the message's publicId
+          const userRequest = usersStore.get(message.publicId);
+          userRequest.onsuccess = () => {
+            message.username = userRequest.result ? userRequest.result.username : null;
+            messages.push(message);
+          };
+          userRequest.onerror = () => {
+            message.username = null; // Default to null if user not found
+            messages.push(message);
+          };
+        }
+
+        cursor.continue();
+      };
+
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  function getAllUsers(db) {
+    return new Promise((resolve, reject) => {
+      const tx = getTransaction(db, ["Users"], "readonly");
+      const store = tx.objectStore("Users");
+      const request = store.getAll();
+
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  function getUsersForRoom(db, roomId) {
+    return new Promise((resolve, reject) => {
+      const tx = getTransaction(db, ["Rooms", "Users"], "readonly");
+      const roomsStore = tx.objectStore("Rooms");
+      const usersStore = tx.objectStore("Users");
+
+      const roomRequest = roomsStore.get(roomId);
+
+      roomRequest.onsuccess = () => {
+        const room = roomRequest.result;
+        if (!room || !room.members) {
+          resolve([]); // No members found for the room
+          return;
+        }
+
+        const users = [];
+        let pendingRequests = room.members.length;
+
+        room.members.forEach((publicId) => {
+          const userRequest = usersStore.get(publicId);
+          userRequest.onsuccess = () => {
+            if (userRequest.result) {
+              users.push(userRequest.result);
+            }
+            if (--pendingRequests === 0) {
+              resolve(users);
+            }
+          };
+          userRequest.onerror = () => {
+            if (--pendingRequests === 0) {
+              resolve(users);
+            }
+          };
+        });
+      };
+
+      roomRequest.onerror = () => reject(roomRequest.error);
+    });
+  }
+
   return {
     initDB,
     saveRoomsFromServer,
     getAllRooms,
-    saveMessage
+    saveMessage,
+    getMessagesForRoom,
+    getAllUsers,
+    getUsersForRoom
   };
 })();

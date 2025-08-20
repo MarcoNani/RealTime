@@ -13,15 +13,6 @@
 - payload (string)
 - timestamp (string)
 - publicId (string)
-- type (string)
+- type (string) [text | images | system...]
 - typing (bool)
-
-### IndexedDB Schema Updates
-- Added `Messages` object store with the following fields:
-  - `messageId` (string, primary key)
-  - `roomId` (string, indexed)
-  - `payload` (string)
-  - `timestamp` (string)
-  - `publicId` (string)
-  - `type` (string)
-  - `typing` (bool)
+- username (string) [added dynamically when fetching messages]
