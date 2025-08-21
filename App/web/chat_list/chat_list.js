@@ -38,6 +38,9 @@ async function fetchRooms() {
     } catch (error) {
         document.getElementById("roomsContainer").innerText = `Error: ${error.message}`;
         console.error(error);
+    } finally {
+        // Refresh the room list automatically
+        setTimeout(fetchRooms, 5000);
     }
 }
 
@@ -110,45 +113,78 @@ async function voteOnJoinRequest(roomId, requestId, vote) {
 
 function renderRooms(rooms) {
     const container = document.getElementById("roomsContainer");
-    container.innerHTML = "";
 
     if (!rooms || rooms.length === 0) {
         container.innerText = "You are not a member of any room.";
         return;
     }
 
-    const ul = document.createElement("ul");
+    // Usa o crea la <ul>
+    let ul = container.querySelector("ul");
+    if (!ul) {
+        ul = document.createElement("ul");
+        container.innerHTML = "";
+        container.appendChild(ul);
+    }
 
+    const currentRoomIds = new Set(rooms.map(r => r.roomId));
+
+    // Rimuovi stanze che non esistono più
+    Array.from(ul.children).forEach(li => {
+        const roomId = li.dataset.roomId;
+        if (!currentRoomIds.has(roomId)) {
+            ul.removeChild(li);
+        }
+    });
+
+    // Aggiorna / Aggiungi stanze
     rooms.forEach(async room => {
-        const li = document.createElement("li");
-        li.innerHTML = `<strong>Room ID:</strong> ${room.roomId}<br>
-                        <strong>Members:</strong> ${room.members.map(m => m.username || m.publicId || 'Unknown').join(", ")}<br>
-                        <a href="../chat/?roomId=${room.roomId}">Open Chat</a>`;
+        let li = ul.querySelector(`[data-room-id="${room.roomId}"]`);
 
+        // Se non esiste, crealo
+        if (!li) {
+            li = document.createElement("li");
+            li.dataset.roomId = room.roomId;
+            ul.appendChild(li);
+        }
+
+        // Aggiorna i contenuti della stanza
+        const membersText = room.members
+            .map(m => m.username || m.publicId || "Unknown")
+            .join(", ");
+
+        li.innerHTML = `
+            <strong>Room ID:</strong> ${room.roomId}<br>
+            <strong>Members:</strong> ${membersText}<br>
+            <a href="../chat/?roomId=${room.roomId}">Open Chat</a>
+            <div class="requests"></div>
+        `;
+
+        // Aggiorna le join requests
+        const requestsDiv = li.querySelector(".requests");
         const joinRequests = await fetchJoinRequests(room.roomId);
 
         if (joinRequests.length > 0) {
-            const requestsDiv = document.createElement("div");
             requestsDiv.innerHTML = "<strong>Pending join requests:</strong>";
             const requestsList = document.createElement("ul");
 
             joinRequests.forEach(request => {
                 const requestItem = document.createElement("li");
-                requestItem.innerHTML = `${request.requestorUsername || request.requestorPublicId || "Unknown"} 
-                                         <button style="color: green;" onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', true)">Approve</button>
-                                         <button style="color: red;" onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', false)">Reject</button>`;
+                requestItem.innerHTML = `
+                    ${request.requestorUsername || request.requestorPublicId || "Unknown"} 
+                    <button style="color: green;" onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', true)">Approve</button>
+                    <button style="color: red;" onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', false)">Reject</button>
+                `;
                 requestsList.appendChild(requestItem);
             });
 
             requestsDiv.appendChild(requestsList);
-            li.appendChild(requestsDiv);
+        } else {
+            requestsDiv.innerHTML = ""; // Nessuna richiesta
         }
-
-        ul.appendChild(li);
     });
-
-    container.appendChild(ul);
 }
+
 
 // Start fetching on page load
 fetchRooms();
@@ -181,11 +217,8 @@ async function createRoom() {
         const data = await response.json();
         const roomId = data.data.roomId;
 
-        // Copy the roomId to the clipboard
-        await navigator.clipboard.writeText(roomId);
-
         // Show alert with Room ID
-        alert(`Room successfully created and Room ID copied to clipboard!\nRoom ID: ${roomId}`);
+        alert(`Room successfully created with Room ID: ${roomId}`);
 
 
         // Refresh the room list
