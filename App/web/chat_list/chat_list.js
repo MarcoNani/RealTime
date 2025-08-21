@@ -20,6 +20,10 @@ async function fetchRooms() {
             throw new Error(`API Error: ${response.status}`);
         }
 
+        // TODO: load rooms from IndexedDB and compare to server data to understand discrepancies
+
+        // TODO: remove a user if he is no longer in a room but keep the room in the db and display it in the list
+
         const data = await response.json();
         renderRooms(data.data.rooms);
         console.log(data.data);
@@ -159,6 +163,10 @@ function renderRooms(rooms) {
             <a href="../chat/?roomId=${room.roomId}">Open Chat</a>
             <div class="requests"></div>
         `;
+
+        // TODO: show previous votes
+
+        // TODO: show room creation date
 
         // Aggiorna le join requests
         const requestsDiv = li.querySelector(".requests");
