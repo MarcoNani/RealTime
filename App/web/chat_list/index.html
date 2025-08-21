@@ -6,20 +6,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rooms</title>
     <script src="../buttafuori.js"></script>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-    <h1>Rooms where you are in</h1>
+    <h1>Your chatrooms</h1>
 
     <div>
         <button id="createRoomButton">Create a room</button>
     </div>
-    </br>
+    <br>
+    <div>
+        <a href="../create_room/">
+            <button id="createWithQRButton">Create a room with QR code</button>
+        </a>
+    </div>
+    <div>
+        <a href="../join_room/">
+            <button id="joinWithQRButton">Join a room with QR code</button>
+        </a>
+    </div>
+
     <div>
         <input type="text" id="roomIdInput" placeholder="Room ID" size="10">
         <button id="joinRoomButton">Request to join a room</button>
     </div>
-    </br>
+    <br>
     <div>
         <button id="refreshRoomsButton">Refresh Room List</button>
     </div>

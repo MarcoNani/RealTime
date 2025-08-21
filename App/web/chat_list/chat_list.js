@@ -13,7 +13,8 @@ async function fetchRooms() {
             headers: {
                 "X-API-Key": apiKey,
                 "Content-Type": "application/json"
-            }
+            },
+            cache: "no-store" // never use the browser cache
         });
 
         if (!response.ok) {
@@ -48,6 +49,7 @@ async function fetchRooms() {
     }
 }
 
+// TODO: use the function from api.js instead
 async function fetchJoinRequests(roomId) {
     const serverUrl = localStorage.getItem("serverUrl");
     const apiKey = localStorage.getItem("apiKey");
@@ -158,11 +160,13 @@ function renderRooms(rooms) {
             .join(", ");
 
         li.innerHTML = `
+        <a href="../chat/?roomId=${room.roomId}" class="chat-link">
             <strong>Room ID:</strong> ${room.roomId}<br>
             <strong>Members:</strong> ${membersText}<br>
-            <a href="../chat/?roomId=${room.roomId}">Open Chat</a>
             <div class="requests"></div>
+        </a>
         `;
+
 
         // TODO: show previous votes
 
