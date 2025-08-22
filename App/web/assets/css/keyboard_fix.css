@@ -1,0 +1,4 @@
+/* Garantisce che il contenuto principale si ridimensioni dinamicamente */
+.content {
+  transition: margin-bottom 0.3s ease;
+}
