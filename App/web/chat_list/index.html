@@ -7,39 +7,36 @@
     <title>Rooms</title>
     <script src="../buttafuori.js"></script>
     <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../buttons.css">
     <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="../navbar.css">
 </head>
 
 <body>
-    <h1>Your chatrooms</h1>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <h2>Your chatrooms</h2>
+    </nav>
 
-    <div>
-        <button id="createRoomButton">Create a room</button>
-    </div>
-    <br>
-    <div>
-        <a href="../create_room/">
-            <button id="createWithQRButton">Create a room with QR code</button>
-        </a>
-    </div>
-    <div>
-        <a href="../join_room/">
-            <button id="joinWithQRButton">Join a room with QR code</button>
-        </a>
-    </div>
+    <main class="content">
+        <!-- Button container for side-by-side layout -->
+        <div class="button-group">
+            <a href="../create_room/">
+                <button id="createWithQRButton" class="primary-button app-button">Create room</button>
+            </a>
+            <a href="../join_room/">
+                <button id="joinWithQRButton" class="app-button">Join room</button>
+            </a>
+        </div>
 
-    <div>
-        <input type="text" id="roomIdInput" placeholder="Room ID" size="10">
-        <button id="joinRoomButton">Request to join a room</button>
-    </div>
-    <br>
-    <div>
-        <button id="refreshRoomsButton">Refresh Room List</button>
-    </div>
+<!--         <div>
+            <button id="refreshRoomsButton" class="app-button">Refresh Room List</button>
+        </div> -->
 
-    <div id="roomsContainer">
-        Loading, this may take up to 1 minute, please wait...
-    </div>
+        <div id="roomsContainer">
+            Loading, this may take up to 1 minute, please wait...
+        </div>
+    </main>
 
     <script src="../db.js"></script>
     <script src="./chat_list.js"></script>

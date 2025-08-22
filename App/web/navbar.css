@@ -4,6 +4,7 @@
   top: 0;
   left: 0;
   width: 94%;
+  height: 40px;
   background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
   backdrop-filter: blur(10px); /* blur effect */
   -webkit-backdrop-filter: blur(10px); /* For Safari support */
@@ -54,9 +55,5 @@
 
 /* CONTENT */
 .content {
-  margin-top: 70px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
+  margin-top: 80px;
 }
