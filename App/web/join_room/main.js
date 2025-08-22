@@ -49,4 +49,4 @@ async function main() {
   }
 }
 
-main();
+window.main = main; // export main to global scope so it can be called from HTML
