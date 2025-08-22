@@ -3,9 +3,9 @@ export function scanQRCode(videoElement, canvasElement, resultElement, stream) {
     const video = videoElement;
     const canvas = canvasElement.getContext("2d");
 
-    // Utilizziamo lo stream già ottenuto invece di richiedere nuovi permessi
+    // Use the already obtained stream instead of requesting new permissions
     video.srcObject = stream;
-    video.setAttribute("playsinline", true); // necessario per iOS
+    video.setAttribute("playsinline", true); // necessary for iOS
     video.play();
 
     function tick() {
@@ -18,7 +18,7 @@ export function scanQRCode(videoElement, canvasElement, resultElement, stream) {
         const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
         if (code) {
-          // evidenzia il QR
+          // Highlight the QR code
           drawLine(code.location.topLeftCorner, code.location.topRightCorner, canvas);
           drawLine(code.location.topRightCorner, code.location.bottomRightCorner, canvas);
           drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, canvas);
@@ -26,13 +26,13 @@ export function scanQRCode(videoElement, canvasElement, resultElement, stream) {
 
           resultElement.innerText = `QR Code: ${code.data}`;
 
-          // ferma la fotocamera
+          // Stop the camera
           stream.getTracks().forEach(track => track.stop());
 
           resolve(code.data);
           return;
         } else {
-          resultElement.innerText = "In attesa di QR Code...";
+          resultElement.innerText = "Waiting for QR Code...";
         }
       }
       requestAnimationFrame(tick);

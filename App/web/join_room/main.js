@@ -1,77 +1,77 @@
 import { scanQRCode } from './scanner.js';
 
-// Aggiungi questa funzione per popolare il dropdown delle fotocamere
+// Add this function to populate the camera dropdown
 async function populateCameraList() {
   const cameraList = document.getElementById('camera-list');
   
   try {
-    // Prima richiesta per ottenere il permesso di accesso alle fotocamere
+    // Initial request to get permission to access cameras
     const initialStream = await navigator.mediaDevices.getUserMedia({ video: true });
-    // Ferma subito lo stream, ci serve solo per avere accesso alle etichette
+    // Immediately stop the stream, we only need it to access labels
     initialStream.getTracks().forEach(track => track.stop());
     
-    // Ora possiamo ottenere le etichette delle fotocamere
+    // Now we can get the camera labels
     const devices = await navigator.mediaDevices.enumerateDevices();
     const videoDevices = devices.filter(device => device.kind === 'videoinput');
     
-    // Pulisci il dropdown
+    // Clear the dropdown
     cameraList.innerHTML = '';
     
     if (videoDevices.length === 0) {
       const option = document.createElement('option');
-      option.text = 'Nessuna fotocamera disponibile';
+      option.text = 'No cameras available';
       cameraList.add(option);
       cameraList.disabled = true;
       return;
     }
     
-    // Aggiungi tutte le fotocamere al dropdown
+    // Add all cameras to the dropdown
     let hasBackCamera = false;
     videoDevices.forEach((device, index) => {
       const option = document.createElement('option');
       option.value = device.deviceId;
       
-      // Crea un nome descrittivo
-      let cameraName = device.label || `Fotocamera ${index + 1}`;
+      // Create a descriptive name
+      let cameraName = device.label || `Camera ${index + 1}`;
       
-      // Aggiungi informazioni sul tipo di fotocamera
+      // Add information about the camera type
       if (cameraName.toLowerCase().includes('back')) {
         if (cameraName.toLowerCase().includes('ultra') || cameraName.toLowerCase().includes('wide')) {
-          cameraName += ' (Grandangolare)';
+          cameraName += ' (Wide Angle)';
         } else {
-          cameraName += ' (Posteriore)';
+          cameraName += ' (Rear)';
           hasBackCamera = true;
         }
       } else if (cameraName.toLowerCase().includes('front')) {
-        cameraName += ' (Frontale)';
+        cameraName += ' (Front)';
       }
       
       option.text = cameraName;
       cameraList.add(option);
       
-      // Se è una fotocamera posteriore standard, selezionala di default
-      if (cameraName.includes('Posteriore') && 
+      // If it's a standard rear camera, select it by default
+      if (cameraName.includes('Rear') && 
           !cameraName.toLowerCase().includes('wide') && 
           !cameraName.toLowerCase().includes('ultra')) {
         cameraList.value = device.deviceId;
       }
     });
     
-    // Se non abbiamo già selezionato una fotocamera, imposta la prima disponibile
+    // If no camera has been selected yet, set the first available one
     if (!cameraList.value && videoDevices.length > 0) {
       cameraList.value = videoDevices[0].deviceId;
     }
     
     cameraList.disabled = false;
-    console.log("Lista fotocamere caricata");
+    console.log("Camera list loaded");
     
   } catch (err) {
-    console.error("Errore nell'accesso alle fotocamere:", err);
-    cameraList.innerHTML = '<option value="">Errore accesso fotocamere</option>';
+    console.error("Error accessing cameras:", err);
+    cameraList.innerHTML = '<option value="">Error accessing cameras</option>';
   }
 }
 
-// Chiama questa funzione quando la pagina si carica
+// Call this function when the page loads
 document.addEventListener('DOMContentLoaded', populateCameraList);
 
 async function main() {
@@ -80,11 +80,11 @@ async function main() {
   const resultElement = document.getElementById("result");
   const cameraList = document.getElementById("camera-list");
 
-  console.log("Attendo QR Code...");
-  resultElement.innerText = "Richiedo accesso alla fotocamera...";
+  console.log("Waiting for QR Code...");
+  resultElement.innerText = "Requesting camera access...";
 
   try {
-    // Usa la fotocamera selezionata dall'utente nel dropdown
+    // Use the camera selected by the user in the dropdown
     const constraints = {
       video: {
         advanced: [
@@ -95,50 +95,50 @@ async function main() {
       audio: false
     };
     
-    // Se l'utente ha selezionato una fotocamera specifica, usala
+    // If the user has selected a specific camera, use it
     if (cameraList.value) {
       constraints.video.deviceId = { exact: cameraList.value };
-      console.log(`Usando fotocamera selezionata: ${cameraList.options[cameraList.selectedIndex].text}`);
-      resultElement.innerText = `Utilizzo fotocamera: ${cameraList.options[cameraList.selectedIndex].text}`;
+      console.log(`Using selected camera: ${cameraList.options[cameraList.selectedIndex].text}`);
+      resultElement.innerText = `Using camera: ${cameraList.options[cameraList.selectedIndex].text}`;
     } else {
-      // Fallback se non è stata selezionata una fotocamera specifica
+      // Fallback if no specific camera has been selected
       constraints.video.facingMode = "environment";
-      console.log("Nessuna fotocamera specifica selezionata, utilizzo fotocamera posteriore predefinita");
+      console.log("No specific camera selected, using default rear camera");
     }
 
-    // Otteniamo l'accesso alla fotocamera con i constraints specificati
+    // Get access to the camera with the specified constraints
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
 
-    resultElement.innerText = "Fotocamera attivata. Scansione QR Code in corso...";
-    console.log("Inizializzo scanner QR Code...");
+    resultElement.innerText = "Camera activated. Scanning QR Code...";
+    console.log("Initializing QR Code scanner...");
 
-    // Disabilita il dropdown mentre lo scanner è attivo
+    // Disable the dropdown while the scanner is active
     cameraList.disabled = true;
     document.getElementById("start-button").disabled = true;
 
-    // Passiamo lo stream alla funzione scanQRCode
+    // Pass the stream to the scanQRCode function
     const qrData = await scanQRCode(videoElement, canvasElement, resultElement, stream);
-    console.log("QR Code ricevuto:", qrData);
+    console.log("QR Code received:", qrData);
 
     // Call the server to make the Join request with the data from the QRCODE
     const response = await requestJoinRoom(qrData);
-    console.log("Risposta dal server:", response);
+    console.log("Response from server:", response);
 
-    // se il server ritorna 200 inizio a provare a vedere se la richiesta è stata approvata
+    // If the server returns 200, start checking if the request has been approved
     if (response.status === 200) {
-      console.log("Richiesta di accesso alla stanza inviata con successo.");
+      console.log("Room join request sent successfully.");
 
       let roomDetails;
-      // try accessing room details to check when the other user have approved my join request
+      // Try accessing room details to check when the other user has approved the join request
       do {
         roomDetails = await getRoomDetails(qrData);
-        console.log("Dettagli della stanza:", roomDetails);
-        // aspetto un secondo prima di riprovare
+        console.log("Room details:", roomDetails);
+        // Wait one second before retrying
         await new Promise(resolve => setTimeout(resolve, 1000));
       } while (roomDetails.status !== 200);
-      console.log("Richiesta di accesso alla stanza approvata.");
+      console.log("Room join request approved.");
 
-      // Add the new chatroom the the IDB
+      // Add the new chatroom to the IDB
       const roomsArray = [roomDetails.data.data];
 
       // Save rooms to IndexedDB
@@ -150,10 +150,10 @@ async function main() {
     }
 
   } catch (err) {
-    console.error("Errore scanner:", err);
-    resultElement.innerText = "Errore: " + err.message;
+    console.error("Scanner error:", err);
+    resultElement.innerText = "Error: " + err.message;
     
-    // Riabilita i controlli in caso di errore
+    // Re-enable controls in case of error
     cameraList.disabled = false;
     document.getElementById("start-button").disabled = false;
   }
