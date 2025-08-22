@@ -71,10 +71,19 @@ async function populateCameraList() {
   }
 }
 
+function disappearInstructions() {
+  const instructions = document.getElementById("instructions");
+  if (instructions) {
+    instructions.style.display = "none";
+  }
+}
+
 // Call this function when the page loads
 document.addEventListener('DOMContentLoaded', populateCameraList);
 
 async function main() {
+  disappearInstructions();
+
   const videoElement = document.getElementById("video");
   const canvasElement = document.getElementById("canvas");
   const resultElement = document.getElementById("result");
@@ -86,6 +95,7 @@ async function main() {
   try {
     // Use the camera selected by the user in the dropdown
     const constraints = {
+      facingMode: "environment",
       video: {
         advanced: [
           { zoom: 1 },

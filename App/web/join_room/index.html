@@ -12,7 +12,17 @@
 <body>
     <h1>Join Room with QR Code</h1>
 
-    <p>Version 0.9</p>
+    <div id="instructions">
+        <p>Version 0.99</p>
+
+        <h2>Instructions</h2>
+        <ol>
+            <li>Select a camera from the dropdown below.</li>
+            <li>Click "Start Scanning" to activate the camera.</li>
+            <li>Point the camera at the QR code to scan it.</li>
+            <li>Once scanned, you will be redirected to the room.</li>
+        </ol>
+    </div>
 
     <div id="camera-selection">
         <label for="camera-list">Select Camera:</label>
@@ -20,8 +30,9 @@
             <option value="">Loading cameras...</option>
         </select>
     </div>
-    
+
     <button onclick="main()" id="start-button">Start Scanning</button>
+    <br>
     <div id="scanner-container">
         <video id="video" autoplay playsinline></video>
         <canvas id="canvas"></canvas>
