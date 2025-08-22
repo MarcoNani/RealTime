@@ -1,9 +1,13 @@
 #scanner-container {
   position: relative;
   display: inline-block;
+  margin: 1rem auto;
+  width: 100%;
+  max-width: 640px;
 }
 
 #video {
+  display: none; /* Hide actual video element */
   width: 320px;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -13,8 +17,13 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 320px;
+  display: block;
+  width: 100%;
+  max-width: 640px; /* Limit display size while maintaining full capture resolution */
   height: auto;
+  margin: 0 auto;
+  transform: translateZ(0); /* Hardware acceleration */
+  will-change: transform; /* Hint for browser optimization */
 }
 
 
