@@ -11,6 +11,14 @@
 
 <body>
     <h1>Join room with QRCODE</h1>
+    
+    <div id="camera-selection">
+        <label for="camera-list">Seleziona fotocamera:</label>
+        <select id="camera-list" disabled>
+            <option value="">Caricamento fotocamere...</option>
+        </select>
+    </div>
+    
     <button onclick="main()" id="start-button">Start Scanning</button>
     <div id="scanner-container">
         <video id="video" autoplay playsinline></video>

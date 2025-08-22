@@ -1,23 +1,92 @@
 import { scanQRCode } from './scanner.js';
 
+// Aggiungi questa funzione per popolare il dropdown delle fotocamere
+async function populateCameraList() {
+  const cameraList = document.getElementById('camera-list');
+  
+  try {
+    // Prima richiesta per ottenere il permesso di accesso alle fotocamere
+    const initialStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    // Ferma subito lo stream, ci serve solo per avere accesso alle etichette
+    initialStream.getTracks().forEach(track => track.stop());
+    
+    // Ora possiamo ottenere le etichette delle fotocamere
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+    
+    // Pulisci il dropdown
+    cameraList.innerHTML = '';
+    
+    if (videoDevices.length === 0) {
+      const option = document.createElement('option');
+      option.text = 'Nessuna fotocamera disponibile';
+      cameraList.add(option);
+      cameraList.disabled = true;
+      return;
+    }
+    
+    // Aggiungi tutte le fotocamere al dropdown
+    let hasBackCamera = false;
+    videoDevices.forEach((device, index) => {
+      const option = document.createElement('option');
+      option.value = device.deviceId;
+      
+      // Crea un nome descrittivo
+      let cameraName = device.label || `Fotocamera ${index + 1}`;
+      
+      // Aggiungi informazioni sul tipo di fotocamera
+      if (cameraName.toLowerCase().includes('back')) {
+        if (cameraName.toLowerCase().includes('ultra') || cameraName.toLowerCase().includes('wide')) {
+          cameraName += ' (Grandangolare)';
+        } else {
+          cameraName += ' (Posteriore)';
+          hasBackCamera = true;
+        }
+      } else if (cameraName.toLowerCase().includes('front')) {
+        cameraName += ' (Frontale)';
+      }
+      
+      option.text = cameraName;
+      cameraList.add(option);
+      
+      // Se è una fotocamera posteriore standard, selezionala di default
+      if (cameraName.includes('Posteriore') && 
+          !cameraName.toLowerCase().includes('wide') && 
+          !cameraName.toLowerCase().includes('ultra')) {
+        cameraList.value = device.deviceId;
+      }
+    });
+    
+    // Se non abbiamo già selezionato una fotocamera, imposta la prima disponibile
+    if (!cameraList.value && videoDevices.length > 0) {
+      cameraList.value = videoDevices[0].deviceId;
+    }
+    
+    cameraList.disabled = false;
+    console.log("Lista fotocamere caricata");
+    
+  } catch (err) {
+    console.error("Errore nell'accesso alle fotocamere:", err);
+    cameraList.innerHTML = '<option value="">Errore accesso fotocamere</option>';
+  }
+}
+
+// Chiama questa funzione quando la pagina si carica
+document.addEventListener('DOMContentLoaded', populateCameraList);
+
 async function main() {
   const videoElement = document.getElementById("video");
   const canvasElement = document.getElementById("canvas");
   const resultElement = document.getElementById("result");
+  const cameraList = document.getElementById("camera-list");
 
   console.log("Attendo QR Code...");
   resultElement.innerText = "Richiedo accesso alla fotocamera...";
 
   try {
-    // Prima otteniamo la lista di tutte le fotocamere disponibili
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const videoDevices = devices.filter(device => device.kind === 'videoinput');
-    console.log("Fotocamere disponibili:", videoDevices);
-    
-    // Imposta constraints base per selezionare la fotocamera posteriore
+    // Usa la fotocamera selezionata dall'utente nel dropdown
     const constraints = {
       video: {
-        facingMode: "environment", // Fotocamera posteriore come fallback base
         width: { ideal: 1920 },
         height: { ideal: 1080 },
         advanced: [
@@ -28,44 +97,15 @@ async function main() {
       audio: false
     };
     
-    // Se abbiamo accesso alle etichette dei dispositivi (richiede permessi già concessi)
-    if (videoDevices.length > 0 && videoDevices[0].label) {
-      let selectedCamera = null;
-      
-      // PRIORITÀ 1: Cerca una fotocamera posteriore non grandangolare
-      selectedCamera = videoDevices.find(device => 
-        device.label.toLowerCase().includes("back") && 
-        !device.label.toLowerCase().includes("wide") &&
-        !device.label.toLowerCase().includes("ultra")
-      );
-      
-      // PRIORITÀ 2: Se non trovata, cerca qualsiasi fotocamera posteriore
-      if (!selectedCamera) {
-        selectedCamera = videoDevices.find(device => 
-          device.label.toLowerCase().includes("back")
-        );
-        if (selectedCamera) {
-          console.log("Fotocamera standard non trovata, uso fotocamera posteriore:", selectedCamera.label);
-        }
-      }
-      
-      // PRIORITÀ 3: Se ancora non trovata, usa la prima fotocamera disponibile
-      if (!selectedCamera && videoDevices.length > 0) {
-        selectedCamera = videoDevices[0];
-        console.log("Fotocamera posteriore non trovata, uso fotocamera predefinita:", selectedCamera.label);
-      }
-      
-      // Se abbiamo trovato una fotocamera, impostiamo il deviceId
-      if (selectedCamera) {
-        constraints.video.deviceId = { exact: selectedCamera.deviceId };
-        console.log("Selezionata fotocamera:", selectedCamera.label);
-        resultElement.innerText = `Utilizzo fotocamera: ${selectedCamera.label}`;
-      } else {
-        console.log("Nessuna fotocamera identificabile trovata, uso impostazioni predefinite");
-        resultElement.innerText = "Utilizzo fotocamera predefinita...";
-      }
+    // Se l'utente ha selezionato una fotocamera specifica, usala
+    if (cameraList.value) {
+      constraints.video.deviceId = { exact: cameraList.value };
+      console.log(`Usando fotocamera selezionata: ${cameraList.options[cameraList.selectedIndex].text}`);
+      resultElement.innerText = `Utilizzo fotocamera: ${cameraList.options[cameraList.selectedIndex].text}`;
     } else {
-      console.log("Informazioni sulle fotocamere non disponibili, uso impostazioni predefinite");
+      // Fallback se non è stata selezionata una fotocamera specifica
+      constraints.video.facingMode = "environment";
+      console.log("Nessuna fotocamera specifica selezionata, utilizzo fotocamera posteriore predefinita");
     }
 
     // Otteniamo l'accesso alla fotocamera con i constraints specificati
@@ -73,6 +113,10 @@ async function main() {
 
     resultElement.innerText = "Fotocamera attivata. Scansione QR Code in corso...";
     console.log("Inizializzo scanner QR Code...");
+
+    // Disabilita il dropdown mentre lo scanner è attivo
+    cameraList.disabled = true;
+    document.getElementById("start-button").disabled = true;
 
     // Passiamo lo stream alla funzione scanQRCode
     const qrData = await scanQRCode(videoElement, canvasElement, resultElement, stream);
@@ -97,8 +141,6 @@ async function main() {
       console.log("Richiesta di accesso alla stanza approvata.");
 
       // Add the new chatroom the the IDB
-
-      // il db si aspetta una rray contenente i dettagli di varie stanze ma noi abbiamo solo una stanza
       const roomsArray = [roomDetails.data.data];
 
       // Save rooms to IndexedDB
@@ -112,6 +154,10 @@ async function main() {
   } catch (err) {
     console.error("Errore scanner:", err);
     resultElement.innerText = "Errore: " + err.message;
+    
+    // Riabilita i controlli in caso di errore
+    cameraList.disabled = false;
+    document.getElementById("start-button").disabled = false;
   }
 }
 
