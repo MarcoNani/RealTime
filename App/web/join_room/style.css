@@ -26,3 +26,8 @@
   z-index: 2;
   /* Place the canvas above the video */
 }
+
+ol {
+  margin-left: 0;
+  padding-left: 1em;
+}

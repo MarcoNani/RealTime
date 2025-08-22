@@ -5,39 +5,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Join Room with QR Code</title>
+    <link rel="stylesheet" href="../navbar.css">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="../style.css">
 </head>
 
 <body>
-    <h1>Join Room with QR Code</h1>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="../chat_list/" class="back-button">Chats</a>
+        <h2>Join Room</h2>
+    </nav>
 
-    <div id="instructions">
-        <p>Version 0.99</p>
+    <main class="content">
+        <div id="instructions">
+            <h2>Instructions</h2>
+            <ol>
+                <li>Select a camera from the dropdown below.</li>
+                <li>Click "Start Scanning" to activate the camera.</li>
+                <li>Point the camera at the QR code to scan it.</li>
+                <li>Once scanned, you will be redirected to the room.</li>
+                <li>Avoid the front camera.</li>
+                <li>Prefer the main (standard) rear camera, not wide-angle.</li>
+                <li>If multiple options appear, <b>camera 0</b> is usually the right one.</li>
+            </ol>
+        </div>
 
-        <h2>Instructions</h2>
-        <ol>
-            <li>Select a camera from the dropdown below.</li>
-            <li>Click "Start Scanning" to activate the camera.</li>
-            <li>Point the camera at the QR code to scan it.</li>
-            <li>Once scanned, you will be redirected to the room.</li>
-        </ol>
-    </div>
+        <div id="camera-selection">
+            <label for="camera-list" id="camera-list-label">Select Camera:</label>
+            <select id="camera-list" disabled>
+                <option value="">Loading cameras...</option>
+            </select>
+        </div>
 
-    <div id="camera-selection">
-        <label for="camera-list">Select Camera:</label>
-        <select id="camera-list" disabled>
-            <option value="">Loading cameras...</option>
-        </select>
-    </div>
+        <button onclick="main()" id="start-button">Start Scanning</button>
+        <br>
+        <div id="scanner-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas"></canvas>
+        </div>
+        <p id="result">Waiting for QR Code...</p>
+    </main>
 
-    <button onclick="main()" id="start-button">Start Scanning</button>
-    <br>
-    <div id="scanner-container">
-        <video id="video" autoplay playsinline></video>
-        <canvas id="canvas"></canvas>
-    </div>
-    <p id="result">Waiting for QR Code...</p>
 
     <script type="module" src="main.js"></script>
     <script src="../buttafuori.js"></script>

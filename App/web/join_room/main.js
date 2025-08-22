@@ -76,6 +76,16 @@ function disappearInstructions() {
   if (instructions) {
     instructions.style.display = "none";
   }
+
+  // change the label of the selector to selected camera
+  const label = document.getElementById("camera-list-label");
+  label.innerText = "Selected Camera:";
+
+  // Remove start button
+  const startButton = document.getElementById("start-button");
+  if (startButton) {
+    startButton.style.display = "none";
+  }
 }
 
 // Call this function when the page loads
