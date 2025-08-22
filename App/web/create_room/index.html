@@ -11,14 +11,24 @@
 </head>
 
 <body>
-    <h1>Create room with QRCODE</h1>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="../chat_list/" class="back-button">&lt;- Chats</a>
+        <h2>New Room</h2>
+    </nav>
 
-    <div id="qrcode"></div>
+    
+    <main class="content">
+        <div id="qrcode"></div>
+        <p>The person you want to chat with must press the "Join a room with QR code" button and scan this code.</p>
+        <p>Once scanned you will be automatically be ready to chat.</p>
+    </main>
 
     <script type="module" src="main.js"></script>
     <script src="../buttafuori.js"></script>
     <script src="../db.js"></script>
     <script src="../api.js"></script>
 </body>
+
 
 </html>
