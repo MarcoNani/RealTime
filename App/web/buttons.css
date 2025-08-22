@@ -16,12 +16,11 @@
     justify-content: center;
     cursor: pointer;
     border: none;
-    margin-bottom: 12px;
 }
 
 .app-button:hover {
     background-color: #DEE2F7;
-    transform: translateX(-2px);
+    transform: translateY(-2px);
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
@@ -30,6 +29,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    margin-bottom: 12px;
 }
 
 .button-group a {
@@ -46,6 +46,10 @@
 button.primary-button {
     background-color: #5c6ac4;
     color: white;
+}
+
+button.primary-button:hover {
+    background-color: #4e5ab8;
 }
 
 /* Desktop-specific styles */
