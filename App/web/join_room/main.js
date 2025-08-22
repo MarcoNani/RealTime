@@ -6,10 +6,20 @@ async function main() {
   const resultElement = document.getElementById("result");
 
   console.log("Attendo QR Code...");
+  resultElement.innerText = "Richiedo accesso alla fotocamera...";
 
   try {
+    // Prima richiediamo esplicitamente i permessi della fotocamera
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" },
+      audio: false
+    });
+
+    resultElement.innerText = "Fotocamera attivata. Scansione QR Code in corso...";
     console.log("Inizializzo scanner QR Code...");
-    const qrData = await scanQRCode(videoElement, canvasElement, resultElement);
+
+    // Passiamo lo stream alla funzione scanQRCode
+    const qrData = await scanQRCode(videoElement, canvasElement, resultElement, stream);
     console.log("QR Code ricevuto:", qrData);
 
     // Call the server to make the Join request with the data from the QRCODE
