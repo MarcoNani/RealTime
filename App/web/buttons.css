@@ -47,3 +47,19 @@ button.primary-button {
     background-color: #5c6ac4;
     color: white;
 }
+
+/* Desktop-specific styles */
+@media (min-width: 768px) {
+    .app-button {
+        justify-content: flex-start;
+        width: auto;
+    }
+    
+    .button-group a {
+        flex: 0 0 auto;
+    }
+    
+    .button-group button {
+        width: auto;
+    }
+}
