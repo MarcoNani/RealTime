@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/buttons.css">
     <link rel="stylesheet" href="../assets/css/navbar.css">
+    <link rel="stylesheet" href="../assets/css/bottom_toolbar.css">
     <link rel="stylesheet" href="./bubble.css">
 </head>
 
@@ -36,9 +37,13 @@
     </main>
 
     <!-- bottom toolbar -->
-    <textarea id="message" placeholder="Type a message..." rows="3"></textarea>
-    <input type="checkbox" id="autoScrollToggle"> Keep the chat scrolled to the bottom
-
+    <div class="bottom-toolbar">
+        <textarea id="message" placeholder="Type a message..." rows="3"></textarea>
+        <div class="auto-scroll-div">
+            <input type="checkbox" id="autoScrollToggle">
+            <label for="autoScrollToggle">Auto-scroll</label>
+        </div>
+    </div>
 
     <script src="../assets/js/db.js"></script>
 </body>
