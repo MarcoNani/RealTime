@@ -87,8 +87,6 @@ async function main() {
     // Usa la fotocamera selezionata dall'utente nel dropdown
     const constraints = {
       video: {
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
         advanced: [
           { zoom: 1 },
           { focusMode: "continuous" }
