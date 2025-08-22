@@ -6,20 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Room</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="../buttafuori.js"></script>
     <script src="./helpers.js"></script>
     <script src="./chat.js" defer></script>
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 
 <body>
+    <!-- first of all checking if the user is logged in -->
+    <script src="../assets/js/buttafuori.js"></script>
+
     <h1>Chat Room</h1>
     <div id="roomInfo"></div>
     <div id="chat"></div>
     <textarea id="message" placeholder="Type a message..." rows="3"></textarea>
     <input type="checkbox" id="autoScrollToggle"> Keep the chat scrolled to the bottom
 
-    <script src="../db.js"></script>
+    <script src="../assets/js/db.js"></script>
 </body>
 
 </html>

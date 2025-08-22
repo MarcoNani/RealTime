@@ -5,14 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rooms</title>
-    <script src="../buttafuori.js"></script>
-    <link rel="stylesheet" href="../style.css">
-    <link rel="stylesheet" href="../buttons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/buttons.css">
+    <link rel="stylesheet" href="../assets/css/navbar.css">
     <link rel="stylesheet" href="./style.css">
-    <link rel="stylesheet" href="../navbar.css">
 </head>
 
 <body>
+    <!-- first of all checking if the user is logged in -->
+    <script src="../assets/js/buttafuori.js"></script>
+
     <!-- NAVBAR -->
     <nav class="navbar">
         <h2>Your chatrooms</h2>
@@ -29,16 +31,12 @@
             </a>
         </div>
 
-<!--         <div>
-            <button id="refreshRoomsButton" class="app-button">Refresh Room List</button>
-        </div> -->
-
         <div id="roomsContainer">
-            Loading, this may take up to 1 minute, please wait...
+            Rooms will appear here...
         </div>
     </main>
 
-    <script src="../db.js"></script>
+    <script src="../assets/js/db.js"></script>
     <script src="./chat_list.js"></script>
 </body>
 

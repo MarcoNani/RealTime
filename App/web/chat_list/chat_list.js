@@ -197,13 +197,7 @@ function renderRooms(rooms) {
     });
 }
 
-
-// Start fetching on page load
-fetchRooms();
 /* 
-// Refresh the room list every 5 seconds
-setInterval(fetchRooms, 5000);
- */
 async function createRoom() {
     const serverUrl = localStorage.getItem("serverUrl");
     const apiKey = localStorage.getItem("apiKey");
@@ -241,10 +235,9 @@ async function createRoom() {
         alert(`Error while creating the room: ${error.message}`);
     }
 }
+ */
 
-// Link to the button
-document.getElementById("createRoomButton").addEventListener("click", createRoom);
-
+/* 
 async function requestJoinRoom() {
     const serverUrl = localStorage.getItem("serverUrl");
     const apiKey = localStorage.getItem("apiKey");
@@ -289,9 +282,15 @@ async function requestJoinRoom() {
         joinButton.disabled = false;
     }
 }
+ */
 
-// Link to the button
-document.getElementById("joinRoomButton").addEventListener("click", requestJoinRoom);
+function start() {
+    roomsContainer = document.getElementById("roomsContainer");
+    roomsContainer.innerHTML = "Loading, this may take up to 1 minute, please wait...";
+    fetchRooms();
+}
 
-// Link to the refresh button
-document.getElementById("refreshRoomsButton").addEventListener("click", fetchRooms);
+
+
+// Start fetching on page load
+start();

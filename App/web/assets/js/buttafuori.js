@@ -3,6 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const apiKey = localStorage.getItem("apiKey");
 
     if (!serverUrl || !apiKey) {
-        window.location.href = "../";
+        window.location.href = "../onboarding/";
     }
 });

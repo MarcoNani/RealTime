@@ -37,7 +37,8 @@ document.getElementById("start").addEventListener("click", async function (e) {
 
         // handle the response
         console.log("Server response:", result);
-        alert(`Username: ${result.data.username}\nAPI Key: ${result.data.apiKey}\nPublicId: ${result.data.publicId}`);
+        // TODO: proper remove
+        // alert(`Username: ${result.data.username}\nAPI Key: ${result.data.apiKey}\nPublicId: ${result.data.publicId}`);
 
         // Save user information in localStorage
         localStorage.setItem("serverUrl", server);
@@ -45,7 +46,7 @@ document.getElementById("start").addEventListener("click", async function (e) {
         localStorage.setItem("publicId", result.data.publicId);
 
         // Redirect to the main page
-        window.location.href = "./chat_list/";
+        window.location.href = "../chat_list/";
 
     } catch (err) {
         if (err.name === "AbortError") {
@@ -67,5 +68,5 @@ const storedPublicId = localStorage.getItem("publicId");
 
 if (storedServerUrl && storedApiKey && storedPublicId) {
     // Redirect directly to the chat list
-    window.location.href = "./chat_list/";
+    window.location.href = "../chat_list/";
 }
