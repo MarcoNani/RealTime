@@ -1,0 +1,71 @@
+.largone {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+div.chat {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message-wrapper {
+    display: flex;
+    align-items: flex-end;
+    word-wrap: break-word;
+}
+
+.message-left {
+    background-color: #d1e7ff;
+    color: #000;
+    padding: 10px 15px;
+    border-radius: 15px 15px 15px 0;
+    max-width: 70%;
+}
+
+.message-right {
+    background-color: #c8f7c5;
+    color: #000;
+    padding: 10px 15px;
+    border-radius: 15px 15px 0 15px;
+    max-width: 70%;
+    margin-left: auto;
+}
+
+.meta {
+    font-size: 0.75rem;
+    color: #555;
+    margin: 0 10px;
+    white-space: nowrap;
+}
+
+.wrapper-left {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.wrapper-right {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: flex-end;
+    justify-content: flex-end;
+    width: auto;
+}
+
+.wrapper-right .meta {
+    order: 1;
+    text-align: right;
+}
+
+.wrapper-left .meta {
+    text-align: left;
+}
+
+.wrapper-right .message-right {
+    order: 2;
+    margin-left: 0;
+}

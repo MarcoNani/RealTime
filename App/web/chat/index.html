@@ -9,17 +9,36 @@
     <script src="./helpers.js"></script>
     <script src="./chat.js" defer></script>
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/buttons.css">
+    <link rel="stylesheet" href="../assets/css/navbar.css">
+    <link rel="stylesheet" href="./bubble.css">
 </head>
 
 <body>
     <!-- first of all checking if the user is logged in -->
     <script src="../assets/js/buttafuori.js"></script>
 
-    <h1>Chat Room</h1>
-    <div id="roomInfo"></div>
-    <div id="chat"></div>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="../chat_list/" class="back-button">Chats</a>
+        <h2>RealTime</h2>
+    </nav>
+
+    <main class="content">
+        <div id="roomInfo"></div>
+        <div class="largone">
+            <div id="chat" class="chat">
+               
+                <!-- MESSSAGES WILL BE RENDERED HERE -->
+
+            </div>
+        </div>
+    </main>
+
+    <!-- bottom toolbar -->
     <textarea id="message" placeholder="Type a message..." rows="3"></textarea>
     <input type="checkbox" id="autoScrollToggle"> Keep the chat scrolled to the bottom
+
 
     <script src="../assets/js/db.js"></script>
 </body>
