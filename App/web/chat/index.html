@@ -22,11 +22,10 @@
     <!-- NAVBAR -->
     <nav class="navbar">
         <a href="../chat_list/" class="back-button">Chats</a>
-        <h2>RealTime v. 0.9.1</h2>
+        <h2>RealTime v. 0.9.2</h2>
     </nav>
 
     <main class="content">
-        <div id="roomInfo"></div>
         <div class="largone">
             <div id="chat" class="chat">
                
@@ -40,7 +39,7 @@
     <div class="bottom-toolbar">
         <textarea id="message" placeholder="Type a message..." rows="3"></textarea>
         <div class="auto-scroll-div">
-            <input type="checkbox" id="autoScrollToggle">
+            <input type="checkbox" id="autoScrollToggle" checked> <!-- TODO: memorize preference in local storage -->
             <label for="autoScrollToggle">Auto-scroll</label>
         </div>
     </div>

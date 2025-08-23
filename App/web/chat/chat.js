@@ -14,8 +14,6 @@ async function initChat() {
         return;
     }
 
-    roomInfoDiv.textContent = `Sei nella stanza: ${roomId}`;
-
     const input = document.getElementById("message"); // Input field for messages
     const chat = document.getElementById("chat"); // Chat display area
 
@@ -60,6 +58,15 @@ async function initChat() {
                 socketConnection.finishTyping(roomId, payload);
                 input.value = ""; // Clear the input field after sending
             }
+        }
+    });
+
+    // Scroll to bottom listener (when the toggle is enabled scroll instantly to the bottom)
+    const toggleScroll = document.getElementById("autoScrollToggle");
+
+    toggleScroll.addEventListener("change", (event) => {
+        if (event.target.checked) {
+            scrollToBottom();
         }
     });
 }

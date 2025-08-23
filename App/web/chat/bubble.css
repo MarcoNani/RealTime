@@ -7,7 +7,7 @@ div.chat {
     padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
 }
 
 .message-wrapper {

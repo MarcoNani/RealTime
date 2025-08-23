@@ -187,9 +187,15 @@ function uuidv4() {
 
 // Function to scroll to the bottom of the chat
 function scrollToBottom() {
-    if (autoScrollToggle.checked) {
-        console.debug("Scrolling to bottom");
-        chat.scrollTop = chat.scrollHeight;
+    const autoScrollToggle = document.getElementById("autoScrollToggle");
+
+    if (!autoScrollToggle || autoScrollToggle.checked) {
+        // obtain scroll position of the entire document
+        const scrollPosition = window.scrollY || document.documentElement.scrollTop;
+        console.log("Scroll position:", scrollPosition);
+
+        // Scroll to the bottom of the document
+        window.scrollTo(0, document.body.scrollHeight);
     }
 }
 
@@ -234,7 +240,6 @@ function renderMessage(message_obj) {
         chatDiv.appendChild(newMessageElement);
     }
 
-    // Scroll to the bottom of the chat
     scrollToBottom();
 }
 
