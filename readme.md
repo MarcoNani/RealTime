@@ -10,6 +10,8 @@
   <img src="Docs/images/chat.png" alt="Chat" width="200"/>
 </p>
 
+> It's smoother when you use it. My screen recording sucks.
+
 ## Try it
 Online client at: [client.chatinrealtime.com](https://client.chatinrealtime.com)
 
