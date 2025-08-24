@@ -1,0 +1,59 @@
+/* NAVBAR */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 94%;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+  backdrop-filter: blur(10px); /* blur effect */
+  -webkit-backdrop-filter: blur(10px); /* For Safari support */
+  color: black;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 3%;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.navbar h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  text-align: center;
+  grid-column: 2;
+}
+
+.back-button {
+  color: #5c6ac4;
+  background-color: #eef0fb;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  grid-column: 1;
+  justify-self: start;
+  padding: 8px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.back-button:before {
+  content: "←";
+  margin-right: 6px;
+  font-size: 1.1rem;
+}
+
+.back-button:hover {
+  background-color: #DEE2F7;
+  transform: translateX(-2px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+/* CONTENT */
+.content {
+  margin-top: 80px;
+}

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create room with QRCODE</title>
+    <link rel="stylesheet" href="../assets/css/navbar.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+</head>
+
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="../chat_list/" class="back-button">Chats</a>
+        <h2>New Room</h2>
+    </nav>
+
+    
+    <main class="content">
+        <!-- TODO: add waiting text while the qr code generate-->
+        <div id="qrcode"></div>
+        <p>The person you want to chat with must press the "Join a room with QR code" button and scan this code.</p>
+        <p>Once scanned you will be automatically be ready to chat.</p>
+    </main>
+
+    <script type="module" src="main.js"></script>
+    <script src="../assets/js/buttafuori.js"></script>
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/api.js"></script>
+</body>
+
+
+</html>

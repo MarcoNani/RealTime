@@ -1,0 +1,69 @@
+/* Global button styles */
+.app-button {
+    color: #5c6ac4;
+    background-color: #eef0fb;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    grid-column: 1;
+    justify-self: start;
+    padding: 10px 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+}
+
+.app-button:hover {
+    background-color: #DEE2F7;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+/* Button group for side-by-side buttons */
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.button-group a {
+    flex: 1;
+    min-width: 120px;
+    text-decoration: none;
+}
+
+.button-group button {
+    width: 100%;
+}
+
+/* Primary action button */
+button.primary-button {
+    background-color: #5c6ac4;
+    color: white;
+}
+
+button.primary-button:hover {
+    background-color: #4e5ab8;
+}
+
+/* Desktop-specific styles */
+@media (min-width: 768px) {
+    .app-button {
+        justify-content: flex-start;
+        width: auto;
+    }
+    
+    .button-group a {
+        flex: 0 0 auto;
+    }
+    
+    .button-group button {
+        width: auto;
+    }
+}

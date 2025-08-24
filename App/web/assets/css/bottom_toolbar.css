@@ -1,0 +1,86 @@
+/* BOTTOM TOOLBAR */
+.bottom-toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 94%;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 5px 3%;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* TEXTAREA */
+textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  box-sizing: border-box;
+  resize: none;
+}
+
+textarea:focus {
+  border-color: #5c6ac4;
+  box-shadow: 0 0 0 2px rgba(92, 106, 196, 0.2);
+  outline: none;
+}
+
+textarea::placeholder {
+  color: #aaa;
+}
+
+
+/* AUTO SCROLL TOGGLE */
+.bottom-toolbar input[type="checkbox"] {
+  margin-left: 10px;
+}
+
+.bottom-toolbar input[type="checkbox"] {
+  appearance: none;
+  width: 40px;
+  height: 20px;
+  background-color: #ddd;
+  border-radius: 10px;
+  position: relative;
+  outline: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.bottom-toolbar input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.bottom-toolbar input[type="checkbox"]:checked {
+  background-color: #5c6ac4;
+}
+
+.bottom-toolbar input[type="checkbox"]:checked::before {
+  transform: translateX(20px);
+}
+
+.bottom-toolbar .auto-scroll-div {
+  justify-content: center;
+  text-align: center;
+  gap: 4px;
+}
+
+/* CONTENT */
+.content {
+  margin-bottom: 100px; /* Keep bottom margin for bottom toolbar */
+}

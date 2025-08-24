@@ -1,23 +1,97 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Room</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="../buttafuori.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"> <!-- TODO: add integrity check -->
     <script src="./helpers.js"></script>
     <script src="./chat.js" defer></script>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/buttons.css">
+    <link rel="stylesheet" href="../assets/css/navbar.css">
+    <link rel="stylesheet" href="../assets/css/bottom_toolbar.css">
+    <link rel="stylesheet" href="./bubble.css">
+    <link rel="stylesheet" href="../assets/css/icons.css">
 </head>
 
 <body>
-    <h1>Chat Room</h1>
-    <div id="roomInfo"></div>
-    <div id="chat"></div>
-    <textarea id="message" placeholder="Scrivi un messaggio..." rows="3"></textarea>
-    <input type="checkbox" id="autoScrollToggle"> Mantieni la chat in fondo
+    <!-- first of all checking if the user is logged in -->
+    <script src="../assets/js/buttafuori.js"></script>
 
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="../chat_list/" class="back-button">Chats</a>
+        <h2>RealTime v. 0.9.4</h2>
+    </nav>
+
+    <main class="content">
+        <div class="largone">
+            <div id="chat" class="chat">
+
+                <!-- Welcome message -->
+                <div class="message-wrapper">
+                    <div class="wrapper-left">
+                        <div class="message-left">
+                            <h3>Welcome to RealTime!</h3>
+                            <p>Not the tv channel!
+                                <br>
+                                The chat where everything is in RealTime
+                            </p>
+                            <p>At the moment RealTime is not E2E encrypted, don't send secrets.
+                                <br>
+                                I'm working to bring
+                                E2E encryption to RealTime.
+                            </p>
+                            <p>If you want to know more about RealTime go to:</p>
+                            <ul class="link-list">
+                                <li>
+                                    <a href="https://github.com/MarcoNani/RealTime" target="_blank"
+                                        rel="noopener noreferrer">
+                                        <i class="fab fa-github"></i> GitHub
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://github.com/MarcoNani/RealTime/blob/main/Docs" target="_blank"
+                                        rel="noopener noreferrer">
+                                        <i class="fas fa-book"></i> Documentation
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://api.chatinrealtime.com/api-docs" target="_blank"
+                                        rel="noopener noreferrer">
+                                        <i class="fas fa-code"></i> RESTful API
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="https://chatinrealtime.com/" target="_blank" rel="noopener noreferrer">
+                                        <i class="fas fa-globe"></i> chatinrealtime.com
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="meta">System</div>
+                    </div>
+                </div>
+
+                <!-- MESSSAGES WILL BE RENDERED HERE -->
+
+            </div>
+        </div>
+    </main>
+
+    <!-- bottom toolbar -->
+    <div class="bottom-toolbar">
+        <textarea id="message" placeholder="Type a message..." rows="3"></textarea>
+        <div class="auto-scroll-div">
+            <input type="checkbox" id="autoScrollToggle" checked> <!-- TODO: memorize preference in local storage -->
+            <label for="autoScrollToggle">Auto-scroll</label>
+        </div>
+    </div>
+
+    <script src="../assets/js/db.js"></script>
 </body>
 
 </html>

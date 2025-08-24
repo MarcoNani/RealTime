@@ -1,0 +1,31 @@
+ul,
+ol {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+li {
+
+    border-bottom: 1px solid #ddd;
+}
+
+ul li:last-child {
+    border-bottom: none;
+}
+
+.chat-link {
+    display: block;
+    /* l’intero <li> diventa cliccabile */
+    padding: 0.5em 0;
+    text-decoration: none;
+    /* niente sottolineatura */
+    color: inherit;
+    /* eredita il colore del testo */
+}
+
+.chat-link:hover {
+    background: #f0f0f0;
+    /* effetto hover carino */
+    cursor: pointer;
+}

@@ -5,7 +5,7 @@ function getRoomIdFromURL() {
 }
 
 // Initialize the chat window
-function initChat() {
+async function initChat() {
     const roomId = getRoomIdFromURL();
     const roomInfoDiv = document.getElementById("roomInfo");
 
@@ -14,16 +14,34 @@ function initChat() {
         return;
     }
 
-    roomInfoDiv.textContent = `Sei nella stanza: ${roomId}`;
-
     const input = document.getElementById("message"); // Input field for messages
     const chat = document.getElementById("chat"); // Chat display area
 
     const apiKey = localStorage.getItem("apiKey");
     const serverUrl = localStorage.getItem("serverUrl");
+    const publicId = localStorage.getItem("publicId");
 
-    const socketConnection = new SocketConnection(serverUrl, apiKey);
-    socketConnection.connect();
+    const socketConnection = new SocketConnection(serverUrl, roomId, apiKey);
+    await socketConnection.connect();
+
+    // Load messages for the current room
+    try {
+        const db = socketConnection.db; // Use the initialized database instance
+        const messages = await DB.getMessagesForRoom(db, roomId, {
+            order: "asc", // Load messages in ascending order
+            // limit: 50 // Load the last 50 messages
+        });
+
+        // add the 'mine' attribute
+        messages.forEach(msg => {
+            msg.mine = msg.publicId === publicId;
+        });
+
+        // Render each message in the chat
+        messages.forEach(renderMessage);
+    } catch (error) {
+        console.error("Failed to load messages for room:", error);
+    }
 
     // Typing event listener
     input.addEventListener("input", () => {
@@ -42,21 +60,44 @@ function initChat() {
             }
         }
     });
+
+    // Scroll to bottom listener (when the toggle is enabled scroll instantly to the bottom)
+    const toggleScroll = document.getElementById("autoScrollToggle");
+
+    toggleScroll.addEventListener("change", (event) => {
+        if (event.target.checked) {
+            scrollToBottom();
+        }
+    });
 }
 
 class SocketConnection {
-    constructor(serverUrl, apiKey) {
+    constructor(serverUrl, currentRoomId, apiKey) {
         this.serverUrl = serverUrl;
+        this.currentRoomId = currentRoomId;
         this.apiKey = apiKey;
         this.socket = null;
         this.authStatus = false;
         this.currentMessageID = undefined;
         this.username = undefined; // Placeholder for username
         this.publicId = undefined; // Placeholder for public ID
+        this.db = null; // Placeholder for the database instance
+        this.userDictionary = {}; // Dictionary to store publicId -> username mappings
     }
 
-    connect() {
+    async connect() {
         this.socket = io(this.serverUrl);
+
+        // TODO: i have to study race condition problems
+
+        try {
+            // Await the database initialization
+            this.db = await DB.initDB();
+            console.log("Database initialized successfully.");
+        } catch (error) {
+            console.error("Failed to initialize the database:", error);
+            return; // Exit if the database initialization fails
+        }
 
         this.socket.on("connect", () => {
             console.log("Connected to server with id:", this.socket.id);
@@ -66,7 +107,7 @@ class SocketConnection {
 
         this.socket.on("authSuccess", (message) => {
             console.info("Authentication successful, received:", message);
-            // TODO: check if username and publicId match with those stored in the localStorage, if not warn the user about it and request if he wants to update them
+            // TODO: check if username and publicId match with those stored in the db, if not warn the user about it and request if he wants to update them
             this.authStatus = true;
 
             this.username = message.username;
@@ -105,13 +146,29 @@ class SocketConnection {
             const message = {
                 payload: payload.payload,
                 timestamp: payload.timestamp,
-                username: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
+                username: this.userDictionary[payload.publicId] || payload.publicId, // Replace publicId with username
                 publicId: payload.publicId,
-                messageId: payload.messageId
+                messageId: payload.messageId,
+                typing: true, // Indicate that this is a typing message
+                mine: false // Indicate that this message is not from the current user
             };
 
-            // Render message
-            renderMessage(message);
+            // DONE: check if the message is for the current room or for another room: if current room render, if not only store it
+            if (payload.roomId === this.currentRoomId) {
+                // Render message
+                console.log("Rendering message:", message);
+                renderMessage(message);
+            } else {
+                console.log("Message is not for current room:", message);
+            }
+
+            // Store message in indexDB
+            // TODO: i can implement a QUEUE system but now i don't want to do it
+            message.roomId = payload.roomId;
+            message.type = "text";
+            console.log("Storing message in indexDB:", message);
+            DB.saveMessage(this.db, message); // Pass the initialized db instance
+
         });
 
         this.socket.on("finish", (payload) => {
@@ -122,14 +179,41 @@ class SocketConnection {
             const message = {
                 payload: payload.payload,
                 timestamp: payload.timestamp,
-                username: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
+                username: this.userDictionary[payload.publicId] || payload.publicId, // Replace publicId with username
                 publicId: payload.publicId,
-                messageId: payload.messageId
+                messageId: payload.messageId,
+                typing: false, // Indicate that the user is no longer typing this msg
+                mine: false // Indicate that this message is not from the current user
             };
 
-            // Render message
-            renderMessage(message);
+            // DONE: check if the message is for the current room or for another room: if current room render, if not only store it
+            if (payload.roomId === this.currentRoomId) {
+                // Render message
+                console.log("Rendering message:", message);
+                renderMessage(message);
+            } else {
+                console.log("Message is not for current room:", message);
+            }
+
+            // Store message in indexDB
+            // TODO: i can implement a QUEUE system but now i don't want to do it
+            message.roomId = payload.roomId;
+            message.type = "text";
+            console.log("Storing message in indexDB:", message);
+            DB.saveMessage(this.db, message); // Pass the initialized db instance
         });
+
+        try {
+            // Load the user dictionary for the current room from the database
+            const users = await DB.getUsersForRoom(this.db, this.currentRoomId);
+            this.userDictionary = users.reduce((dict, user) => {
+                dict[user.publicId] = user.username;
+                return dict;
+            }, {});
+            console.log("Loaded user dictionary for room:", this.userDictionary);
+        } catch (error) {
+            console.error("Failed to load user dictionary for room:", error);
+        }
     }
 
     requestMessageId(room) {
@@ -184,14 +268,23 @@ class SocketConnection {
             // Create message object
             const message = {
                 payload: payload,
-                timestamp: Date.now(),
+                timestamp: new Date().toISOString(), // Store timestamp in ISO 8601 format
                 username: this.username,
                 publicId: this.publicId,
-                messageId: this.currentMessageID
+                messageId: this.currentMessageID,
+                typing: true, // Indicate that this is a typing message
+                mine: true
             };
 
             // Render message
             renderMessage(message);
+
+            // Store message in indexDB
+            // TODO: i can implement a QUEUE system but now i don't want to do it
+            message.roomId = room;
+            message.type = "text";
+            console.log("Storing message in indexDB:", message);
+            DB.saveMessage(this.db, message); // Pass the initialized db instance
 
         } catch (error) {
             console.error("Error while sending typing message:", error);
@@ -213,46 +306,25 @@ class SocketConnection {
         // Create message object
         const message = {
             payload: payload,
-            timestamp: Date.now(),
+            timestamp: new Date().toISOString(), // Store timestamp in ISO 8601 format
             username: this.username,
             publicId: this.publicId,
-            messageId: this.currentMessageID
+            messageId: this.currentMessageID,
+            typing: false, // Indicate that the user is no longer typing this msg
+            mine: true
         };
 
         // Render message
         renderMessage(message);
 
+        // Store message in indexDB
+        // TODO: i can implement a QUEUE system but now i don't want to do it
+        message.roomId = room;
+        message.type = "text";
+        console.log("Storing message in indexDB:", message);
+        DB.saveMessage(this.db, message); // Pass the initialized db instance
+
         this.currentMessageID = undefined; // Reset the current message ID after sending
-
-        // TODO: add logic to manage the conclusion of a message in the local db
-    }
-
-    displayMessage(payload) {
-        // Check if the message belongs to the current room
-        if (payload.roomId === getRoomIdFromURL()) {
-            const chat = document.getElementById("chat");
-            const existingMessage = document.getElementById(`message-${payload.messageId}`);
-
-            if (existingMessage) {
-                // Update the existing message
-                existingMessage.innerHTML = generateTextMessage({
-                    name: payload.publicId, // TODO: replace with the actual username obtained by local db of room members
-                    time: new Date().toLocaleTimeString(),
-                    payload: payload.payload
-                });
-            } else {
-                // Create a new message element
-                const messageElement = document.createElement("div");
-                messageElement.id = `message-${payload.messageId}`;
-                messageElement.innerHTML = generateTextMessage({
-                    name: payload.publicId,
-                    time: new Date().toLocaleTimeString(),
-                    payload: payload.payload
-                });
-                chat.appendChild(messageElement);
-            }
-            scrollToBottom();
-        }
     }
 }
 
