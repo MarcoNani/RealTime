@@ -3,9 +3,10 @@
 *Not the TV channel*
 
 ## Icons
-<img src="Docs/images/icon_simple.svg" alt="Simple icon" width="150"/>
-<img src="Docs/images/icon_complex.svg" alt="Complex icon" width="150"/>
-
+<p>
+  <img src="Docs/images/icon_simple.svg" alt="Simple icon" width="150"/>
+  <img src="Docs/images/icon_complex.svg" alt="Complex icon" width="150"/>
+</p>
 
 ## Screenshots
 <p align="center">
