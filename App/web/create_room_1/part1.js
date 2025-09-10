@@ -4,12 +4,16 @@ let lastWrappedB64 = '';
 
 async function start_part1() {
     try {
+        aggiungiLog("Starting room creation and RSA key generation...");
         // Start both operations in parallel
         const createRoomPromise = createRoom();
         const genKeyPairPromise = gen_rsa_keypair();
 
         // Wait for both to complete
         const [createRoomResponse] = await Promise.all([createRoomPromise, genKeyPairPromise]);
+        aggiungiLog("Room created and RSA keypair generated.");
+        aggiungiLog("Room ID: " + createRoomResponse.data.data.roomId);
+        aggiungiLog("Public Key PEM: " + localRsa.pubPem);
 
         // Generate and display the QR code
         const roomId = createRoomResponse.data.data.roomId;
