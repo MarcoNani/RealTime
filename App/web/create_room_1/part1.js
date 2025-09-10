@@ -3,8 +3,8 @@ let localRsa = { publicKey: null, privateKey: null, pubPem: '', privPem: '' };
 let lastWrappedB64 = '';
 
 async function start_part1() {
+    aggiungiLog("Starting room creation and RSA key generation...");
     try {
-        aggiungiLog("Starting room creation and RSA key generation...");
         // Start both operations in parallel
         const createRoomPromise = createRoom();
         const genKeyPairPromise = gen_rsa_keypair();
