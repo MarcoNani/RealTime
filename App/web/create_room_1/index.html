@@ -38,12 +38,12 @@
                 onclick="go_to_part2()">Next</button>
 
             <div class="row">
-                <button id="genRsa" onclick="start_part1()">Genera coppia RSA (RSA-OAEP, 2048)</button>
+                <button id="genRsa" onclick="start_part1()">Generate RSA keypair (RSA-OAEP, 2048)</button>
             </div>
             <p><label>Public Key (PEM)</label></p>
-            <pre id="pubPem">(vuota)</pre>
+            <pre id="pubPem">(void)</pre>
             <p><label>Private Key (PEM)</label></p>
-            <pre id="privPem">(vuota)</pre>
+            <pre id="privPem">(void)</pre>
         </div>
 
 
@@ -54,7 +54,7 @@
                 document.getElementById('wrappedInput').value
             )">Unwrap e mostra AES raw</button>
             <p><label>AES (raw base64)</label></p>
-            <pre id="unwrapped">(vuota)</pre>
+            <pre id="unwrapped">(void)</pre>
         </div>
 
     </main>
