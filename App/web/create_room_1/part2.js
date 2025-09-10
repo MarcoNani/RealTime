@@ -1,5 +1,3 @@
-
-
 async function decrypt_private_key(wrappedB64) {
       try{
         pem = localRsa.privPem;
@@ -22,6 +20,7 @@ async function decrypt_private_key(wrappedB64) {
         const raw = await window.crypto.subtle.exportKey('raw', aesKey);
         document.getElementById('unwrapped').textContent = bufToBase64(raw);
 
+        return aesKey;
       }catch(e){
         console.error(e); alert('Errore: '+(e.message||e));
       }

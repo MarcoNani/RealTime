@@ -3,20 +3,20 @@ import { scanQRCode } from './scanner.js';
 // Add this function to populate the camera dropdown
 async function populateCameraList() {
   const cameraList = document.getElementById('camera-list');
-  
+
   try {
     // Initial request to get permission to access cameras
     const initialStream = await navigator.mediaDevices.getUserMedia({ video: true });
     // Immediately stop the stream, we only need it to access labels
     initialStream.getTracks().forEach(track => track.stop());
-    
+
     // Now we can get the camera labels
     const devices = await navigator.mediaDevices.enumerateDevices();
     const videoDevices = devices.filter(device => device.kind === 'videoinput');
-    
+
     // Clear the dropdown
     cameraList.innerHTML = '';
-    
+
     if (videoDevices.length === 0) {
       const option = document.createElement('option');
       option.text = 'No cameras available';
@@ -24,16 +24,16 @@ async function populateCameraList() {
       cameraList.disabled = true;
       return;
     }
-    
+
     // Add all cameras to the dropdown
     let hasBackCamera = false;
     videoDevices.forEach((device, index) => {
       const option = document.createElement('option');
       option.value = device.deviceId;
-      
+
       // Create a descriptive name
       let cameraName = device.label || `Camera ${index + 1}`;
-      
+
       // Add information about the camera type
       if (cameraName.toLowerCase().includes('back')) {
         if (cameraName.toLowerCase().includes('ultra') || cameraName.toLowerCase().includes('wide')) {
@@ -45,26 +45,26 @@ async function populateCameraList() {
       } else if (cameraName.toLowerCase().includes('front')) {
         cameraName += ' (Front)';
       }
-      
+
       option.text = cameraName;
       cameraList.add(option);
-      
+
       // If it's a standard rear camera, select it by default
-      if (cameraName.includes('Rear') && 
-          !cameraName.toLowerCase().includes('wide') && 
-          !cameraName.toLowerCase().includes('ultra')) {
+      if (cameraName.includes('Rear') &&
+        !cameraName.toLowerCase().includes('wide') &&
+        !cameraName.toLowerCase().includes('ultra')) {
         cameraList.value = device.deviceId;
       }
     });
-    
+
     // If no camera has been selected yet, set the first available one
     if (!cameraList.value && videoDevices.length > 0) {
       cameraList.value = videoDevices[0].deviceId;
     }
-    
+
     cameraList.disabled = false;
     console.log("Camera list loaded");
-    
+
   } catch (err) {
     console.error("Error accessing cameras:", err);
     cameraList.innerHTML = '<option value="">Error accessing cameras</option>';
@@ -114,7 +114,7 @@ async function main() {
       },
       audio: false
     };
-    
+
     // If the user has selected a specific camera, use it
     if (cameraList.value) {
       constraints.video.deviceId = { exact: cameraList.value };
@@ -151,6 +151,7 @@ async function main() {
     console.log("Generated AES key and wrapped it with the public key:");
     console.log("Wrapped AES Key (Base64):", wrappedB64);
     console.log("AES Key:", aesKey); // TODO: remove
+    saveAESKey(roomId, aesKey);
 
     // TODO: store the key in a secure place for future use
 
@@ -200,7 +201,7 @@ async function main() {
   } catch (err) {
     console.error("Scanner error:", err);
     resultElement.innerText = "Error: " + err.message;
-    
+
     // Re-enable controls in case of error
     cameraList.disabled = false;
     document.getElementById("start-button").disabled = false;

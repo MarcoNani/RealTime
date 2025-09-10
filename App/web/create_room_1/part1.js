@@ -11,7 +11,7 @@ async function start_part1() {
     const [createRoomResponse] = await Promise.all([createRoomPromise, genKeyPairPromise]);
 
     // Generate and display the QR code
-    const roomId = createRoomResponse.data.data.roomId;
+    roomId = createRoomResponse.data.data.roomId;
     const publicKeyPEM = localRsa.pubPem;
     new QRCode(document.getElementById("qrcode"), roomId + '|' + publicKeyPEM);
     console.log("Room created with ID:", roomId);

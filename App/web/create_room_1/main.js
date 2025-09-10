@@ -1,3 +1,5 @@
+let roomId;
+
 function go_to_part2() {
     // hide the part 1 section
     document.getElementById('generate').style.display = 'none';
