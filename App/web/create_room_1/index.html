@@ -22,12 +22,11 @@
     <!-- NAVBAR -->
     <nav class="navbar">
         <a href="../chat_list/" class="back-button">Chats</a>
-        <h2 id="page-title">New Room part 1.d</h2>
+        <h2 id="page-title">New Room part 1</h2>
     </nav>
 
 
     <main class="content">
-        <p id="logs">LOGS:</p>
 
         <div id="generate">
             <!-- TODO: add waiting text while the qr code generate-->
@@ -39,7 +38,7 @@
                 onclick="go_to_part2()">Next</button>
 
             <div class="row">
-                <button id="genRsa">Generate RSA keypair (RSA-OAEP, 2048)</button>
+                <button id="genRsa" onclick="start_part1()">Generate RSA keypair (RSA-OAEP, 2048)</button>
             </div>
             <p><label>Public Key (PEM)</label></p>
             <pre id="pubPem">(void)</pre>
@@ -60,20 +59,10 @@
 
     </main>
 
-    <script>
-        window.addEventListener("DOMContentLoaded", function () {
-            document.getElementById("genRsa").addEventListener("click", function () {
-                alert("Button clicked!");
-                aggiungiLog("RSA keypair button pressed");
-                start_part1();
-            });
-        });
-    </script>
 
-    <script src="./logs.js"></script>
-    <script src="./part1.js"></script>
-    <script src="./part2.js"></script>
-    <script src="./main.js"></script>
+    <script src="part1.js"></script>
+    <script src="part2.js"></script>
+    <script src="main.js"></script>
     <script src="../assets/js/buttafuori.js"></script>
     <script src="../assets/js/db.js"></script>
     <script src="../assets/js/api.js"></script>
