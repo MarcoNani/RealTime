@@ -22,7 +22,7 @@
     <!-- NAVBAR -->
     <nav class="navbar">
         <a href="../chat_list/" class="back-button">Chats</a>
-        <h2 id="page-title">New Room part 1.c</h2>
+        <h2 id="page-title">New Room part 1.d</h2>
     </nav>
 
 
@@ -61,11 +61,12 @@
     </main>
 
     <script>
-        document.getElementById("genRsa").addEventListener("click", function () {
-            alert("Button clicked!");
-            aggiungiLog("RSA keypair button pressed");
-
-            start_part1();
+        window.addEventListener("DOMContentLoaded", function () {
+            document.getElementById("genRsa").addEventListener("click", function () {
+                alert("Button clicked!");
+                aggiungiLog("RSA keypair button pressed");
+                start_part1();
+            });
         });
     </script>
 
