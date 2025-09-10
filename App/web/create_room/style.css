@@ -5,3 +5,9 @@
   align-items: center;
   text-align: center;
 }
+
+/* QR CODE */
+#qrcode {
+  display: flex;
+  justify-content: center;
+}

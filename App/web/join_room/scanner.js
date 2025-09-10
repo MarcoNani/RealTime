@@ -18,19 +18,31 @@ export function scanQRCode(videoElement, canvasElement, resultElement, stream) {
         const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
 
         if (code) {
-          // Highlight the QR code
-          drawLine(code.location.topLeftCorner, code.location.topRightCorner, canvas);
-          drawLine(code.location.topRightCorner, code.location.bottomRightCorner, canvas);
-          drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, canvas);
-          drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, canvas);
+          // Found a QR code
+          // Validate QR code content
+          // If valid stop else continue scanning
 
-          resultElement.innerText = `QR Code: ${code.data}`;
+          const regex = /^[a-fA-F0-9]{32}\|-----BEGIN PUBLIC KEY-----[\s\S]+-----END PUBLIC KEY-----$/;
+          if (regex.test(code.data)) {
+            // QR code content is valid
+            console.log("Valid QR code content.");
 
-          // Stop the camera
-          stream.getTracks().forEach(track => track.stop());
+            // Highlight the QR code
+            drawLine(code.location.topLeftCorner, code.location.topRightCorner, canvas);
+            drawLine(code.location.topRightCorner, code.location.bottomRightCorner, canvas);
+            drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, canvas);
+            drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, canvas);
 
-          resolve(code.data);
-          return;
+            resultElement.innerText = `QR Code read successfully.`;
+
+            // Stop the camera
+            stream.getTracks().forEach(track => track.stop());
+
+            resolve(code.data);
+            return;
+          } else {
+            console.log("Invalid QR code content, continuing scan...");
+          }
         } else {
           resultElement.innerText = "Waiting for QR Code...";
         }
