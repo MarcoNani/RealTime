@@ -1,0 +1,33 @@
+#scanner-container {
+  position: relative;
+  display: inline-block;
+}
+
+#video {
+  height: 50%;
+  max-height: 50%;
+  max-width: 80%;
+  border-radius: 12px;
+  position: relative;
+  /* Ensure the video is positioned in the relative context */
+  z-index: 1;
+  /* Place the video below the canvas */
+}
+
+#canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  /* Ensure the canvas covers the video */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  height: 100%;
+  z-index: 2;
+  /* Place the canvas above the video */
+}
+
+ol {
+  margin-left: 0;
+  padding-left: 1em;
+}
