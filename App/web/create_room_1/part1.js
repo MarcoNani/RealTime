@@ -23,7 +23,8 @@ async function start_part1() {
 
 async function gen_rsa_keypair() {
     const keys = await window.crypto.subtle.generateKey(
-        { name: 'RSA-OAEP', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+        { name: 'RSA-OAEP', modulusLength: 1024, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, // TODO: change method to elliptic curve, i use 1024 bits for code readability, i should change the encryption method to elliptic curve later,
+        // but for now, considering the fact that the attacker would need to obtain the qr code while it is displayed on the screen, 1024 should be fine (the attacker should need a view on the victim screen)
         true,
         ['encrypt', 'decrypt', 'wrapKey', 'unwrapKey']
     );

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Room with QR Code</title>
+    <link rel="stylesheet" href="../assets/css/navbar.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="icon" type="image/png" href="../assets/icons/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon.svg" />
+    <link rel="shortcut icon" href="../assets/icons/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="../assets/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="RealTime" />
+    <link rel="manifest" href="../assets/icons/site.webmanifest" />
+</head>
+
+<body>
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="../chat_list/" class="back-button">Chats</a>
+        <h2>Join Room</h2>
+    </nav>
+
+    <main class="content">
+        <div id="scanner">
+
+            <div id="instructions">
+                <h2>Instructions</h2>
+                <ol>
+                    <li>Select a camera from the dropdown below.</li>
+                    <li>Click "Start Scanning" to activate the camera.</li>
+                    <li>Point the camera at the QR code to scan it.</li>
+                    <li>Once scanned, you will be redirected to the room.</li>
+                    <li>Avoid the front camera.</li>
+                    <li>Prefer the main (standard) rear camera, not wide-angle.</li>
+                    <li>If multiple options appear, <b>camera 0</b> is usually the right one.</li>
+                </ol>
+            </div>
+
+            <div id="camera-selection">
+                <label for="camera-list" id="camera-list-label">Select Camera:</label>
+                <select id="camera-list" disabled>
+                    <option value="">Loading cameras...</option>
+                </select>
+            </div>
+
+            <button onclick="main()" id="start-button">Start Scanning</button>
+            <br>
+            <div id="scanner-container">
+                <video id="video" autoplay playsinline></video>
+                <canvas id="canvas"></canvas>
+            </div>
+            <p id="result">Waiting for QR Code...</p>
+
+        </div>
+
+        <div id="qrcode"></div>
+
+
+        <section id="page2">
+            <h2>2) Genera AES e 'wrap' con la public key</h2>
+            <p>Incolla qui la public key (PEM) ricevuta dalla pagina 1, oppure usa la chiave generata localmente</p>
+            <textarea id="pubPemInput" placeholder="-----BEGIN PUBLIC KEY-----..."></textarea>
+            <div class="row">
+                <button id="genAesWrap" onclick="gen_aes_and_wrap(document.getElementById('pubPemInput').value)">Genera
+                    AES-256 e wrap con publicKey</button>
+            </div>
+            <p><label>Wrapped AES (base64)</label></p>
+            <pre id="wrapped">(vuoto)</pre>
+            <p><label>AES raw (base64) — solo per debug (se vuoi conservarla: non farlo in produzione)</label></p>
+            <pre id="aesRaw">(vuota)</pre>
+        </section>
+    </main>
+
+
+    <script type="module" src="main.js"></script>
+    <script src="main_key.js"></script>
+    <script src="../assets/js/buttafuori.js"></script>
+    <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/cryptography.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+</body>
+
+</html>
