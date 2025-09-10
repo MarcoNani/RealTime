@@ -3,21 +3,27 @@ let localRsa = { publicKey: null, privateKey: null, pubPem: '', privPem: '' };
 let lastWrappedB64 = '';
 
 async function start_part1() {
-    // Start both operations in parallel
-    const createRoomPromise = createRoom();
-    const genKeyPairPromise = gen_rsa_keypair();
+    try {
+        // Start both operations in parallel
+        const createRoomPromise = createRoom();
+        const genKeyPairPromise = gen_rsa_keypair();
 
-    // Wait for both to complete
-    const [createRoomResponse] = await Promise.all([createRoomPromise, genKeyPairPromise]);
+        // Wait for both to complete
+        const [createRoomResponse] = await Promise.all([createRoomPromise, genKeyPairPromise]);
 
-    // Generate and display the QR code
-    const roomId = createRoomResponse.data.data.roomId;
-    const publicKeyPEM = localRsa.pubPem;
-    new QRCode(document.getElementById("qrcode"), roomId + '|' + publicKeyPEM);
-    console.log("Room created with ID:", roomId);
+        // Generate and display the QR code
+        const roomId = createRoomResponse.data.data.roomId;
+        const publicKeyPEM = localRsa.pubPem;
+        new QRCode(document.getElementById("qrcode"), roomId + '|' + publicKeyPEM);
+        console.log("Room created with ID:", roomId);
+        console.log("QR Code content:", roomId + '|' + publicKeyPEM);
 
-    // Show the next button
-    document.getElementById('next').style.display = 'inline-block';
+        // Show the next button
+        document.getElementById('next').style.display = 'inline-block';
+    } catch (error) {
+        alert("An error occurred: " + error.message);
+        console.error(error);
+    }
 }
 
 async function gen_rsa_keypair() {
