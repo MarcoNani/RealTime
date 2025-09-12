@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create room with QRCODE</title>
+    <title>Create room - RealTime chat</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="../assets/css/buttons.css">
     <link rel="stylesheet" href="../assets/css/navbar.css">
@@ -24,7 +24,7 @@
     <!-- NAVBAR -->
     <nav class="navbar">
         <a href="../chat_list/" class="back-button">Chats</a>
-        <h2 id="page-title">New Room part 1</h2>
+        <h2 id="page-title">Create room part 1/2</h2>
     </nav>
 
 
@@ -64,7 +64,9 @@
                 </select>
             </div>
 
-            <button onclick="main()" id="start-button">Start Scanning</button>
+            <br>
+            <button onclick="main()" id="start-button" style="display:inline-block" class="primary-button app-button">Start Scanning</button>
+            <br>
             <br>
             <div id="scanner-container">
                 <video id="video" autoplay playsinline></video>
