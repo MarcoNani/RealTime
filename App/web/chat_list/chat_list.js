@@ -125,7 +125,7 @@ function renderRooms(rooms) {
         return;
     }
 
-    // Usa o crea la <ul>
+    // Use or create the <ul>
     let ul = container.querySelector("ul");
     if (!ul) {
         ul = document.createElement("ul");
@@ -135,7 +135,7 @@ function renderRooms(rooms) {
 
     const currentRoomIds = new Set(rooms.map(r => r.roomId));
 
-    // Rimuovi stanze che non esistono più
+    // Remove rooms that no longer exist
     Array.from(ul.children).forEach(li => {
         const roomId = li.dataset.roomId;
         if (!currentRoomIds.has(roomId)) {
@@ -143,22 +143,22 @@ function renderRooms(rooms) {
         }
     });
 
-    // Aggiorna / Aggiungi stanze
+    // Update / Add rooms
     rooms.forEach(async room => {
         let li = ul.querySelector(`[data-room-id="${room.roomId}"]`);
 
-        // Se non esiste, crealo
+        // If it doesn't exist, create it
         if (!li) {
             li = document.createElement("li");
             li.dataset.roomId = room.roomId;
             ul.appendChild(li);
         }
 
-        // Genera un ID hash più corto per il roomId
-        const hashLength = 4; // Puoi modificare questa lunghezza
+        // Generate a shorter hash ID for the roomId
+        const hashLength = 4; // You can modify this length
         const shortRoomId = await generateShortHash(room.roomId, hashLength);
 
-        // Aggiorna i contenuti della stanza
+        // Update the room contents
         const membersText = room.members
             .map(m => m.username || m.publicId || "Unknown")
             .join(", ");
@@ -188,7 +188,7 @@ function renderRooms(rooms) {
         li.innerHTML = ""; // Clear previous content
         li.appendChild(link);
 
-        // Aggiorna le join requests
+        // Update join requests
         const joinRequests = await fetchJoinRequests(room.roomId);
 
         if (joinRequests.length > 0) {
@@ -222,7 +222,7 @@ function renderRooms(rooms) {
 
             requestsDiv.appendChild(requestsList);
         } else {
-            requestsDiv.innerHTML = ""; // Nessuna richiesta
+            requestsDiv.innerHTML = ""; // No requests
         }
     });
 
