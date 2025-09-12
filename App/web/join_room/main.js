@@ -150,11 +150,7 @@ async function main() {
     const { wrappedB64, aesKey } = await gen_aes_and_wrap(publicKeyPEM);
     console.log("Generated AES key and wrapped it with the public key:");
     console.log("Wrapped AES Key (Base64):", wrappedB64);
-    console.log("AES Key:", aesKey); // TODO: remove
-    saveAESKey(roomId, aesKey);
-
-    // TODO: store the key in a secure place for future use
-
+    saveAESKey(roomId, aesKey); // store the key for future use
 
 
     // Call the server to make the Join request with the data from the QRCODE

@@ -56,22 +56,9 @@
 
         </div>
 
-        <div id="qrcode"></div>
-
-
-        <section id="page2">
-            <h2>2) Genera AES e 'wrap' con la public key</h2>
-            <p>Incolla qui la public key (PEM) ricevuta dalla pagina 1, oppure usa la chiave generata localmente</p>
-            <textarea id="pubPemInput" placeholder="-----BEGIN PUBLIC KEY-----..."></textarea>
-            <div class="row">
-                <button id="genAesWrap" onclick="gen_aes_and_wrap(document.getElementById('pubPemInput').value)">Genera
-                    AES-256 e wrap con publicKey</button>
-            </div>
-            <p><label>Wrapped AES (base64)</label></p>
-            <pre id="wrapped">(vuoto)</pre>
-            <p><label>AES raw (base64) — solo per debug (se vuoi conservarla: non farlo in produzione)</label></p>
-            <pre id="aesRaw">(vuota)</pre>
-        </section>
+        <div id="qrcode">
+            <p>Show this qr code to the other user</p>
+        </div>
     </main>
 
 
