@@ -51,7 +51,9 @@ async function initChat() {
         });
 
         // Render each message in the chat
-        messages.forEach(renderMessage);
+        messages.forEach(msg => {
+            renderMessage(msg, roomId);
+        });
     } catch (error) {
         console.error("Failed to load messages for room:", error);
     }
@@ -170,7 +172,7 @@ class SocketConnection {
             if (payload.roomId === this.currentRoomId) {
                 // Render message
                 console.log("Rendering message:", message);
-                renderMessage(message);
+                renderMessage(message, this.currentRoomId);
             } else {
                 console.log("Message is not for current room:", message);
             }
@@ -203,7 +205,7 @@ class SocketConnection {
             if (payload.roomId === this.currentRoomId) {
                 // Render message
                 console.log("Rendering message:", message);
-                renderMessage(message);
+                renderMessage(message, this.currentRoomId);
             } else {
                 console.log("Message is not for current room:", message);
             }
@@ -266,19 +268,22 @@ class SocketConnection {
                 this.currentMessageID = await this.requestMessageId(room);
             }
 
-            // Create the message object
+            // Encrypt the payload before sending
+            const encryptedPayload = await encryptPayload(payload, this.currentRoomId);
+
+            // Create the message object for sending
             const message_obj = {
                 sendId: uuidv4(),
                 messageId: this.currentMessageID,
                 roomId: room,
-                payload: payload,
+                payload: encryptedPayload,
             };
 
             // Send the message to the server
             console.log("Sending typing message with local message id:", message_obj);
             this.socket.emit("typing", message_obj);
 
-            // Create message object
+            // Create message object for rendering and storing
             const message = {
                 payload: payload,
                 timestamp: new Date().toISOString(), // Store timestamp in ISO 8601 format
@@ -290,7 +295,10 @@ class SocketConnection {
             };
 
             // Render message
-            renderMessage(message);
+            renderMessage(message, room, false);
+
+            // Add the encrypted payload for storage
+            message.payload = encryptedPayload;
 
             // Store message in indexDB
             // TODO: i can implement a QUEUE system but now i don't want to do it
@@ -304,19 +312,24 @@ class SocketConnection {
         }
     }
 
-    finishTyping(room, payload) {
+    async finishTyping(room, payload) {
         // Finish typing the message and send the final payload to the server
+
+        // Encrypt the payload before sending
+        const encryptedPayload = await encryptPayload(payload, this.currentRoomId);
+
+        // Create the message object for sending
         const message_obj = {
             sendId: uuidv4(),
             messageId: this.currentMessageID,
             roomId: room,
-            payload: payload,
+            payload: encryptedPayload,
         };
 
         console.log("Sending finish message with local message id:", message_obj);
         this.socket.emit("finish", message_obj);
 
-        // Create message object
+        // Create message object for rendering and storing
         const message = {
             payload: payload,
             timestamp: new Date().toISOString(), // Store timestamp in ISO 8601 format
@@ -328,7 +341,10 @@ class SocketConnection {
         };
 
         // Render message
-        renderMessage(message);
+        renderMessage(message, room, false);
+
+        // Add the encrypted payload for storage
+        message.payload = encryptedPayload;
 
         // Store message in indexDB
         // TODO: i can implement a QUEUE system but now i don't want to do it
