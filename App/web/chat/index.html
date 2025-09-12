@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Room</title>
+    <title>Chatting in RealTime</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <!-- TODO: add integrity check -->
@@ -31,7 +31,7 @@
     <!-- NAVBAR -->
     <nav class="navbar">
         <a href="../chat_list/" class="back-button">Chats</a>
-        <h2>RealTime v. 0.9.4</h2>
+        <h2 id="title">RealTime v. 1.0.0-alpha</h2>
     </nav>
 
     <main class="content">
@@ -47,11 +47,7 @@
                                 <br>
                                 The chat where everything is in RealTime
                             </p>
-                            <p>At the moment RealTime is not E2E encrypted, don't send secrets.
-                                <br>
-                                I'm working to bring
-                                E2E encryption to RealTime.
-                            </p>
+                            <p>RealTime <strong>is E2E encrypted</strong> so only you and other chat members can read the messages.<br><strong>No one else can read your messages (neither us at RealTime)</strong></p>
                             <p>If you want to know more about RealTime go to:</p>
                             <ul class="link-list">
                                 <li>
@@ -99,6 +95,8 @@
     </div>
 
     <script src="../assets/js/db.js"></script>
+    <script src="../assets/js/keystore.js"></script>
+    <script src="../assets/js/cryptography.js"></script>
 </body>
 
 </html>

@@ -214,8 +214,18 @@ function scrollToBottom() {
  * Renders a message in the chat div
  * @param {Message} message_obj - The message object
  */
-function renderMessage(message_obj) {
+async function renderMessage(message_obj, roomId, encrypted=true) {
     const { payload, timestamp, username, publicId, messageId, typing, mine } = message_obj;
+
+    let decryptedPayload;
+
+    if (encrypted) {
+        console.log("Decrypting message payload:", payload);
+        decryptedPayload = await decryptPayload(payload, roomId);
+    } else {
+        decryptedPayload = payload;
+    }
+
 
     // Obtain the chat div
     const chatDiv = document.getElementById("chat");
@@ -226,10 +236,10 @@ function renderMessage(message_obj) {
 
     if (mine) {
         // Generate the message element for the current user's message
-        newMessageElement = generateMyMessage(username, timestamp, payload, messageId, typing, messageId);
+        newMessageElement = generateMyMessage(username, timestamp, decryptedPayload, messageId, typing, messageId);
     } else {
         // Generate the message element for another user's message
-        newMessageElement = generateOthersMessage(username, timestamp, payload, messageId, typing, messageId);
+        newMessageElement = generateOthersMessage(username, timestamp, decryptedPayload, messageId, typing, messageId);
     }
 
     if (existingMessage) {

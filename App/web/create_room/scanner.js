@@ -22,10 +22,17 @@ export function scanQRCode(videoElement, canvasElement, resultElement, stream) {
           // Validate QR code content
           // If valid stop else continue scanning
 
-          const regex = /^[a-fA-F0-9]{32}\|-----BEGIN PUBLIC KEY-----[\s\S]+-----END PUBLIC KEY-----$/;
-          if (regex.test(code.data)) {
+          console.log("QR Code Data (raw):", code.data);
+
+          const regex = /^[a-fA-F0-9]{32}\|[A-Za-z0-9+/=]+$/;
+          if (regex.test(code.data.trim())) {
             // QR code content is valid
             console.log("Valid QR code content.");
+
+            // trim the result to avoid issues with padding
+            const trimmedData = code.data.trim();
+
+            console.log("QR Code Data (trimmed):", trimmedData);
 
             // Highlight the QR code
             drawLine(code.location.topLeftCorner, code.location.topRightCorner, canvas);
@@ -38,7 +45,7 @@ export function scanQRCode(videoElement, canvasElement, resultElement, stream) {
             // Stop the camera
             stream.getTracks().forEach(track => track.stop());
 
-            resolve(code.data);
+            resolve(trimmedData);
             return;
           } else {
             console.log("Invalid QR code content, continuing scan...");

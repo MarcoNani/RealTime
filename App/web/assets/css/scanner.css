@@ -30,13 +30,4 @@
 ol {
   margin-left: 0;
   padding-left: 1em;
-  text-align: left;
-}
-
-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
 }
