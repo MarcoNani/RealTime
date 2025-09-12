@@ -1,9 +1,15 @@
-/* CONTENT */
-.content {
+main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   text-align: center;
+}
+
+ol {
+  margin-left: 0;
+  padding-left: 1em;
+  text-align: left;
 }
 
 /* QR CODE */

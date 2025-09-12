@@ -164,6 +164,10 @@ async function main() {
       // Hide the scanner UI
       document.getElementById("scanner").style.display = "none";
 
+      // Show the "waiting for approval" message
+      const waitingDiv = document.getElementById("waiting");
+      waitingDiv.style.display = "block";
+
       // show qr code with join request id and wrapped key
       const joinRequestId = response.data.data.requestId;
       let newQRContent = joinRequestId + '|' + wrappedB64;
