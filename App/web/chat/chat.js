@@ -16,7 +16,7 @@ async function initChat() {
 
     const input = document.getElementById("message"); // Input field for messages
     const chat = document.getElementById("chat"); // Chat display area
-    const title = document.getElementById("title");
+    const title = document.getElementById("title"); // Title element (currently unused)
 
     const apiKey = localStorage.getItem("apiKey");
     const serverUrl = localStorage.getItem("serverUrl");
@@ -25,17 +25,6 @@ async function initChat() {
     const socketConnection = new SocketConnection(serverUrl, roomId, apiKey);
     await socketConnection.connect();
 
-
-    // Load encryption key for the room and add it in the title
-    try {
-        const aesKeyB64 = await getAESKeyForDisplay(roomId);
-        console.log("AES Key for room:", aesKeyB64);
-        title.textContent += ` - ${aesKeyB64}`;
-    } catch (error) {
-        console.error("Failed to retrieve AES Key:", error);
-        title.textContent += " - No AES Key";
-        return;
-    }
 
     // Load messages for the current room
     try {

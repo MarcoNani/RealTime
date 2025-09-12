@@ -38,14 +38,6 @@
 
             <button id="next" style="display:none" class="primary-button app-button"
                 onclick="go_to_part2()">Next</button>
-
-            <div class="row">
-                <button id="genRsa" onclick="start_part1()">Generate RSA keypair (RSA-OAEP, 2048)</button>
-            </div>
-            <p><label>Public Key (PEM)</label></p>
-            <pre id="pubPem">(void)</pre>
-            <p><label>Private Key (PEM)</label></p>
-            <pre id="privPem">(void)</pre>
         </div>
 
 
@@ -79,17 +71,6 @@
                 <canvas id="canvas"></canvas>
             </div>
             <p id="result">Waiting for QR Code...</p>
-
-
-
-
-
-            <textarea id="wrappedInput" placeholder="wrapped base64..."></textarea>
-            <button id="unwrap" onclick="decrypt_private_key(
-                document.getElementById('wrappedInput').value
-            )">Unwrap e mostra AES raw</button>
-            <p><label>AES (raw base64)</label></p>
-            <pre id="unwrapped">(void)</pre>
         </div>
 
     </main>

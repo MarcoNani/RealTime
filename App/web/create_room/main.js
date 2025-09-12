@@ -8,3 +8,7 @@ function go_to_part2() {
     // show the part 2 section
     document.getElementById('accept').style.display = 'block';
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    start_part1();
+});

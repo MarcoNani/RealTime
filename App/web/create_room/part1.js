@@ -32,6 +32,4 @@ async function gen_rsa_keypair() {
     localRsa.privateKey = keys.privateKey;
     localRsa.pubPem = await exportPublicKeyToPEM(keys.publicKey);
     localRsa.privPem = await exportPrivateKeyToPEM(keys.privateKey);
-    document.getElementById('pubPem').textContent = localRsa.pubPem;
-    document.getElementById('privPem').textContent = localRsa.privPem;
 }

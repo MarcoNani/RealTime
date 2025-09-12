@@ -2,7 +2,7 @@ async function decrypt_private_key(wrappedB64) {
       try{
         pem = localRsa.privPem;
         console.log(pem, wrappedB64);
-        if(!pem || !wrappedB64) return alert('Inserisci private PEM e wrapped key');
+        if(!pem || !wrappedB64) return alert('Insert PEM and wrapped key');
         const privKey = await importPrivateKeyFromPEM(pem);
         const wrappedBuf = base64ToBuf(wrappedB64);
 
@@ -13,13 +13,10 @@ async function decrypt_private_key(wrappedB64) {
           privKey,
           { name:'RSA-OAEP' },
           { name:'AES-GCM', length:256 },
-          true, // extractable true so we can show the raw bytes (debug/demo only)
+          true, // extractable true so we can save the raw key
           ['decrypt']
         );
-
-        const raw = await window.crypto.subtle.exportKey('raw', aesKey);
-        document.getElementById('unwrapped').textContent = bufToBase64(raw);
-
+        
         return aesKey;
       }catch(e){
         console.error(e); alert('Errore: '+(e.message||e));
