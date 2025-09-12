@@ -154,26 +154,41 @@ function renderRooms(rooms) {
             ul.appendChild(li);
         }
 
+        // Genera un ID hash più corto per il roomId
+        const hashLength = 4; // Puoi modificare questa lunghezza
+        const shortRoomId = await generateShortHash(room.roomId, hashLength);
+
         // Aggiorna i contenuti della stanza
         const membersText = room.members
             .map(m => m.username || m.publicId || "Unknown")
             .join(", ");
 
-        li.innerHTML = `
-        <a href="../chat/?roomId=${room.roomId}" class="chat-link">
-            <strong>Room ID:</strong> ${room.roomId}<br>
-            <strong>Members:</strong> ${membersText}<br>
-            <div class="requests"></div>
-        </a>
-        `;
+        const link = document.createElement("a");
+        link.href = `../chat/?roomId=${encodeURIComponent(room.roomId)}`;
+        link.className = "chat-link";
 
+        const roomIdText = document.createElement("strong");
+        roomIdText.textContent = `Room hash: ${shortRoomId}`;
+        link.appendChild(roomIdText);
+        link.appendChild(document.createElement("br"));
 
-        // TODO: show previous votes
+        const membersLabel = document.createElement("strong");
+        membersLabel.textContent = "Members: ";
+        link.appendChild(membersLabel);
 
-        // TODO: show room creation date
+        const membersSpan = document.createElement("span");
+        membersSpan.textContent = membersText;
+        link.appendChild(membersSpan);
+        link.appendChild(document.createElement("br"));
+
+        const requestsDiv = document.createElement("div");
+        requestsDiv.className = "requests";
+        link.appendChild(requestsDiv);
+
+        li.innerHTML = ""; // Clear previous content
+        li.appendChild(link);
 
         // Aggiorna le join requests
-        const requestsDiv = li.querySelector(".requests");
         const joinRequests = await fetchJoinRequests(room.roomId);
 
         if (joinRequests.length > 0) {
@@ -182,11 +197,26 @@ function renderRooms(rooms) {
 
             joinRequests.forEach(request => {
                 const requestItem = document.createElement("li");
-                requestItem.innerHTML = `
-                    ${request.requestorUsername || request.requestorPublicId || "Unknown"} 
-                    <button style="color: green;" onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', true)">Approve</button>
-                    <button style="color: red;" onclick="voteOnJoinRequest('${room.roomId}', '${request.requestId}', false)">Reject</button>
-                `;
+                const requestorText = document.createTextNode(
+                    request.requestorUsername || request.requestorPublicId || "Unknown"
+                );
+
+                const approveButton = document.createElement("button");
+                approveButton.style.color = "green";
+                approveButton.textContent = "Approve";
+                approveButton.onclick = () => voteOnJoinRequest(room.roomId, request.requestId, true);
+
+                const rejectButton = document.createElement("button");
+                rejectButton.style.color = "red";
+                rejectButton.textContent = "Reject";
+                rejectButton.onclick = () => voteOnJoinRequest(room.roomId, request.requestId, false);
+
+                requestItem.appendChild(requestorText);
+                requestItem.appendChild(document.createTextNode(" "));
+                requestItem.appendChild(approveButton);
+                requestItem.appendChild(document.createTextNode(" "));
+                requestItem.appendChild(rejectButton);
+
                 requestsList.appendChild(requestItem);
             });
 
@@ -195,6 +225,16 @@ function renderRooms(rooms) {
             requestsDiv.innerHTML = ""; // Nessuna richiesta
         }
     });
+
+async function generateShortHash(input, length) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(input);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    const uppercaseHashHex = hashHex.toUpperCase();
+    return uppercaseHashHex.slice(0, length);
+}
 }
 
 /* 
