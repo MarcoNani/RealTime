@@ -1,15 +1,11 @@
 sequenceDiagram
 Title: Key exchange and chatroom creation C1
-    participant KeystoreA as Keystore (A)
     participant A as Device A
     participant Server as Server API
     participant B as Device B
-    participant KeystoreB as Keystore (B)
 
 
-    A->>KeystoreA: Ask to generate RSA key pair
-    KeystoreA-->>KeystoreA: Generate and store RSA key pair
-    KeystoreA-->>A: PublicKey (A)
+    A-->>A: Generate RSA key pair
 
     
 
@@ -17,14 +13,13 @@ Title: Key exchange and chatroom creation C1
     A->>Server: POST /api/v1/rooms
     Server-->>A: roomId
 
-    A->>A: 🖼️ Show QRCode: "$roomId|$publicKey" (PublicKey encoded in Base64 with X.509 format)
+    A->>A: 🖼️ Show QRCode: "$roomId|$publicKey"
     A->>B: Send PublicKey (A) & roomId via QRCode
 
-    B->>B: Generate AES key (with CPU)
-    B->>B: encrypt AES key with PublicKey (A) (with CPU)
+    B->>B: Generate AES key
+    B->>B: encrypt AES key with PublicKey (A)
 
-    B->>KeystoreB: Ask to store AES key
-    KeystoreB->>KeystoreB: Store AES key
+    B->>B: Store AES key
 
     Note over B, Server: 📡 API call - Request to join the room
 
@@ -33,20 +28,15 @@ Title: Key exchange and chatroom creation C1
 
 
 
-    B->>B: 🖼️ Show QRCode: "$requestId|$encryptedKeyBase64"
+    B->>B: 🖼️ Show QRCode: "$requestId|$wrappedKey"
 
     B->>A: Send Encrypted AES & requestId via QRCode
 
-    A->>KeystoreA: Ask to decrypt Encrypted AES with PrivateKey (A)
-    KeystoreA->>A: Decrypted AES Key
+    A->>A: Decrypted AES Key
 
-    A->>KeystoreA: Ask to store decrypted AES Key
-    KeystoreA-->>KeystoreA: Store decrypted AES Key
-    
-    A->>KeystoreA: Ask to delete RSA key pair
-    KeystoreA-->>KeystoreA: Delete RSA key pair
+    A-->>A: Store decrypted AES Key
 
-    Note over KeystoreA, KeystoreB: 🔐 Both devices now share the same AES key
+    Note over A, B: 🔐 Both devices now share the same AES key
 
     Note over A, Server: 📡 API call - Approve join request
     A->>Server: PATCH /api/v1/rooms/{roomId}/join-requests/{requestId}/votes    {"vote": true}
