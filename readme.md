@@ -31,15 +31,15 @@ RT wants to go beyond this and make you feel in front of your interlocutor. Than
 used messaging systems but rather to be an extension to them.
 
 ### Features:
-1. Real-time typing
-2. Physical proximity for contact
-3. Open source and well documented
+- Real-time typing
+- Physical proximity for contact
+- Open source and well documented
+- E2E encryption
 
 ### Coming features:
-1. Live voice messages
-2. Live images
-3. E2E encryption
-4. Export JSON and nice PDF
+- Live voice messages
+- Live images
+- Export JSON and nice PDF
 
 ## Self hosting
 To run RealTime locally follow these steps:
