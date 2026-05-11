@@ -70,7 +70,7 @@ You can serve it with a simple static server. For example, using http-server:
 npx http-server .
   ```
 
-Alternatively, you can host it online using services, i personally use [Render](render.com).
+Alternatively, you can host it online using a web hosting service.
 
 Remember to write the correct server url in the create user screen.
 
