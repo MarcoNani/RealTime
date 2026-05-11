@@ -34,17 +34,9 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'https://api.chatinrealtime.com',
-        description: "Production server (main branch)",
-      },
-      {
         url: `http://localhost:${process.env.PORTA || 3000}`,
         description: "Local development server (development branch)",
-      },
-      {
-        url: `https://realtime-development.onrender.com`,
-        description: "Online development server (development branch)",
-      }      
+      }    
     ],
     components: {
       securitySchemes: {
