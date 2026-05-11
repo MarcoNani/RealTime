@@ -18,9 +18,6 @@
 
 > It's smoother when you use it. My screen recording sucks.
 
-## Try it
-Online client at: [client.chatinrealtime.com](https://client.chatinrealtime.com)
-
 ## Description
 We all have that friend with whom we spend our evenings chatting.
 We all know what it feels like to stare at the words "is typing" under the name of the person we're talking to.
@@ -75,7 +72,7 @@ npx http-server .
 
 Alternatively, you can host it online using services, i personally use [Render](render.com).
 
-Remember to write the correct server url in the create user screen. By default it will use https://api.chatinrealtime.com/.
+Remember to write the correct server url in the create user screen.
 
 Enjoy.
 
@@ -138,13 +135,7 @@ The communication protocol via WebSocket and the APIs will be well documented so
 For more information about the docs go to the [Docs](/Docs/) directory in this repository.
 
 ## Platforms and project status
-A working version of the *server* ([RESTful API](https://api.chatinrealtime.com/api-docs) and WebSockets) is ready and online. (Despite this, further improvements are planned: internal stuff, especially for memory management).
-
-An deployed version of the *client* is online at: [client.chatinrealtime.com](https://client.chatinrealtime.com)
-
-I was developing an *android app*, but now i've moved on and developed a static web app. If you want to contribute to the android client fork the repo and feel free to contribute.
+The project is currently discontinued and all the online stuff are being deleted.
+You can still self host it.
 
 Everything can be self hosted following the instruction at the beginning of this readme.
-
-## More?
-If you want to know more about RealTime I invite you to visit the official website reachable by connecting to [chatinrealtime.com](https://chatinrealtime.com).
